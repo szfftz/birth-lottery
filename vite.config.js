@@ -8,5 +8,5 @@ export default defineConfig({
   plugins: [vue()],
   // MapLibre 的 worker 是 ES module（見 src/lib/maplibre-worker.js）
   worker: { format: 'es' },
-  server: { port: 8081, host: true, open: true },
+  server: { port: 8085, strictPort: true, host: true, open: true },
 })
