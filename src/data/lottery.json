@@ -1,0 +1,2046 @@
+{
+ "meta": {
+  "hdi": {
+   "title": "List of countries by Human Development Index",
+   "url": "https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index",
+   "revid": 1381761693,
+   "year": 2023,
+   "report": "UNDP Human Development Report 2025"
+  },
+  "pop": {
+   "title": "List of countries and dependencies by population",
+   "url": "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population",
+   "revid": 1382299340,
+   "world": 8232000000
+  },
+  "taiwan": {
+   "title": "Taiwan",
+   "url": "https://en.wikipedia.org/wiki/Taiwan",
+   "revid": 1382180083
+  },
+  "prk": {
+   "title": "朝鲜民主主义人民共和国",
+   "url": "https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国",
+   "revid": 95125476,
+   "year": 2016
+  },
+  "total": 8058799602,
+  "count": 196,
+  "with_hdi": 194,
+  "pop_with_hdi": 8058759863,
+  "dropped": [
+   "Hong Kong (China)",
+   "Puerto Rico (US)",
+   "Kosovo",
+   "Macau (China)",
+   "Western Sahara (disputed)",
+   "Northern Cyprus",
+   "Transnistria",
+   "French Polynesia (France)",
+   "New Caledonia (France)",
+   "Abkhazia",
+   "Curaçao (Netherlands)",
+   "Guam (US)",
+   "Aruba (Netherlands)",
+   "Jersey (UK)",
+   "Cayman Islands (UK)",
+   "U.S. Virgin Islands (US)",
+   "Isle of Man (UK)",
+   "Guernsey (UK)",
+   "Bermuda (UK)",
+   "Greenland (Denmark)",
+   "South Ossetia",
+   "Faroe Islands (Denmark)",
+   "Turks and Caicos Islands (UK)",
+   "American Samoa (US)",
+   "Northern Mariana Islands (US)",
+   "Sint Maarten (Netherlands)",
+   "British Virgin Islands (UK)",
+   "Gibraltar (UK)",
+   "Saint Martin (France)",
+   "Anguilla (UK)",
+   "Cook Islands (New Zealand)",
+   "Wallis and Futuna (France)",
+   "Saint Barthélemy (France)",
+   "Saint Pierre and Miquelon (France)",
+   "Saint Helena, Ascension and Tristan da Cunha (UK)",
+   "Montserrat (UK)",
+   "Falkland Islands (UK)",
+   "Tokelau (New Zealand)",
+   "Norfolk Island (Australia)",
+   "Christmas Island (Australia)",
+   "Niue (New Zealand)",
+   "Cocos (Keeling) Islands (Australia)",
+   "Pitcairn Islands (UK)"
+  ],
+  "unmatched_hdi": [],
+  "unmatched_pop": [],
+  "hdi_without_pop": [
+   "HKG"
+  ]
+ },
+ "countries": {
+  "IND": {
+   "name_zh": "印度",
+   "name_en": "India",
+   "pop": 1429404000,
+   "pop_date": "1 Jul 2026",
+   "p": 0.177371825903855,
+   "hdi": 0.685,
+   "hdi_rank": 130,
+   "on_map": true
+  },
+  "CHN": {
+   "name_zh": "中華人民共和國",
+   "name_en": "China",
+   "pop": 1404890000,
+   "pop_date": "31 Dec 2025",
+   "p": 0.17432993366050945,
+   "hdi": 0.797,
+   "hdi_rank": 78,
+   "on_map": true
+  },
+  "USA": {
+   "name_zh": "美國",
+   "name_en": "United States",
+   "pop": 341784857,
+   "pop_date": "1 Jul 2025",
+   "p": 0.042411385551165366,
+   "hdi": 0.938,
+   "hdi_rank": 17,
+   "on_map": true
+  },
+  "IDN": {
+   "name_zh": "印度尼西亞",
+   "name_en": "Indonesia",
+   "pop": 290125073,
+   "pop_date": "30 Jun 2026",
+   "p": 0.03600102835762264,
+   "hdi": 0.728,
+   "hdi_rank": 113,
+   "on_map": true
+  },
+  "PAK": {
+   "name_zh": "巴基斯坦",
+   "name_en": "Pakistan",
+   "pop": 241499431,
+   "pop_date": "1 Mar 2023",
+   "p": 0.02996717165420836,
+   "hdi": 0.544,
+   "hdi_rank": 168,
+   "on_map": true
+  },
+  "NGA": {
+   "name_zh": "奈及利亞",
+   "name_en": "Nigeria",
+   "pop": 223800000,
+   "pop_date": "1 Jul 2023",
+   "p": 0.027770885374101897,
+   "hdi": 0.56,
+   "hdi_rank": 164,
+   "on_map": true
+  },
+  "BRA": {
+   "name_zh": "巴西",
+   "name_en": "Brazil",
+   "pop": 214211951,
+   "pop_date": "1 Jul 2026",
+   "p": 0.026581123936477803,
+   "hdi": 0.786,
+   "hdi_rank": 84,
+   "on_map": true
+  },
+  "BGD": {
+   "name_zh": "孟加拉",
+   "name_en": "Bangladesh",
+   "pop": 169828911,
+   "pop_date": "14 Jun 2022",
+   "p": 0.021073723058934554,
+   "hdi": 0.685,
+   "hdi_rank": 130,
+   "on_map": true
+  },
+  "RUS": {
+   "name_zh": "俄羅斯",
+   "name_en": "Russia",
+   "pop": 146028325,
+   "pop_date": "1 Jan 2025",
+   "p": 0.018120356903248876,
+   "hdi": 0.832,
+   "hdi_rank": 64,
+   "on_map": true
+  },
+  "MEX": {
+   "name_zh": "墨西哥",
+   "name_en": "Mexico",
+   "pop": 131231919,
+   "pop_date": "30 Jun 2026",
+   "p": 0.016284301072262846,
+   "hdi": 0.789,
+   "hdi_rank": 81,
+   "on_map": true
+  },
+  "JPN": {
+   "name_zh": "日本",
+   "name_en": "Japan",
+   "pop": 122690000,
+   "pop_date": "1 Oct 2026",
+   "p": 0.015224351771888123,
+   "hdi": 0.925,
+   "hdi_rank": 23,
+   "on_map": true
+  },
+  "COD": {
+   "name_zh": "剛果民主共和國",
+   "name_en": "Democratic Republic of the Congo",
+   "pop": 116452162,
+   "pop_date": "1 Jul 2026",
+   "p": 0.014450311181717359,
+   "hdi": 0.522,
+   "hdi_rank": 171,
+   "on_map": true
+  },
+  "PHL": {
+   "name_zh": "菲律賓",
+   "name_en": "Philippines",
+   "pop": 114849400,
+   "pop_date": "1 Jul 2026",
+   "p": 0.014251427715301065,
+   "hdi": 0.72,
+   "hdi_rank": 117,
+   "on_map": true
+  },
+  "ETH": {
+   "name_zh": "衣索比亞",
+   "name_en": "Ethiopia",
+   "pop": 111652998,
+   "pop_date": "1 Jul 2025",
+   "p": 0.013854792712836588,
+   "hdi": 0.497,
+   "hdi_rank": 180,
+   "on_map": true
+  },
+  "EGY": {
+   "name_zh": "埃及",
+   "name_en": "Egypt",
+   "pop": 108613296,
+   "pop_date": "1 Jan 2026",
+   "p": 0.01347760229365237,
+   "hdi": 0.754,
+   "hdi_rank": 100,
+   "on_map": true
+  },
+  "VNM": {
+   "name_zh": "越南",
+   "name_en": "Vietnam",
+   "pop": 102300000,
+   "pop_date": "31 Dec 2025",
+   "p": 0.01269419827422084,
+   "hdi": 0.766,
+   "hdi_rank": 93,
+   "on_map": true
+  },
+  "IRN": {
+   "name_zh": "伊朗",
+   "name_en": "Iran",
+   "pop": 87134000,
+   "pop_date": "21 Mar 2026",
+   "p": 0.010812280277868609,
+   "hdi": 0.799,
+   "hdi_rank": 75,
+   "on_map": true
+  },
+  "TUR": {
+   "name_zh": "土耳其",
+   "name_en": "Turkey",
+   "pop": 86092168,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0106830014706699,
+   "hdi": 0.853,
+   "hdi_rank": 51,
+   "on_map": true
+  },
+  "DEU": {
+   "name_zh": "德國",
+   "name_en": "Germany",
+   "pop": 83298787,
+   "pop_date": "30 Jun 2026",
+   "p": 0.010336376521799506,
+   "hdi": 0.959,
+   "hdi_rank": 5,
+   "on_map": true
+  },
+  "THA": {
+   "name_zh": "泰國",
+   "name_en": "Thailand",
+   "pop": 70250751,
+   "pop_date": "2025",
+   "p": 0.008717272356861368,
+   "hdi": 0.798,
+   "hdi_rank": 76,
+   "on_map": true
+  },
+  "TZA": {
+   "name_zh": "坦尚尼亞",
+   "name_en": "Tanzania",
+   "pop": 70038850,
+   "pop_date": "1 Jul 2026",
+   "p": 0.008690977994119378,
+   "hdi": 0.555,
+   "hdi_rank": 165,
+   "on_map": true
+  },
+  "GBR": {
+   "name_zh": "英國",
+   "name_en": "United Kingdom",
+   "pop": 69487000,
+   "pop_date": "30 Jun 2025",
+   "p": 0.008622500053575597,
+   "hdi": 0.946,
+   "hdi_rank": 13,
+   "on_map": true
+  },
+  "FRA": {
+   "name_zh": "法國",
+   "name_en": "France",
+   "pop": 69081996,
+   "pop_date": "1 Jan 2026",
+   "p": 0.008572243933557488,
+   "hdi": 0.92,
+   "hdi_rank": 26,
+   "on_map": true
+  },
+  "ZAF": {
+   "name_zh": "南非",
+   "name_en": "South Africa",
+   "pop": 63522380,
+   "pop_date": "30 Jun 2026",
+   "p": 0.007882362527569896,
+   "hdi": 0.741,
+   "hdi_rank": 106,
+   "on_map": true
+  },
+  "ITA": {
+   "name_zh": "義大利",
+   "name_en": "Italy",
+   "pop": 58943673,
+   "pop_date": "30 Jun 2026",
+   "p": 0.007314200118014052,
+   "hdi": 0.915,
+   "hdi_rank": 29,
+   "on_map": true
+  },
+  "KEN": {
+   "name_zh": "肯亞",
+   "name_en": "Kenya",
+   "pop": 54227015,
+   "pop_date": "1 Jul 2026",
+   "p": 0.006728919650333799,
+   "hdi": 0.628,
+   "hdi_rank": 143,
+   "on_map": true
+  },
+  "COL": {
+   "name_zh": "哥倫比亞",
+   "name_en": "Colombia",
+   "pop": 53399171,
+   "pop_date": "1 Jan 2026",
+   "p": 0.006626194177448911,
+   "hdi": 0.788,
+   "hdi_rank": 83,
+   "on_map": true
+  },
+  "SDN": {
+   "name_zh": "蘇丹",
+   "name_en": "Sudan",
+   "pop": 53282719,
+   "pop_date": "1 Jul 2026",
+   "p": 0.006611743886369443,
+   "hdi": 0.511,
+   "hdi_rank": 176,
+   "on_map": true
+  },
+  "MMR": {
+   "name_zh": "緬甸",
+   "name_en": "Myanmar",
+   "pop": 51375327,
+   "pop_date": "15 Oct 2024",
+   "p": 0.0063750595047989385,
+   "hdi": 0.609,
+   "hdi_rank": 150,
+   "on_map": true
+  },
+  "KOR": {
+   "name_zh": "大韓民國",
+   "name_en": "South Korea",
+   "pop": 51088284,
+   "pop_date": "31 Jul 2026",
+   "p": 0.006339440924591439,
+   "hdi": 0.937,
+   "hdi_rank": 20,
+   "on_map": true
+  },
+  "ESP": {
+   "name_zh": "西班牙",
+   "name_en": "Spain",
+   "pop": 49801559,
+   "pop_date": "1 Jul 2026",
+   "p": 0.006179773844685312,
+   "hdi": 0.918,
+   "hdi_rank": 28,
+   "on_map": true
+  },
+  "DZA": {
+   "name_zh": "阿爾及利亞",
+   "name_en": "Algeria",
+   "pop": 47400000,
+   "pop_date": "1 Jan 2025",
+   "p": 0.005881769288348659,
+   "hdi": 0.763,
+   "hdi_rank": 96,
+   "on_map": true
+  },
+  "ARG": {
+   "name_zh": "阿根廷",
+   "name_en": "Argentina",
+   "pop": 46466688,
+   "pop_date": "1 Jul 2026",
+   "p": 0.005765956506533316,
+   "hdi": 0.865,
+   "hdi_rank": 47,
+   "on_map": true
+  },
+  "IRQ": {
+   "name_zh": "伊拉克",
+   "name_en": "Iraq",
+   "pop": 46118793,
+   "pop_date": "21 Nov 2024",
+   "p": 0.00572278692580399,
+   "hdi": 0.695,
+   "hdi_rank": 126,
+   "on_map": true
+  },
+  "UGA": {
+   "name_zh": "烏干達",
+   "name_en": "Uganda",
+   "pop": 45905417,
+   "pop_date": "10 May 2024",
+   "p": 0.005696309533321486,
+   "hdi": 0.582,
+   "hdi_rank": 157,
+   "on_map": true
+  },
+  "AFG": {
+   "name_zh": "阿富汗",
+   "name_en": "Afghanistan",
+   "pop": 43844000,
+   "pop_date": "1 Jul 2025",
+   "p": 0.00544051250376284,
+   "hdi": 0.496,
+   "hdi_rank": 181,
+   "on_map": true
+  },
+  "CAN": {
+   "name_zh": "加拿大",
+   "name_en": "Canada",
+   "pop": 41798407,
+   "pop_date": "1 Jul 2026",
+   "p": 0.005186679042078009,
+   "hdi": 0.939,
+   "hdi_rank": 16,
+   "on_map": true
+  },
+  "UZB": {
+   "name_zh": "烏茲別克",
+   "name_en": "Uzbekistan",
+   "pop": 39047321,
+   "pop_date": "15 Jan 2026",
+   "p": 0.004845302393461849,
+   "hdi": 0.74,
+   "hdi_rank": 107,
+   "on_map": true
+  },
+  "AGO": {
+   "name_zh": "安哥拉",
+   "name_en": "Angola",
+   "pop": 38778554,
+   "pop_date": "1 Jan 2026",
+   "p": 0.004811951644805275,
+   "hdi": 0.616,
+   "hdi_rank": 148,
+   "on_map": true
+  },
+  "MAR": {
+   "name_zh": "摩洛哥",
+   "name_en": "Morocco",
+   "pop": 37254695,
+   "pop_date": "1 Jul 2026",
+   "p": 0.004622859090670809,
+   "hdi": 0.71,
+   "hdi_rank": 120,
+   "on_map": true
+  },
+  "POL": {
+   "name_zh": "波蘭",
+   "name_en": "Poland",
+   "pop": 37232000,
+   "pop_date": "31 Jul 2026",
+   "p": 0.004620042914426103,
+   "hdi": 0.906,
+   "hdi_rank": 35,
+   "on_map": true
+  },
+  "SAU": {
+   "name_zh": "沙烏地阿拉伯",
+   "name_en": "Saudi Arabia",
+   "pop": 35300280,
+   "pop_date": "1 Jul 2024",
+   "p": 0.004380339720972752,
+   "hdi": 0.9,
+   "hdi_rank": 37,
+   "on_map": true
+  },
+  "MOZ": {
+   "name_zh": "莫三比克",
+   "name_en": "Mozambique",
+   "pop": 34958973,
+   "pop_date": "1 Jul 2026",
+   "p": 0.00433798763172173,
+   "hdi": 0.493,
+   "hdi_rank": 182,
+   "on_map": true
+  },
+  "MYS": {
+   "name_zh": "馬來西亞",
+   "name_en": "Malaysia",
+   "pop": 34389400,
+   "pop_date": "30 Jun 2026",
+   "p": 0.004267310480268721,
+   "hdi": 0.819,
+   "hdi_rank": 67,
+   "on_map": true
+  },
+  "GHA": {
+   "name_zh": "迦納",
+   "name_en": "Ghana",
+   "pop": 34378768,
+   "pop_date": "1 Jul 2026",
+   "p": 0.004265991177081512,
+   "hdi": 0.628,
+   "hdi_rank": 143,
+   "on_map": true
+  },
+  "PER": {
+   "name_zh": "秘魯",
+   "name_en": "Peru",
+   "pop": 34157732,
+   "pop_date": "4 Aug 2025",
+   "p": 0.004238563270827937,
+   "hdi": 0.794,
+   "hdi_rank": 79,
+   "on_map": true
+  },
+  "CIV": {
+   "name_zh": "象牙海岸",
+   "name_en": "Ivory Coast",
+   "pop": 33293101,
+   "pop_date": "1 Jul 2026",
+   "p": 0.004131272974170676,
+   "hdi": 0.582,
+   "hdi_rank": 157,
+   "on_map": true
+  },
+  "YEM": {
+   "name_zh": "葉門",
+   "name_en": "Yemen",
+   "pop": 32684503,
+   "pop_date": "1 Jul 2023",
+   "p": 0.004055753290091554,
+   "hdi": 0.47,
+   "hdi_rank": 184,
+   "on_map": true
+  },
+  "MDG": {
+   "name_zh": "馬達加斯加",
+   "name_en": "Madagascar",
+   "pop": 32658977,
+   "pop_date": "1 Jul 2026",
+   "p": 0.004052585820833022,
+   "hdi": 0.487,
+   "hdi_rank": 183,
+   "on_map": true
+  },
+  "NPL": {
+   "name_zh": "尼泊爾",
+   "name_en": "Nepal",
+   "pop": 30034040,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0037268627442412485,
+   "hdi": 0.622,
+   "hdi_rank": 145,
+   "on_map": true
+  },
+  "CMR": {
+   "name_zh": "喀麥隆",
+   "name_en": "Cameroon",
+   "pop": 29442327,
+   "pop_date": "1 Jul 2025",
+   "p": 0.0036534382853611502,
+   "hdi": 0.588,
+   "hdi_rank": 155,
+   "on_map": true
+  },
+  "UKR": {
+   "name_zh": "烏克蘭",
+   "name_en": "Ukraine",
+   "pop": 28700000,
+   "pop_date": "1 Sep 2025",
+   "p": 0.0035613244425233446,
+   "hdi": 0.779,
+   "hdi_rank": 87,
+   "on_map": true
+  },
+  "VEN": {
+   "name_zh": "委內瑞拉",
+   "name_en": "Venezuela",
+   "pop": 28633711,
+   "pop_date": "1 Jul 2026",
+   "p": 0.003553098775764793,
+   "hdi": 0.709,
+   "hdi_rank": 121,
+   "on_map": true
+  },
+  "AUS": {
+   "name_zh": "澳大利亞",
+   "name_en": "Australia",
+   "pop": 27921150,
+   "pop_date": "31 Mar 2026",
+   "p": 0.0034646785351345184,
+   "hdi": 0.958,
+   "hdi_rank": 7,
+   "on_map": true
+  },
+  "NER": {
+   "name_zh": "尼日",
+   "name_en": "Niger",
+   "pop": 27522750,
+   "pop_date": "1 Jul 2025",
+   "p": 0.003415241892002069,
+   "hdi": 0.419,
+   "hdi_rank": 188,
+   "on_map": true
+  },
+  "SYR": {
+   "name_zh": "敘利亞",
+   "name_en": "Syria",
+   "pop": 26472497,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0032849181400949794,
+   "hdi": 0.564,
+   "hdi_rank": 162,
+   "on_map": true
+  },
+  "PRK": {
+   "name_zh": "朝鮮民主主義人民共和國",
+   "name_en": "North Korea",
+   "pop": 25950000,
+   "pop_date": "1 Jul 2024",
+   "p": 0.003220082553431386,
+   "hdi": 0.564,
+   "hdi_rank": null,
+   "on_map": true,
+   "note": "UNDP 沒算北韓，取自中文維基「朝鲜民主主义人民共和国」條目資訊框（2016 年）"
+  },
+  "BFA": {
+   "name_zh": "布基納法索",
+   "name_en": "Burkina Faso",
+   "pop": 24736828,
+   "pop_date": "1 Jul 2026",
+   "p": 0.003069542515222852,
+   "hdi": 0.459,
+   "hdi_rank": 186,
+   "on_map": true
+  },
+  "MLI": {
+   "name_zh": "馬利共和國",
+   "name_en": "Mali",
+   "pop": 23929000,
+   "pop_date": "1 Jul 2024",
+   "p": 0.0029693007869387145,
+   "hdi": 0.419,
+   "hdi_rank": 188,
+   "on_map": true
+  },
+  "TWN": {
+   "name_zh": "中華民國",
+   "name_en": "Taiwan",
+   "pop": 23213251,
+   "pop_date": "30 Sep 2026",
+   "p": 0.0028804849538930128,
+   "hdi": 0.934,
+   "hdi_rank": null,
+   "on_map": true,
+   "note": "UNDP 不含臺灣，取自英文維基 Taiwan 條目資訊框（2023 年）"
+  },
+  "ZMB": {
+   "name_zh": "尚比亞",
+   "name_en": "Zambia",
+   "pop": 23003214,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0028544218911078466,
+   "hdi": 0.595,
+   "hdi_rank": 154,
+   "on_map": true
+  },
+  "LKA": {
+   "name_zh": "斯里蘭卡",
+   "name_en": "Sri Lanka",
+   "pop": 21778000,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0027023875856889683,
+   "hdi": 0.776,
+   "hdi_rank": 89,
+   "on_map": true
+  },
+  "MWI": {
+   "name_zh": "馬拉威",
+   "name_en": "Malawi",
+   "pop": 21201635,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0026308676288138823,
+   "hdi": 0.517,
+   "hdi_rank": 172,
+   "on_map": true
+  },
+  "KAZ": {
+   "name_zh": "哈薩克",
+   "name_en": "Kazakhstan",
+   "pop": 20618796,
+   "pop_date": "1 Sep 2026",
+   "p": 0.0025585443264878943,
+   "hdi": 0.837,
+   "hdi_rank": 60,
+   "on_map": true
+  },
+  "SOM": {
+   "name_zh": "索馬利亞",
+   "name_en": "Somalia",
+   "pop": 20305907,
+   "pop_date": "1 Jul 2026",
+   "p": 0.002519718568874769,
+   "hdi": 0.404,
+   "hdi_rank": 192,
+   "on_map": true
+  },
+  "CHL": {
+   "name_zh": "智利",
+   "name_en": "Chile",
+   "pop": 20150948,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0025004900227322963,
+   "hdi": 0.878,
+   "hdi_rank": 45,
+   "on_map": true
+  },
+  "TCD": {
+   "name_zh": "查德",
+   "name_en": "Chad",
+   "pop": 20031602,
+   "pop_date": "1 Jul 2026",
+   "p": 0.002485680621097544,
+   "hdi": 0.416,
+   "hdi_rank": 190,
+   "on_map": true
+  },
+  "SEN": {
+   "name_zh": "塞內加爾",
+   "name_en": "Senegal",
+   "pop": 19575061,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0024290293799019325,
+   "hdi": 0.53,
+   "hdi_rank": 169,
+   "on_map": true
+  },
+  "ROU": {
+   "name_zh": "羅馬尼亞",
+   "name_en": "Romania",
+   "pop": 19041322,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0023627987963957316,
+   "hdi": 0.845,
+   "hdi_rank": 55,
+   "on_map": true
+  },
+  "GTM": {
+   "name_zh": "瓜地馬拉",
+   "name_en": "Guatemala",
+   "pop": 18312373,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0022723450022823885,
+   "hdi": 0.662,
+   "hdi_rank": 137,
+   "on_map": true
+  },
+  "ECU": {
+   "name_zh": "厄瓜多爾",
+   "name_en": "Ecuador",
+   "pop": 18243816,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0022638379040313054,
+   "hdi": 0.777,
+   "hdi_rank": 88,
+   "on_map": true
+  },
+  "NLD": {
+   "name_zh": "荷蘭",
+   "name_en": "Netherlands",
+   "pop": 18171612,
+   "pop_date": "31 Aug 2026",
+   "p": 0.0022548782569913072,
+   "hdi": 0.955,
+   "hdi_rank": 8,
+   "on_map": true
+  },
+  "KHM": {
+   "name_zh": "柬埔寨",
+   "name_en": "Cambodia",
+   "pop": 17816143,
+   "pop_date": "1 Jul 2026",
+   "p": 0.002210768834055442,
+   "hdi": 0.606,
+   "hdi_rank": 151,
+   "on_map": true
+  },
+  "GIN": {
+   "name_zh": "幾內亞",
+   "name_en": "Guinea",
+   "pop": 17521167,
+   "pop_date": "1 Jul 2025",
+   "p": 0.002174165864063882,
+   "hdi": 0.5,
+   "hdi_rank": 179,
+   "on_map": true
+  },
+  "ZWE": {
+   "name_zh": "辛巴威",
+   "name_en": "Zimbabwe",
+   "pop": 16175966,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0020072426166281034,
+   "hdi": 0.598,
+   "hdi_rank": 153,
+   "on_map": true
+  },
+  "SDS": {
+   "name_zh": "南蘇丹",
+   "name_en": "South Sudan",
+   "pop": 15786898,
+   "pop_date": "1 Jul 2025",
+   "p": 0.001958963962335293,
+   "hdi": 0.388,
+   "hdi_rank": 193,
+   "on_map": true
+  },
+  "RWA": {
+   "name_zh": "盧旺達",
+   "name_en": "Rwanda",
+   "pop": 14418145,
+   "pop_date": "1 Jul 2026",
+   "p": 0.001789118195273371,
+   "hdi": 0.578,
+   "hdi_rank": 159,
+   "on_map": true
+  },
+  "BEN": {
+   "name_zh": "貝南",
+   "name_en": "Benin",
+   "pop": 13551992,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0016816390367414922,
+   "hdi": 0.515,
+   "hdi_rank": 173,
+   "on_map": true
+  },
+  "BDI": {
+   "name_zh": "蒲隆地",
+   "name_en": "Burundi",
+   "pop": 12332788,
+   "pop_date": "16 Aug 2024",
+   "p": 0.0015303504999602297,
+   "hdi": 0.439,
+   "hdi_rank": 187,
+   "on_map": true
+  },
+  "TUN": {
+   "name_zh": "突尼西亞",
+   "name_en": "Tunisia",
+   "pop": 11992843,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0014881674185102786,
+   "hdi": 0.746,
+   "hdi_rank": 105,
+   "on_map": true
+  },
+  "BEL": {
+   "name_zh": "比利時",
+   "name_en": "Belgium",
+   "pop": 11944011,
+   "pop_date": "1 Aug 2026",
+   "p": 0.0014821079552636827,
+   "hdi": 0.951,
+   "hdi_rank": 10,
+   "on_map": true
+  },
+  "JOR": {
+   "name_zh": "約旦",
+   "name_en": "Jordan",
+   "pop": 11937000,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0014812379745784377,
+   "hdi": 0.754,
+   "hdi_rank": 100,
+   "on_map": true
+  },
+  "HTI": {
+   "name_zh": "海地",
+   "name_en": "Haiti",
+   "pop": 11867032,
+   "pop_date": "1 Jul 2024",
+   "p": 0.0014725557882162609,
+   "hdi": 0.554,
+   "hdi_rank": 166,
+   "on_map": true
+  },
+  "PRT": {
+   "name_zh": "葡萄牙",
+   "name_en": "Portugal",
+   "pop": 11424031,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0014175846979945785,
+   "hdi": 0.89,
+   "hdi_rank": 40,
+   "on_map": true
+  },
+  "BOL": {
+   "name_zh": "玻利維亞",
+   "name_en": "Bolivia",
+   "pop": 11365333,
+   "pop_date": "23 Mar 2024",
+   "p": 0.0014103009829378806,
+   "hdi": 0.733,
+   "hdi_rank": 108,
+   "on_map": true
+  },
+  "ARE": {
+   "name_zh": "阿拉伯聯合大公國",
+   "name_en": "United Arab Emirates",
+   "pop": 11294243,
+   "pop_date": "31 Dec 2024",
+   "p": 0.0014014795698849543,
+   "hdi": 0.94,
+   "hdi_rank": 15,
+   "on_map": true
+  },
+  "CZE": {
+   "name_zh": "捷克共和國",
+   "name_en": "Czech Republic",
+   "pop": 10903655,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0013530123018934451,
+   "hdi": 0.915,
+   "hdi_rank": 29,
+   "on_map": true
+  },
+  "DOM": {
+   "name_zh": "多明尼加",
+   "name_en": "Dominican Republic",
+   "pop": 10771504,
+   "pop_date": "10 Nov 2022",
+   "p": 0.0013366139539351212,
+   "hdi": 0.776,
+   "hdi_rank": 89,
+   "on_map": true
+  },
+  "TJK": {
+   "name_zh": "塔吉克",
+   "name_en": "Tajikistan",
+   "pop": 10721000,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0013303470156199573,
+   "hdi": 0.691,
+   "hdi_rank": 128,
+   "on_map": true
+  },
+  "SWE": {
+   "name_zh": "瑞典",
+   "name_en": "Sweden",
+   "pop": 10621103,
+   "pop_date": "31 Aug 2026",
+   "p": 0.001317951000712823,
+   "hdi": 0.959,
+   "hdi_rank": 5,
+   "on_map": true
+  },
+  "GRC": {
+   "name_zh": "希臘",
+   "name_en": "Greece",
+   "pop": 10372335,
+   "pop_date": "1 Jan 2025",
+   "p": 0.0012870818871616855,
+   "hdi": 0.908,
+   "hdi_rank": 34,
+   "on_map": true
+  },
+  "ISR": {
+   "name_zh": "以色列",
+   "name_en": "Israel",
+   "pop": 10305000,
+   "pop_date": "31 Aug 2026",
+   "p": 0.0012787264243973194,
+   "hdi": 0.919,
+   "hdi_rank": 27,
+   "on_map": true
+  },
+  "AZE": {
+   "name_zh": "亞塞拜然",
+   "name_en": "Azerbaijan",
+   "pop": 10273450,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0012748114492697371,
+   "hdi": 0.789,
+   "hdi_rank": 81,
+   "on_map": true
+  },
+  "HND": {
+   "name_zh": "宏都拉斯",
+   "name_en": "Honduras",
+   "pop": 10186738,
+   "pop_date": "1 Jul 2026",
+   "p": 0.001264051534110849,
+   "hdi": 0.645,
+   "hdi_rank": 139,
+   "on_map": true
+  },
+  "PNG": {
+   "name_zh": "巴布亞紐幾內亞",
+   "name_en": "Papua New Guinea",
+   "pop": 10185363,
+   "pop_date": "16 Jun 2024",
+   "p": 0.0012638809131663032,
+   "hdi": 0.576,
+   "hdi_rank": 160,
+   "on_map": true
+  },
+  "HUN": {
+   "name_zh": "匈牙利",
+   "name_en": "Hungary",
+   "pop": 9488428,
+   "pop_date": "1 Jan 2026",
+   "p": 0.001177399670993829,
+   "hdi": 0.87,
+   "hdi_rank": 46,
+   "on_map": true
+  },
+  "CUB": {
+   "name_zh": "古巴",
+   "name_en": "Cuba",
+   "pop": 9434593,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0011707193956850051,
+   "hdi": 0.762,
+   "hdi_rank": 97,
+   "on_map": true
+  },
+  "SLE": {
+   "name_zh": "獅子山",
+   "name_en": "Sierra Leone",
+   "pop": 9270700,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0011503822477108422,
+   "hdi": 0.467,
+   "hdi_rank": 185,
+   "on_map": true
+  },
+  "AUT": {
+   "name_zh": "奧地利",
+   "name_en": "Austria",
+   "pop": 9217573,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0011437898266774644,
+   "hdi": 0.93,
+   "hdi_rank": 22,
+   "on_map": true
+  },
+  "CHE": {
+   "name_zh": "瑞士",
+   "name_en": "Switzerland",
+   "pop": 9154896,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0011360123656292403,
+   "hdi": 0.97,
+   "hdi_rank": 2,
+   "on_map": true
+  },
+  "BLR": {
+   "name_zh": "白俄羅斯",
+   "name_en": "Belarus",
+   "pop": 9056080,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0011237504898065091,
+   "hdi": 0.824,
+   "hdi_rank": 65,
+   "on_map": true
+  },
+  "TGO": {
+   "name_zh": "多哥",
+   "name_en": "Togo",
+   "pop": 8095498,
+   "pop_date": "8 Nov 2022",
+   "p": 0.0010045538293309705,
+   "hdi": 0.571,
+   "hdi_rank": 161,
+   "on_map": true
+  },
+  "LAO": {
+   "name_zh": "寮國",
+   "name_en": "Laos",
+   "pop": 7745000,
+   "pop_date": "1 Jul 2025",
+   "p": 0.0009610612476426238,
+   "hdi": 0.617,
+   "hdi_rank": 147,
+   "on_map": true
+  },
+  "LBY": {
+   "name_zh": "利比亞",
+   "name_en": "Libya",
+   "pop": 7539852,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0009356048508922831,
+   "hdi": 0.721,
+   "hdi_rank": 115,
+   "on_map": true
+  },
+  "KGZ": {
+   "name_zh": "吉爾吉斯",
+   "name_en": "Kyrgyzstan",
+   "pop": 7404300,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0009187844797831219,
+   "hdi": 0.72,
+   "hdi_rank": 117,
+   "on_map": true
+  },
+  "TKM": {
+   "name_zh": "土庫曼",
+   "name_en": "Turkmenistan",
+   "pop": 7057841,
+   "pop_date": "17 Dec 2022",
+   "p": 0.0008757930893638817,
+   "hdi": 0.764,
+   "hdi_rank": 95,
+   "on_map": true
+  },
+  "NIC": {
+   "name_zh": "尼加拉瓜",
+   "name_en": "Nicaragua",
+   "pop": 6874748,
+   "pop_date": "30 Jun 2024",
+   "p": 0.0008530734525640585,
+   "hdi": 0.706,
+   "hdi_rank": 123,
+   "on_map": true
+  },
+  "SRB": {
+   "name_zh": "塞爾維亞",
+   "name_en": "Serbia",
+   "pop": 6532019,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0008105449102343865,
+   "hdi": 0.833,
+   "hdi_rank": 62,
+   "on_map": true
+  },
+  "CAF": {
+   "name_zh": "中非共和國",
+   "name_en": "Central African Republic",
+   "pop": 6470307,
+   "pop_date": "1 Jul 2024",
+   "p": 0.0008028871940672437,
+   "hdi": 0.414,
+   "hdi_rank": 191,
+   "on_map": true
+  },
+  "BGR": {
+   "name_zh": "保加利亞",
+   "name_en": "Bulgaria",
+   "pop": 6423207,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0007970426511667959,
+   "hdi": 0.845,
+   "hdi_rank": 55,
+   "on_map": true
+  },
+  "SGP": {
+   "name_zh": "新加坡",
+   "name_en": "Singapore",
+   "pop": 6208500,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0007704000976099716,
+   "hdi": 0.946,
+   "hdi_rank": 13,
+   "on_map": true
+  },
+  "COG": {
+   "name_zh": "剛果共和國",
+   "name_en": "Republic of the Congo",
+   "pop": 6142180,
+   "pop_date": "17 May 2023",
+   "p": 0.0007621705841246702,
+   "hdi": 0.649,
+   "hdi_rank": 138,
+   "on_map": true
+  },
+  "PRY": {
+   "name_zh": "巴拉圭",
+   "name_en": "Paraguay",
+   "pop": 6109644,
+   "pop_date": "9 Nov 2022",
+   "p": 0.0007581332582688535,
+   "hdi": 0.756,
+   "hdi_rank": 99,
+   "on_map": true
+  },
+  "DNK": {
+   "name_zh": "丹麥",
+   "name_en": "Denmark",
+   "pop": 6038638,
+   "pop_date": "1 Sep 2026",
+   "p": 0.0007493222686045395,
+   "hdi": 0.962,
+   "hdi_rank": 4,
+   "on_map": true
+  },
+  "SLV": {
+   "name_zh": "薩爾瓦多",
+   "name_en": "El Salvador",
+   "pop": 6029976,
+   "pop_date": "2 May 2024",
+   "p": 0.0007482474186978797,
+   "hdi": 0.678,
+   "hdi_rank": 132,
+   "on_map": true
+  },
+  "LBN": {
+   "name_zh": "黎巴嫩",
+   "name_en": "Lebanon",
+   "pop": 5895466,
+   "pop_date": "2026",
+   "p": 0.0007315563472426945,
+   "hdi": 0.752,
+   "hdi_rank": 102,
+   "on_map": true
+  },
+  "FIN": {
+   "name_zh": "芬蘭",
+   "name_en": "Finland",
+   "pop": 5662086,
+   "pop_date": "30 Sep 2026",
+   "p": 0.0007025966992149559,
+   "hdi": 0.948,
+   "hdi_rank": 12,
+   "on_map": true
+  },
+  "NOR": {
+   "name_zh": "挪威",
+   "name_en": "Norway",
+   "pop": 5636904,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0006994719162145509,
+   "hdi": 0.97,
+   "hdi_rank": 2,
+   "on_map": true
+  },
+  "PSX": {
+   "name_zh": "巴勒斯坦地區",
+   "name_en": "Palestine",
+   "pop": 5557096,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0006895687043292233,
+   "hdi": 0.674,
+   "hdi_rank": 133,
+   "on_map": true
+  },
+  "IRL": {
+   "name_zh": "愛爾蘭",
+   "name_en": "Ireland",
+   "pop": 5525600,
+   "pop_date": "1 Apr 2026",
+   "p": 0.0006856604299514631,
+   "hdi": 0.949,
+   "hdi_rank": 11,
+   "on_map": true
+  },
+  "OMN": {
+   "name_zh": "阿曼",
+   "name_en": "Oman",
+   "pop": 5454352,
+   "pop_date": "30 Sep 2026",
+   "p": 0.000676819411000909,
+   "hdi": 0.858,
+   "hdi_rank": 50,
+   "on_map": true
+  },
+  "SVK": {
+   "name_zh": "斯洛伐克",
+   "name_en": "Slovakia",
+   "pop": 5403009,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0006704483628875823,
+   "hdi": 0.88,
+   "hdi_rank": 44,
+   "on_map": true
+  },
+  "NZL": {
+   "name_zh": "新西蘭",
+   "name_en": "New Zealand",
+   "pop": 5357300,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0006647764263390353,
+   "hdi": 0.938,
+   "hdi_rank": 17,
+   "on_map": true
+  },
+  "LBR": {
+   "name_zh": "賴比瑞亞",
+   "name_en": "Liberia",
+   "pop": 5248621,
+   "pop_date": "10 Nov 2022",
+   "p": 0.0006512906709700808,
+   "hdi": 0.51,
+   "hdi_rank": 177,
+   "on_map": true
+  },
+  "CRI": {
+   "name_zh": "哥斯大黎加",
+   "name_en": "Costa Rica",
+   "pop": 5217296,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0006474036156334242,
+   "hdi": 0.833,
+   "hdi_rank": 62,
+   "on_map": true
+  },
+  "MRT": {
+   "name_zh": "茅利塔尼亞",
+   "name_en": "Mauritania",
+   "pop": 4927532,
+   "pop_date": "25 Dec 2023",
+   "p": 0.0006114473920876634,
+   "hdi": 0.563,
+   "hdi_rank": 163,
+   "on_map": true
+  },
+  "KWT": {
+   "name_zh": "科威特",
+   "name_en": "Kuwait",
+   "pop": 4881254,
+   "pop_date": "1 Jan 2025",
+   "p": 0.0006057048494900643,
+   "hdi": 0.852,
+   "hdi_rank": 52,
+   "on_map": true
+  },
+  "PAN": {
+   "name_zh": "巴拿馬",
+   "name_en": "Panama",
+   "pop": 4064780,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0005043902567066216,
+   "hdi": 0.839,
+   "hdi_rank": 59,
+   "on_map": true
+  },
+  "GEO": {
+   "name_zh": "喬治亞",
+   "name_en": "Georgia",
+   "pop": 3941100,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0004890430578546604,
+   "hdi": 0.844,
+   "hdi_rank": 57,
+   "on_map": true
+  },
+  "HRV": {
+   "name_zh": "克羅地亞",
+   "name_en": "Croatia",
+   "pop": 3874993,
+   "pop_date": "1 Jul 2025",
+   "p": 0.00048083997510476874,
+   "hdi": 0.889,
+   "hdi_rank": 41,
+   "on_map": true
+  },
+  "ERI": {
+   "name_zh": "厄利垂亞",
+   "name_en": "Eritrea",
+   "pop": 3682669,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0004569748823492335,
+   "hdi": 0.503,
+   "hdi_rank": 178,
+   "on_map": true
+  },
+  "MNG": {
+   "name_zh": "蒙古國",
+   "name_en": "Mongolia",
+   "pop": 3591120,
+   "pop_date": "31 Dec 2025",
+   "p": 0.0004456147537294227,
+   "hdi": 0.747,
+   "hdi_rank": 104,
+   "on_map": true
+  },
+  "URY": {
+   "name_zh": "烏拉圭",
+   "name_en": "Uruguay",
+   "pop": 3480601,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0004319006765146758,
+   "hdi": 0.862,
+   "hdi_rank": 48,
+   "on_map": true
+  },
+  "BIH": {
+   "name_zh": "波士尼亞與赫塞哥維納",
+   "name_en": "Bosnia and Herzegovina",
+   "pop": 3412000,
+   "pop_date": "1 Jul 2024",
+   "p": 0.0004233881183933676,
+   "hdi": 0.804,
+   "hdi_rank": 74,
+   "on_map": true
+  },
+  "QAT": {
+   "name_zh": "卡達",
+   "name_en": "Qatar",
+   "pop": 3370611,
+   "pop_date": "31 Mar 2026",
+   "p": 0.00041825224183059416,
+   "hdi": 0.886,
+   "hdi_rank": 43,
+   "on_map": true
+  },
+  "ARM": {
+   "name_zh": "亞美尼亞",
+   "name_en": "Armenia",
+   "pop": 3103900,
+   "pop_date": "1 Jan 2026",
+   "p": 0.00038515661801910133,
+   "hdi": 0.811,
+   "hdi_rank": 69,
+   "on_map": true
+  },
+  "NAM": {
+   "name_zh": "納米比亞",
+   "name_en": "Namibia",
+   "pop": 3022401,
+   "pop_date": "24 Sep 2023",
+   "p": 0.0003750435733939721,
+   "hdi": 0.665,
+   "hdi_rank": 136,
+   "on_map": true
+  },
+  "LTU": {
+   "name_zh": "立陶宛",
+   "name_en": "Lithuania",
+   "pop": 2889444,
+   "pop_date": "1 Oct 2026",
+   "p": 0.0003585452105401541,
+   "hdi": 0.895,
+   "hdi_rank": 39,
+   "on_map": true
+  },
+  "JAM": {
+   "name_zh": "牙買加",
+   "name_en": "Jamaica",
+   "pop": 2774538,
+   "pop_date": "12 Sep 2022",
+   "p": 0.0003442867594463357,
+   "hdi": 0.72,
+   "hdi_rank": 117,
+   "on_map": true
+  },
+  "BWA": {
+   "name_zh": "波札那",
+   "name_en": "Botswana",
+   "pop": 2515633,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0003121597662480254,
+   "hdi": 0.731,
+   "hdi_rank": 111,
+   "on_map": true
+  },
+  "GAB": {
+   "name_zh": "加彭",
+   "name_en": "Gabon",
+   "pop": 2469296,
+   "pop_date": "1 Jul 2025",
+   "p": 0.00030640990246080574,
+   "hdi": 0.733,
+   "hdi_rank": 108,
+   "on_map": true
+  },
+  "GMB": {
+   "name_zh": "甘比亞",
+   "name_en": "Gambia",
+   "pop": 2422712,
+   "pop_date": "1 May 2024",
+   "p": 0.00030062938894754763,
+   "hdi": 0.524,
+   "hdi_rank": 170,
+   "on_map": true
+  },
+  "MDA": {
+   "name_zh": "摩爾多瓦",
+   "name_en": "Moldova",
+   "pop": 2365600,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0002935424773948858,
+   "hdi": 0.785,
+   "hdi_rank": 86,
+   "on_map": true
+  },
+  "ALB": {
+   "name_zh": "阿爾巴尼亞",
+   "name_en": "Albania",
+   "pop": 2335930,
+   "pop_date": "1 Jan 2026",
+   "p": 0.0002898607876314828,
+   "hdi": 0.81,
+   "hdi_rank": 71,
+   "on_map": true
+  },
+  "SVN": {
+   "name_zh": "斯洛維尼亞",
+   "name_en": "Slovenia",
+   "pop": 2136385,
+   "pop_date": "1 Apr 2026",
+   "p": 0.00026509965571917197,
+   "hdi": 0.931,
+   "hdi_rank": 21,
+   "on_map": true
+  },
+  "LSO": {
+   "name_zh": "賴索托",
+   "name_en": "Lesotho",
+   "pop": 2116427,
+   "pop_date": "2024",
+   "p": 0.000262623108220082,
+   "hdi": 0.55,
+   "hdi_rank": 167,
+   "on_map": true
+  },
+  "GNB": {
+   "name_zh": "幾內亞比索",
+   "name_en": "Guinea-Bissau",
+   "pop": 1890252,
+   "pop_date": "1 Jul 2026",
+   "p": 0.00023455751394176435,
+   "hdi": 0.514,
+   "hdi_rank": 174,
+   "on_map": true
+  },
+  "LVA": {
+   "name_zh": "拉脫維亞",
+   "name_en": "Latvia",
+   "pop": 1829800,
+   "pop_date": "1 Sep 2026",
+   "p": 0.00022705614860380542,
+   "hdi": 0.889,
+   "hdi_rank": 41,
+   "on_map": true
+  },
+  "MKD": {
+   "name_zh": "北馬其頓",
+   "name_en": "North Macedonia",
+   "pop": 1819074,
+   "pop_date": "31 Dec 2025",
+   "p": 0.00022572518114838711,
+   "hdi": 0.815,
+   "hdi_rank": 68,
+   "on_map": true
+  },
+  "GNQ": {
+   "name_zh": "赤道幾內亞",
+   "name_en": "Equatorial Guinea",
+   "pop": 1668768,
+   "pop_date": "1 Jul 2024",
+   "p": 0.0002070740162822577,
+   "hdi": 0.674,
+   "hdi_rank": 133,
+   "on_map": true
+  },
+  "BHR": {
+   "name_zh": "巴林",
+   "name_en": "Bahrain",
+   "pop": 1603260,
+   "pop_date": "30 Jun 2025",
+   "p": 0.00019894526222020826,
+   "hdi": 0.899,
+   "hdi_rank": 38,
+   "on_map": true
+  },
+  "TLS": {
+   "name_zh": "東帝汶",
+   "name_en": "Timor-Leste",
+   "pop": 1409452,
+   "pop_date": "1 Jul 2026",
+   "p": 0.0001748960229325231,
+   "hdi": 0.634,
+   "hdi_rank": 142,
+   "on_map": true
+  },
+  "TTO": {
+   "name_zh": "千里達及托巴哥",
+   "name_en": "Trinidad and Tobago",
+   "pop": 1367764,
+   "pop_date": "30 Jun 2025",
+   "p": 0.00016972304406980836,
+   "hdi": 0.807,
+   "hdi_rank": 72,
+   "on_map": true
+  },
+  "EST": {
+   "name_zh": "愛沙尼亞",
+   "name_en": "Estonia",
+   "pop": 1360745,
+   "pop_date": "1 Jan 2026",
+   "p": 0.000168852070680886,
+   "hdi": 0.905,
+   "hdi_rank": 36,
+   "on_map": true
+  },
+  "MUS": {
+   "name_zh": "模里西斯",
+   "name_en": "Mauritius",
+   "pop": 1240316,
+   "pop_date": "30 Jun 2026",
+   "p": 0.0001539082817858113,
+   "hdi": 0.806,
+   "hdi_rank": 73,
+   "on_map": true
+  },
+  "SWZ": {
+   "name_zh": "史瓦帝尼",
+   "name_en": "Eswatini",
+   "pop": 1235549,
+   "pop_date": "1 Jul 2024",
+   "p": 0.00015331675448206536,
+   "hdi": 0.695,
+   "hdi_rank": 126,
+   "on_map": true
+  },
+  "DJI": {
+   "name_zh": "吉布地",
+   "name_en": "Djibouti",
+   "pop": 1066809,
+   "pop_date": "20 May 2024",
+   "p": 0.0001323781521673828,
+   "hdi": 0.513,
+   "hdi_rank": 175,
+   "on_map": true
+  },
+  "CYP": {
+   "name_zh": "賽普勒斯",
+   "name_en": "Cyprus",
+   "pop": 996600,
+   "pop_date": "31 Dec 2025",
+   "p": 0.00012366606060692562,
+   "hdi": 0.913,
+   "hdi_rank": 32,
+   "on_map": true
+  },
+  "GUY": {
+   "name_zh": "圭亞那",
+   "name_en": "Guyana",
+   "pop": 956044,
+   "pop_date": "31 Dec 2024",
+   "p": 0.00011863354931455709,
+   "hdi": 0.776,
+   "hdi_rank": 89,
+   "on_map": true
+  },
+  "COM": {
+   "name_zh": "葛摩",
+   "name_en": "Comoros",
+   "pop": 944388,
+   "pop_date": "2026",
+   "p": 0.00011718718005664586,
+   "hdi": 0.603,
+   "hdi_rank": 152,
+   "on_map": true
+  },
+  "FJI": {
+   "name_zh": "斐濟",
+   "name_en": "Fiji",
+   "pop": 902623,
+   "pop_date": "1 Jan 2026",
+   "p": 0.00011200464642103654,
+   "hdi": 0.731,
+   "hdi_rank": 111,
+   "on_map": true
+  },
+  "BTN": {
+   "name_zh": "不丹",
+   "name_en": "Bhutan",
+   "pop": 790718,
+   "pop_date": "2026",
+   "p": 9.811858329418724e-05,
+   "hdi": 0.698,
+   "hdi_rank": 125,
+   "on_map": true
+  },
+  "SLB": {
+   "name_zh": "索羅門群島",
+   "name_en": "Solomon Islands",
+   "pop": 750325,
+   "pop_date": "1 Jul 2024",
+   "p": 9.31062983392449e-05,
+   "hdi": 0.584,
+   "hdi_rank": 156,
+   "on_map": true
+  },
+  "LUX": {
+   "name_zh": "盧森堡",
+   "name_en": "Luxembourg",
+   "pop": 690959,
+   "pop_date": "1 Jan 2026",
+   "p": 8.573969252548737e-05,
+   "hdi": 0.922,
+   "hdi_rank": 25,
+   "on_map": true
+  },
+  "MNE": {
+   "name_zh": "蒙特內哥羅",
+   "name_en": "Montenegro",
+   "pop": 622902,
+   "pop_date": "1 Jan 2026",
+   "p": 7.729463825423959e-05,
+   "hdi": 0.862,
+   "hdi_rank": 48,
+   "on_map": true
+  },
+  "SUR": {
+   "name_zh": "蘇利南",
+   "name_en": "Suriname",
+   "pop": 616500,
+   "pop_date": "1 Jul 2021",
+   "p": 7.650022713643351e-05,
+   "hdi": 0.722,
+   "hdi_rank": 114,
+   "on_map": true
+  },
+  "MLT": {
+   "name_zh": "馬耳他",
+   "name_en": "Malta",
+   "pop": 588254,
+   "pop_date": "31 Dec 2025",
+   "p": 7.299523862760027e-05,
+   "hdi": 0.924,
+   "hdi_rank": 24,
+   "on_map": true
+  },
+  "MDV": {
+   "name_zh": "馬爾地夫",
+   "name_en": "Maldives",
+   "pop": 515132,
+   "pop_date": "13 Sep 2022",
+   "p": 6.392167884062493e-05,
+   "hdi": 0.766,
+   "hdi_rank": 93,
+   "on_map": true
+  },
+  "CPV": {
+   "name_zh": "維德角",
+   "name_en": "Cape Verde",
+   "pop": 491233,
+   "pop_date": "16 Jun 2021",
+   "p": 6.0956100692476306e-05,
+   "hdi": 0.668,
+   "hdi_rank": 135,
+   "on_map": true
+  },
+  "BRN": {
+   "name_zh": "汶萊",
+   "name_en": "Brunei",
+   "pop": 458600,
+   "pop_date": "1 Jul 2025",
+   "p": 5.690673830457163e-05,
+   "hdi": 0.837,
+   "hdi_rank": 60,
+   "on_map": true
+  },
+  "BLZ": {
+   "name_zh": "貝里斯",
+   "name_en": "Belize",
+   "pop": 418982,
+   "pop_date": "1 Jul 2026",
+   "p": 5.1990621518373377e-05,
+   "hdi": 0.721,
+   "hdi_rank": 115,
+   "on_map": true
+  },
+  "BHS": {
+   "name_zh": "巴哈馬",
+   "name_en": "Bahamas",
+   "pop": 398165,
+   "pop_date": "4 Apr 2022",
+   "p": 4.940748246192709e-05,
+   "hdi": 0.82,
+   "hdi_rank": 66,
+   "on_map": true
+  },
+  "ISL": {
+   "name_zh": "冰島",
+   "name_en": "Iceland",
+   "pop": 396500,
+   "pop_date": "1 Jul 2026",
+   "p": 4.9200876009076866e-05,
+   "hdi": 0.972,
+   "hdi_rank": 1,
+   "on_map": true
+  },
+  "VUT": {
+   "name_zh": "萬那杜",
+   "name_en": "Vanuatu",
+   "pop": 321409,
+   "pop_date": "1 Jul 2024",
+   "p": 3.9882987029511694e-05,
+   "hdi": 0.621,
+   "hdi_rank": 146,
+   "on_map": true
+  },
+  "BRB": {
+   "name_zh": "巴貝多",
+   "name_en": "Barbados",
+   "pop": 261692,
+   "pop_date": "31 Dec 2025",
+   "p": 3.247282634191007e-05,
+   "hdi": 0.811,
+   "hdi_rank": 69,
+   "on_map": true
+  },
+  "STP": {
+   "name_zh": "聖多美普林西比",
+   "name_en": "São Tomé and Príncipe",
+   "pop": 209607,
+   "pop_date": "2024",
+   "p": 2.6009704962508387e-05,
+   "hdi": 0.637,
+   "hdi_rank": 141,
+   "on_map": true
+  },
+  "WSM": {
+   "name_zh": "薩摩亞",
+   "name_en": "Samoa",
+   "pop": 205557,
+   "pop_date": "6 Nov 2021",
+   "p": 2.5507148725845683e-05,
+   "hdi": 0.708,
+   "hdi_rank": 122,
+   "on_map": true
+  },
+  "LCA": {
+   "name_zh": "聖露西亞",
+   "name_en": "Saint Lucia",
+   "pop": 184100,
+   "pop_date": "1 Jul 2023",
+   "p": 2.2844593375210722e-05,
+   "hdi": 0.748,
+   "hdi_rank": 103,
+   "on_map": true
+  },
+  "SYC": {
+   "name_zh": "塞席爾",
+   "name_en": "Seychelles",
+   "pop": 123565,
+   "pop_date": "30 Jun 2026",
+   "p": 1.53329287365992e-05,
+   "hdi": 0.848,
+   "hdi_rank": 54,
+   "on_map": true
+  },
+  "KIR": {
+   "name_zh": "吉里巴斯",
+   "name_en": "Kiribati",
+   "pop": 120740,
+   "pop_date": "1 Jul 2021",
+   "p": 1.4982380250532008e-05,
+   "hdi": 0.644,
+   "hdi_rank": 140,
+   "on_map": true
+  },
+  "VCT": {
+   "name_zh": "聖文森及格瑞那丁",
+   "name_en": "Saint Vincent and the Grenadines",
+   "pop": 109296,
+   "pop_date": "15 Jun 2023",
+   "p": 1.3562317640070782e-05,
+   "hdi": 0.798,
+   "hdi_rank": 76,
+   "on_map": true
+  },
+  "GRD": {
+   "name_zh": "格瑞那達",
+   "name_en": "Grenada",
+   "pop": 109021,
+   "pop_date": "2021",
+   "p": 1.3528193451161587e-05,
+   "hdi": 0.791,
+   "hdi_rank": 80,
+   "on_map": true
+  },
+  "ATG": {
+   "name_zh": "安地卡及巴布達",
+   "name_en": "Antigua and Barbuda",
+   "pop": 103603,
+   "pop_date": "1 Jan 2024",
+   "p": 1.2855884885670594e-05,
+   "hdi": 0.851,
+   "hdi_rank": 53,
+   "on_map": true
+  },
+  "TON": {
+   "name_zh": "東加",
+   "name_en": "Tonga",
+   "pop": 100179,
+   "pop_date": "30 Nov 2021",
+   "p": 1.2431007711761188e-05,
+   "hdi": 0.769,
+   "hdi_rank": 92,
+   "on_map": true
+  },
+  "AND": {
+   "name_zh": "安道爾",
+   "name_en": "Andorra",
+   "pop": 90122,
+   "pop_date": "30 Sep 2026",
+   "p": 1.1183055101361981e-05,
+   "hdi": 0.913,
+   "hdi_rank": 32,
+   "on_map": true
+  },
+  "FSM": {
+   "name_zh": "密克羅尼西亞聯邦",
+   "name_en": "Micronesia",
+   "pop": 75817,
+   "pop_date": "12 Feb 2023",
+   "p": 9.40797683828545e-06,
+   "hdi": 0.615,
+   "hdi_rank": 149,
+   "on_map": true
+  },
+  "DMA": {
+   "name_zh": "多米尼克",
+   "name_en": "Dominica",
+   "pop": 65431,
+   "pop_date": "2026",
+   "p": 8.119199289154877e-06,
+   "hdi": 0.761,
+   "hdi_rank": 98,
+   "on_map": true
+  },
+  "KNA": {
+   "name_zh": "聖克里斯多福與尼維斯",
+   "name_en": "Saint Kitts and Nevis",
+   "pop": 51320,
+   "pop_date": "2022",
+   "p": 6.368194090254287e-06,
+   "hdi": 0.84,
+   "hdi_rank": 58,
+   "on_map": true
+  },
+  "MHL": {
+   "name_zh": "馬紹爾群島",
+   "name_en": "Marshall Islands",
+   "pop": 42418,
+   "pop_date": "30 Sep 2021",
+   "p": 5.263563073273701e-06,
+   "hdi": 0.733,
+   "hdi_rank": 108,
+   "on_map": true
+  },
+  "LIE": {
+   "name_zh": "列支敦斯登",
+   "name_en": "Liechtenstein",
+   "pop": 41228,
+   "pop_date": "31 Dec 2025",
+   "p": 5.115898401266636e-06,
+   "hdi": 0.938,
+   "hdi_rank": 17,
+   "on_map": true
+  },
+  "MCO": {
+   "name_zh": "摩納哥",
+   "name_en": "Monaco",
+   "pop": 38857,
+   "pop_date": "31 Dec 2025",
+   "p": 4.821685848889533e-06,
+   "hdi": null,
+   "hdi_rank": null,
+   "on_map": true
+  },
+  "SMR": {
+   "name_zh": "聖馬力諾",
+   "name_en": "San Marino",
+   "pop": 34160,
+   "pop_date": "31 Jul 2026",
+   "p": 4.238844702320469e-06,
+   "hdi": 0.915,
+   "hdi_rank": 29,
+   "on_map": true
+  },
+  "PLW": {
+   "name_zh": "帛琉",
+   "name_en": "Palau",
+   "pop": 16733,
+   "pop_date": "1 Jul 2021",
+   "p": 2.0763638291548128e-06,
+   "hdi": 0.786,
+   "hdi_rank": 84,
+   "on_map": true
+  },
+  "NRU": {
+   "name_zh": "諾魯",
+   "name_en": "Nauru",
+   "pop": 11680,
+   "pop_date": "30 Oct 2021",
+   "p": 1.4493473689432984e-06,
+   "hdi": 0.703,
+   "hdi_rank": 124,
+   "on_map": true
+  },
+  "TUV": {
+   "name_zh": "吐瓦魯",
+   "name_en": "Tuvalu",
+   "pop": 10643,
+   "pop_date": "12 Dec 2022",
+   "p": 1.3206681547657127e-06,
+   "hdi": 0.689,
+   "hdi_rank": 129,
+   "on_map": true
+  },
+  "VAT": {
+   "name_zh": "梵蒂岡",
+   "name_en": "Vatican City",
+   "pop": 882,
+   "pop_date": "31 Dec 2024",
+   "p": 1.094455804287662e-07,
+   "hdi": null,
+   "hdi_rank": null,
+   "on_map": true
+  }
+ }
+}
