@@ -2,7 +2,19 @@
   <!-- 投胎樂透（手機版）：上面是 3D 樂透搖獎機（Day 25 的遊戲模式），下面分頁看結果、統計、獎項、說明
        電腦上也是手機寬度（.phone 最寬 430px，置中） -->
   <div class="phone">
-    <LotteryDrum ref="drum" :balls="balls" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]" v-if="atlas"
+    <!-- 模式：一排可以左右滑 -->
+    <nav class="modes" aria-label="模式">
+      <button v-for="m in MODES" :key="m.key" type="button" :class="{ on: mode === m.key }" :disabled="spinning" @click="setMode(m.key); $event.currentTarget.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })">{{ m.label }}</button>
+    </nav>
+
+    <!-- 舞台 4:5：地圖類模式（MapLibre，第一次切過去才載入）在最底下，盒子、遊戲（3D）蓋在上面 -->
+    <div class="stage-wrap">
+    <div v-if="!atlas" class="loading">載入中…</div>
+    <MapModes v-if="atlas && mapUsed" :face="face" :last="last" :last-ball="lastBall" :counts="counts" :total="total" :atlas="atlas" />
+    <LotteryBox v-if="atlas && (mode === 'box' || mode === 'boxp')" :key="mode" :balls="balls" :cells="mode === 'boxp' ? boxRank.cells : cellsSnap" :cols="cellMeta.cols" :rows="cellMeta.rows"
+      :walls="mode === 'boxp' ? boxRank.walls : []" :frames="mode === 'boxp' ? boxRank.frames : []" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]"
+      :face="face" :sel="lastBall" :tip-of="ballTip" bg="#161616" />
+    <LotteryDrum ref="drum" :balls="balls" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]" v-if="atlas && mode === 'game'"
       :face="face" :sel="lastBall" :tip-of="ballTip" :party="spinning ? 0 : total" :spinning="spinning" @draw="draw">
       <!-- 抽完在搖獎機下面顯示結果看板（國旗、英文國名、獎牌） -->
       <Transition name="board">
@@ -29,15 +41,23 @@
         </div>
       </Transition>
     </LotteryDrum>
-    <div v-else class="loading">載入中…</div>
+    </div>
 
     <!-- 操作列：抽一次、重來、球面 -->
     <div class="bar">
       <button type="button" class="btn main" :disabled="spinning || !atlas" @click="draw">{{ spinning ? '搖獎中…' : '抽一次' }}</button>
       <button type="button" class="btn" :disabled="spinning || !total" @click="reset">重來</button>
-      <div class="seg" role="group" aria-label="球面">
+      <div v-if="mode !== 'map'" class="seg" role="group" aria-label="球面">
         <button v-for="f in FACES" :key="f.key" type="button" :class="{ on: face === f.key }" @click="face = f.key">{{ f.label }}</button>
       </div>
+    </div>
+
+    <!-- 格子模式：點一顆球、再點另一顆，兩顆交換格子（換過的記在這台裝置） -->
+    <div v-if="mode === 'cells'" class="bar swap">
+      <span class="swap-hint">換位置：{{ swapPick == null ? '點兩顆球' : '再點一顆' }}</span>
+      <button type="button" class="btn sm" :disabled="!swaps.length" @click="undoSwap">復原</button>
+      <button type="button" class="btn sm" :disabled="!swaps.length" @click="resetSwaps">重設</button>
+      <button type="button" class="btn sm" :disabled="!swaps.length" title="換過的格子寫成 build_cells.py 的 SWAPS 格式，複製到剪貼簿" @click="copySwaps">{{ copiedSwaps ? '已複製' : `複製 ${swaps.length}` }}</button>
     </div>
 
     <nav class="tabs">
@@ -47,7 +67,7 @@
     <main class="content">
       <!-- 結果 -->
       <section v-if="tab === 'result'">
-        <template v-if="last && !spinning">
+        <template v-if="last && !spinning && tierIdx(last) >= 0">
           <div class="ticket" :style="{ borderColor: colorOf(last) }">
             <div class="t-head">
               <div class="t-flag" :style="flagStyle(last)"></div>
@@ -61,15 +81,17 @@
               <div><dt>HDI</dt><dd>{{ C[last].hdi.toFixed(3) }}</dd><small>{{ C[last].hdi_rank ? `UNDP 第 ${C[last].hdi_rank} 名` : '不在 UNDP 排名' }}</small></div>
               <div><dt>抽到這一獎</dt><dd>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</dd><small>約 1/{{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
               <div><dt>抽到這一國</dt><dd>{{ fmtP(pIso(last)) }}</dd><small>約 1/{{ oneIn(pIso(last)) }}</small></div>
-              <div><dt>球號</dt><dd>{{ (lastBall + 1).toLocaleString() }}</dd><small>這國 {{ BALLS[last] }} 顆／共 {{ BALL_TOTAL }} 顆</small></div>
+              <div v-if="lastBall != null"><dt>球號</dt><dd>{{ (lastBall + 1).toLocaleString() }}</dd><small>這國 {{ BALLS[last] }} 顆／共 {{ BALL_TOTAL }} 顆</small></div>
               <div class="wide"><dt>人口</dt><dd>{{ C[last].pop.toLocaleString() }}</dd><small>{{ C[last].pop_date }}</small></div>
             </dl>
             <p v-if="lastRerolls" class="hint">先掉出 {{ lastRerolls }} 次重抽球（{{ noHdiNames }}），自動再搖</p>
           </div>
         </template>
         <p v-else-if="spinning" class="hint big">搖獎中…等球掉進盤子</p>
-        <p v-else class="hint big">按舞台上的紅色 DRAW 或「抽一次」開始投胎。{{ BALL_TOTAL }} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。</p>
-        <p class="hint">拖曳舞台可以轉鏡頭、兩指縮放；點一顆球看是哪一國。</p>
+        <p v-else-if="mode === 'game'" class="hint big">按舞台上的紅色 DRAW 或「抽一次」開始投胎。{{ BALL_TOTAL }} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。</p>
+        <p v-else-if="mode === 'map'" class="hint big">按「抽一次」開始投胎：抽中的機率＝那一國的人口 ÷ 全世界人口。抽過的國家畫白色圓，面積＝抽中次數佔幾成。</p>
+        <p v-else class="hint big">按「抽一次」從 {{ BALL_TOTAL }} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。</p>
+        <p class="hint">{{ HINTS[mode] }}</p>
       </section>
 
       <!-- 統計 -->
@@ -92,16 +114,16 @@
         <template v-if="total">
           <h3>最常投胎到</h3>
           <ol class="list">
-            <li v-for="c in topDrawn" :key="c.iso" :class="{ on: c.iso === last }">
+            <li v-for="c in topDrawn" :key="c.iso" :class="{ on: c.iso === last }" @click="pick(c.iso)">
               <span>{{ nameOf(c.iso) }}<i class="sw" :style="{ background: colorOf(c.iso) }"></i><small>{{ prizeOf(c.iso) }}</small></span><b>{{ c.n.toLocaleString() }} 次</b>
             </li>
           </ol>
         </template>
 
-        <h3>機率最高的 10 國（佔 {{ fmtP(top10p) }}）</h3>
+        <h3>機率最高的 10 國（佔 {{ fmtP(top10p) }}{{ mode === 'map' ? '，照人口' : '，照球數' }}）</h3>
         <ol class="list">
-          <li v-for="iso in TOP" :key="iso" :class="{ on: iso === last }">
-            <span>{{ nameOf(iso) }}<i class="sw" :style="{ background: colorOf(iso) }"></i><small>{{ prizeOf(iso) }}</small></span><b>{{ fmtP(pIso(iso)) }}</b>
+          <li v-for="iso in TOP" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
+            <span>{{ nameOf(iso) }}<i class="sw" :style="{ background: colorOf(iso) }"></i><small>{{ prizeOf(iso) }}</small></span><b>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}</b>
           </li>
         </ol>
         <p class="hint">臺灣：{{ prizeOf('TWN') }}（HDI {{ C.TWN.hdi.toFixed(3) }}），{{ BALLS.TWN }} 顆球，機率 {{ fmtP(pIso('TWN')) }}，大約 {{ oneIn(pIso('TWN')) }} 次投胎才會出生在臺灣一次。</p>
@@ -139,7 +161,7 @@
           <button v-for="s in SORTS" :key="s.key" type="button" :class="{ on: sort === s.key }" @click="sort = s.key">{{ s.label }}</button>
         </div>
         <ol class="list all">
-          <li v-for="iso in sorted" :key="iso" :class="{ on: iso === last }">
+          <li v-for="iso in sorted" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
             <span>{{ nameOf(iso) }}<i class="sw" :style="{ background: colorOf(iso) }"></i><small>{{ prizeOf(iso) }}・HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span><b>{{ BALLS[iso] }} 顆{{ counts[iso] ? `・中 ${counts[iso]}` : '' }}</b>
           </li>
         </ol>
@@ -159,8 +181,16 @@
           <li><b>HDI</b>：英文維基百科〈List of countries by Human Development Index〉，數字是 UNDP《2025 人類發展報告》的 {{ meta.hdi.year }} 年 HDI。臺灣不在 UNDP 資料裡，用英文維基 Taiwan 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用中文維基資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有 HDI，抽到算「重抽」。</li>
           <li><b>獎項</b>：把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
           <li><b>彩球</b>：總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ POP_UNIT.toLocaleString() }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
-          <li><b>搖獎機</b>：{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
+          <li><b>地圖模式</b>：國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 Natural Earth 1:5,000 萬國界、Esri 深灰底圖。</li>
+          <li><b>彩球模式</b>：每國的球排成一塊，放在那一國本土的中心（Natural Earth 的國名標籤點），國家靠得近的地方（歐洲、中東）球會疊在一起。抽一顆球，所以機率是球數比例。球面可以切國旗或獎項色。</li>
+          <li><b>排列模式</b>：同一批球照獎項從左上一列一列排到右下：特獎在最上面，哈哈獎在最下面，最後是重抽的灰色球；同一級裡 HDI 高的在前，同一國的球排在一起。每一級佔的面積就是它的球數。</li>
+          <li><b>格子模式</b>：跟排列模式同一組格子（{{ cellMeta.cols }} 欄 × {{ cellMeta.rows }} 列＝{{ BALL_TOTAL }} 格，一格一顆），但照各國的相對位置放：遞迴對切，同一洲的國家在一起，同一國的球連成方正的一塊。點一顆球、再點另一顆可以交換（換過的記在這台裝置）。</li>
+          <li><b>盒子模式</b>：把格子模式的排法做成 3D 的透明壓克力收納盒、蓋子打開；「盒子・照獎」照排列模式的順序，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
+          <li><b>搖獎機（遊戲模式）</b>：{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
         </ol>
+
+        <h3>網址</h3>
+        <p><a class="url" :href="SITE" target="_blank" rel="noopener">{{ SITE }}</a></p>
 
         <h3>資料來源</h3>
         <ul class="src">
@@ -174,7 +204,10 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import LotteryDrum from './components/LotteryDrum.vue'
+import LotteryBox from './components/LotteryBox.vue'
+import MapModes from './components/MapModes.vue'
 import {
+  MODES, MAP_MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, swaps, swapPick, undoSwap, resetSwaps, swapsText, boxRank,
   meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, balls, isoOfBall, colors, flagMeta, flagsUrl, flagStyle, ballTip,
   TIERS, TIER_EN, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
   HDI_EXPECT, pTier, pIso, fmtP, oneIn,
@@ -186,7 +219,19 @@ const SOURCES = [
   { label: '臺灣 HDI（UNDP 不含臺灣）', org: '英文維基百科 Taiwan 條目資訊框', url: 'https://en.wikipedia.org/wiki/Taiwan' },
   { label: '北韓 HDI（UNDP 沒算，2016 年）', org: '中文維基百科「朝鲜民主主义人民共和国」條目資訊框', url: 'https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国' },
   { label: '國旗（1:1 正方形 SVG，7.6.0）', org: 'flag-icons（MIT）', url: 'https://github.com/lipis/flag-icons' },
+  { label: '國界（1:50m Admin 0 – Countries）', org: 'Natural Earth（公有領域）', url: 'https://www.naturalearthdata.com/' },
 ]
+// 實際網頁
+const SITE = 'https://szfftz.github.io/birth-lottery/'
+const HINTS = {
+  game: '拖曳舞台可以轉鏡頭、兩指縮放；點一顆球看是哪一國。',
+  map: '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。',
+  balls: '拖曳、兩指縮放地圖，球跟著變大；點一顆球看是哪一國。',
+  grid: '點一顆球看是哪一國。',
+  cells: '點一顆球、再點另一顆，兩顆交換格子。',
+  box: '拖曳轉鏡頭、兩指縮放；點一顆球看是哪一國。',
+  boxp: '拖曳轉鏡頭、兩指縮放；點一顆球看是哪一國。',
+}
 
 const FACES = [{ key: 'flag', label: '國旗' }, { key: 'prize', label: '獎項色' }]
 const face = ref('flag')
@@ -196,7 +241,27 @@ const SORTS = [{ key: 'pop', label: '照球數' }, { key: 'hdi', label: '照 HDI
 const sort = ref('pop')
 const sorted = computed(() => (sort.value === 'pop' ? ISOS : [...ISOS].sort((a, b) => (C[b].hdi ?? -1) - (C[a].hdi ?? -1))))
 const TOP = ISOS.slice(0, 10)
-const top10p = TOP.reduce((s, iso) => s + pIso(iso), 0)
+const top10p = computed(() => TOP.reduce((s, iso) => s + (mode.value === 'map' ? C[iso].p : pIso(iso)), 0))
+// 地圖類模式第一次切過去才載入 MapLibre，之後一直留著
+const mapUsed = ref(false)
+function setMode(m) {
+  if (spinning.value) return
+  mode.value = m
+  if (MAP_MODES.includes(m)) mapUsed.value = true
+  lastBall.value = null
+}
+// 點清單：只把它標成「這次」，不算一次投胎
+function pick(iso) {
+  lastRerolls.value = 0
+  last.value = iso
+  lastBall.value = null
+}
+const copiedSwaps = ref(false)
+async function copySwaps() {
+  await navigator.clipboard.writeText(swapsText())
+  copiedSwaps.value = true
+  setTimeout(() => (copiedSwaps.value = false), 1500)
+}
 
 // 國旗拼圖（three.js 貼圖用）
 const atlas = ref(null)
@@ -211,19 +276,21 @@ const lastRerolls = ref(0)
 const drum = ref(null)
 const spinning = ref(false)
 
-// 搖獎機轉完、掉出來的那顆就是（抽到誰由物理模擬決定）
+// 遊戲模式：搖獎機轉完、掉出來的那顆就是（抽到誰由物理模擬決定）；地圖模式照人口抽一國；其他模式從全部球裡抽一顆
 async function draw() {
-  if (spinning.value || !drum.value) return
-  spinning.value = true
+  if (spinning.value) return
+  const game = mode.value === 'game'
+  if (game && !drum.value) return
+  if (game) spinning.value = true
   tab.value = 'result'
   let iso, b, n = 0
   for (;;) {
-    b = await drum.value.play()
-    iso = isoOfBall(b)
+    if (game) { b = await drum.value.play(); iso = isoOfBall(b) }
+    else [iso, b] = mode.value === 'map' ? [drawOne(), null] : drawBall()
     if (tierIdx(iso) >= 0) break
     n++
   }
-  spinning.value = false
+  if (game) spinning.value = false
   rerolls.value += n
   lastRerolls.value = n
   counts[iso] = (counts[iso] ?? 0) + 1
@@ -264,7 +331,22 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
     box-shadow: 0 0 0 10px #0b0b0b, 0 0 0 11px #333, 0 30px 80px rgba(0, 0, 0, 0.6); scrollbar-width: none; }
   .phone::-webkit-scrollbar { display: none; }
 }
-.loading { aspect-ratio: 4 / 5; display: grid; place-items: center; color: var(--muted); background: linear-gradient(180deg, #2b0a5e, #ff2e88 60%, #ffd23f); }
+.loading { display: grid; place-items: center; color: var(--muted); background: linear-gradient(180deg, #2b0a5e, #ff2e88 60%, #ffd23f); }
+
+/* 舞台 4:5 */
+.stage-wrap { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; background: #161616; }
+.loading { position: absolute; inset: 0; }
+/* 模式：一排可以左右滑 */
+.modes { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; scrollbar-width: none; background: var(--bg); }
+.modes::-webkit-scrollbar { display: none; }
+.modes button { flex: none; height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.modes button.on { border-color: #4fb3bf; background: #4fb3bf; color: #ffffff; font-weight: 700; }
+.modes button:disabled:not(.on) { opacity: 0.45; cursor: default; }
+.bar.swap { padding-top: 0; }
+.swap-hint { flex: 1; font-size: 13px; color: var(--muted); }
+.btn.sm { height: 34px; padding: 0 10px; font-size: 13px; font-weight: 500; }
+.list li { cursor: pointer; }
+.url { color: #8fd3ff; word-break: break-all; }
 
 /* 操作列 */
 .bar { display: flex; gap: 8px; align-items: center; padding: 10px 12px; }

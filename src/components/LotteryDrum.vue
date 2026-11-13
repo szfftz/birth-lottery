@@ -1,7 +1,7 @@
 <template>
   <!-- 遊戲模式：891 顆彩球放進透明的樂透搖獎機（3D 圓滾筒）。按「抽一次」滾筒轉起來，筒裡的擋板把球帶上去再翻下來；
        停下來後滾筒慢慢轉到出球口朝下、打開閘門，哪一顆球靠重力掉出去就是抽到的，沿著滑道滾進前面的盤子（全部照物理模擬） -->
-  <!-- 整個舞台 4:5（外層 .lottery-drum 決定大小）：舞台背景（CSS）→ 3D 搖獎機（透明畫布）→ 節目標題、結果看板（slot）、彩帶；文字類用 1080×1350 設計再縮放 -->
+  <!-- 整個舞台 4:5（蓋滿外層 App.vue 的 .stage-wrap）：舞台背景（CSS）→ 3D 搖獎機（透明畫布）→ 節目標題、結果看板（slot）、彩帶；文字類用 1080×1350 設計再縮放 -->
   <div ref="wrap" class="lottery-drum">
     <div class="stage" :style="{ left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px` }">
       <div class="stage-bg"><div class="rays"></div><div class="beam l"></div><div class="beam r"></div><div class="floor"></div></div>
@@ -576,7 +576,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.lottery-drum { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; background: #161616; }
+.lottery-drum { position: absolute; inset: 0; z-index: 2; overflow: hidden; background: #161616; }
 .stage { position: absolute; overflow: hidden; }
 /* 舞台背景：深紫到深紅的漸層、兩道會晃的聚光燈、地上一圈光 */
 /* 80 年代美國綜藝節目的舞台：洋紅到橘到黃的夕陽漸層、彩色放射狀色塊（慢慢轉）、地平線的格子地板、兩道白色聚光燈 */

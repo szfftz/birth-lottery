@@ -6,5 +6,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   base: './',
   plugins: [vue()],
+  // MapLibre 的 worker 是 ES module（見 src/lib/maplibre-worker.js）
+  worker: { format: 'es' },
   server: { port: 8081, host: true, open: true },
 })
