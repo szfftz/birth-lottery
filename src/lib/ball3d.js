@@ -59,3 +59,10 @@ export function setBallFace(mesh, face) {
   const sh = mesh.material.userData.shader
   if (sh) sh.uniforms.uFlag.value = mesh.material.userData.flag
 }
+
+// 3D 畫面原本照 4:5 調：畫面比 4:5 長（手機全螢幕）時把垂直視角放大，讓水平視角跟 4:5 一樣，東西不會被左右切掉
+export function fitFov(fov, aspect, ref = 0.8) {
+  if (aspect >= ref) return fov
+  const t = Math.tan((fov * Math.PI) / 360) * (ref / aspect)
+  return (Math.atan(t) * 360) / Math.PI
+}

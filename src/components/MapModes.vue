@@ -2,7 +2,7 @@
   <!-- 地圖、彩球、排列、格子模式（MapLibre）：從 Day 25 index.vue 搬過來
        地圖：國家照獎項填色，抽過的國家畫投胎紀錄圓（面積＝抽中比例）
        彩球：每國的球排成一塊放在本土中心；排列：照獎項從左上排到右下；格子：照各國相對位置排（點兩顆球交換） -->
-  <div ref="el" class="map-modes"></div>
+  <div ref="el" class="map-modes" :style="{ '--it': `${insetTop}px`, '--ib': `${insetBottom}px` }"></div>
 </template>
 
 <script setup>
@@ -19,6 +19,9 @@ import {
 } from '../lottery.js'
 
 const props = defineProps({
+  // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
+  insetTop: { type: Number, default: 0 },
+  insetBottom: { type: Number, default: 0 },
   face: { type: String, default: 'flag' },
   last: { type: String, default: null },
   lastBall: { type: Number, default: null },
@@ -42,7 +45,7 @@ const R_FULL = 60 // 投胎紀錄圓：100% 時半徑幾 px
 const rOf = (share) => R_FULL * Math.sqrt(share)
 const FLAG_SCALE = 1.5 // 球面畫國旗時，彩球模式的球放大幾倍
 // 框（1080×1350 的單位）四邊留白：上、左右 40，下 80（跟 Day 25 的 IG 框紅線一樣）
-const GUIDE = { head: 40, side: 40, foot: 80 }
+const GUIDE = { head: 14, side: 12, foot: 84 } // px：上面、左右、下面（下面留給結果卡）
 
 // 一開始的縮放：手機寬度不一樣，讓世界寬度約是畫面寬的 1.84 倍（Day 25 在 IG 框裡 1.2 級的樣子）
 let z0 = 1.2
@@ -54,9 +57,11 @@ const el = ref(null)
 let map, tag, balls, ballLayer, at = {}, layLngLat = null, gridD = 0, cellBg = null
 
 // 框裡的範圍（畫面 px）
+// 排列、格子模式的框：扣掉上面狀態列、下面操作列和結果卡的位置
 function boardRect() {
-  const c = map.getContainer(), w = c.clientWidth, h = c.clientHeight, s = h / 1350
-  return { x0: GUIDE.side * s, y0: GUIDE.head * s, w: w - 2 * GUIDE.side * s, h: h - (GUIDE.head + GUIDE.foot) * s }
+  const c = map.getContainer(), w = c.clientWidth, h = c.clientHeight
+  const top = props.insetTop + GUIDE.head, bottom = props.insetBottom + GUIDE.foot
+  return { x0: GUIDE.side, y0: top, w: w - 2 * GUIDE.side, h: h - top - bottom }
 }
 // 彩球模式：每國的球排成一塊，中心放在那一國本土的中心（Natural Earth 標籤點），一列一列左右置中、整塊上下置中
 function clusterXY() {
@@ -208,8 +213,11 @@ onMounted(() => {
       layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base' }],
     },
   })
+  map.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 })
   map.dragRotate.disable()
   map.touchZoomRotate.disableRotation()
+  map.touchPitch.disable() // 兩指上下滑不要傾斜
+  map.keyboard.disableRotation()
   map.on('load', async () => {
     const world = await (await fetch(worldUrl)).json()
     at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, [f.properties.label_x, f.properties.label_y]]))
@@ -257,6 +265,7 @@ onMounted(() => {
   })
 })
 watch(mode, applyMode)
+watch(() => [props.insetTop, props.insetBottom], () => { map?.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 }); layoutBalls() })
 watch(() => [props.last, props.lastBall, props.total], paint)
 watch(() => props.face, (f) => { ballLayer?.setFlags(f === 'flag'); layoutBalls() })
 watch(swapPick, paintSwapSel)
@@ -269,6 +278,11 @@ onBeforeUnmount(() => { tag?.remove(); map?.remove() })
 </style>
 
 <style>
+/* 地圖的版權、控制項放在操作列上面、狀態列下面 */
+.map-modes .maplibregl-ctrl-bottom-right, .map-modes .maplibregl-ctrl-bottom-left { bottom: var(--ib, 0px); }
+.map-modes .maplibregl-ctrl-top-right, .map-modes .maplibregl-ctrl-top-left { top: var(--it, 0px); }
+.map-modes .maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(22, 22, 22, 0.6); color: rgba(255, 255, 255, 0.7); }
+.map-modes .maplibregl-ctrl-attrib a { color: rgba(255, 255, 255, 0.8); }
 .lottery-tag { padding: 5px 8px; border-radius: 4px; background: rgba(22, 22, 22, 0.85); color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; pointer-events: none; }
 .lottery-tag b { margin-right: 6px; font-size: 13px; }
 .map-tooltip { pointer-events: none; }

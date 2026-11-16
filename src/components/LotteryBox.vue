@@ -1,6 +1,6 @@
 <template>
   <!-- 盒子模式：891 顆彩球照格子模式的排法，一列一列放進透明壓克力收納盒（3D，蓋子打開）；球面是獎項顏色或國旗（國旗朝上），抽到的那顆浮起來放大 -->
-  <!-- 手機：點一下球看是哪一國（拖曳＝轉鏡頭，不算點）；電腦：滑過去就看 -->
+  <!-- 手機：點一下球看是哪一國（拖曳不算點）；電腦：滑過去就看 -->
   <div ref="wrap" class="lottery-box" @pointerdown="onDown" @pointerup="onUp" @pointermove="onMove" @pointerleave="onLeave">
     <div v-if="tip" class="box-tip" :style="tipPos" v-html="tip.html"></div>
   </div>
@@ -11,9 +11,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { TrackballControls } from 'three/addons/controls/TrackballControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { BALL_R as R, makeBallMesh, setBallFace } from '../lib/ball3d.js'
+import { BALL_R as R, makeBallMesh, setBallFace, fitFov } from '../lib/ball3d.js'
 
 const props = defineProps({
+  // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
+  insetTop: { type: Number, default: 0 },
+  insetBottom: { type: Number, default: 0 },
   // loadBalls() 的結果：isos、start（每國的球從第幾顆開始）、n
   balls: { type: Object, required: true },
   // 每顆球放在第幾格（格子模式的排法，含手動換過的）、格子幾欄幾列
@@ -182,7 +185,7 @@ function place() {
   mesh.instanceMatrix.needsUpdate = true
   mesh.computeBoundingSphere()
 }
-// 球的說明：滑鼠滑過去；手機點一下（拖曳轉鏡頭不算）、3 秒後收起來
+// 球的說明：滑鼠滑過去；手機點一下（拖曳不算）、3 秒後收起來
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2()
 let down = null, tipTimer = 0
 function pickAt(e) {
@@ -217,6 +220,8 @@ function resize() {
   if (!w || !h) return
   renderer.setSize(w, h)
   camera.aspect = w / h
+  camera.fov = fitFov(22, camera.aspect) // 畫面比 4:5 長：視角放大，盒子不會被左右切掉
+  camera.setViewOffset(w, h, 0, (props.insetBottom - props.insetTop) / 2, w, h) // 放在上下沒被擋住的中間
   camera.updateProjectionMatrix()
   controls?.handleResize()
 }
@@ -256,10 +261,12 @@ onMounted(() => {
   camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500) // 視角窄一點，近大遠小不要太誇張
   // 從正前方斜上看整個盒子
   camera.position.set(0, D() * CAM_DIST * Math.sin(TILT), D() * CAM_DIST * Math.cos(TILT) - D() * 0.32)
-  // 3D 可以往任何方向一直轉（不限仰角，翻到底下也可以）：左鍵轉、滾輪縮放、右鍵平移
+  // 鏡頭固定在預設視角，只能縮放（滾輪、兩指）：不能轉、不能平移
   controls = new TrackballControls(camera, renderer.domElement)
   controls.target.set(0, 0, -D() * 0.32)
-  controls.rotateSpeed = 3; controls.zoomSpeed = 1.2; controls.panSpeed = 0.8
+  controls.noRotate = true; controls.noPan = true
+  controls.zoomSpeed = 1.2
+  { const d = camera.position.distanceTo(controls.target); controls.minDistance = d * 0.25; controls.maxDistance = d * 1.6 }
   controls.dynamicDampingFactor = 0.15
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)
@@ -267,6 +274,7 @@ onMounted(() => {
   frame()
 })
 watch(() => [props.sel, props.cells], () => mesh && place())
+watch(() => [props.insetTop, props.insetBottom], () => renderer && resize())
 watch(() => props.face, () => mesh && setBallFace(mesh, props.face))
 onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
