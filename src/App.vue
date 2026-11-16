@@ -301,7 +301,7 @@ const SOURCES = [
 const SITE = 'https://szfftz.github.io/birth-lottery/'
 // 結果分頁底下的操作提示（[英文, 中文]）
 const HINTS = {
-  game: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
+  game: ['Shake your phone to spin too. Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '搖一搖手機也能開始搖獎。左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
   map: ['Drag and pinch to move the map; tap a country to see its odds and HDI.', '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。'],
   box: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
   boxp: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
@@ -377,7 +377,14 @@ function pick(iso) {
 
 // 國旗拼圖（three.js 貼圖用）
 const atlas = ref(null)
-fetch(flagsUrl).then((r) => r.blob()).then(createImageBitmap).then((a) => (atlas.value = a))
+// 國旗拼圖：先用 createImageBitmap；舊手機不支援或失敗就改用 <img>（不然會一直卡在「載入中」）
+function loadImg() {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = flagsUrl })
+}
+;(typeof createImageBitmap === 'function'
+  ? fetch(flagsUrl).then((r) => r.blob()).then((bl) => createImageBitmap(bl)).catch(loadImg)
+  : loadImg()
+).then((a) => (atlas.value = a)).catch(() => setTimeout(() => loadImg().then((a) => (atlas.value = a)), 1500))
 
 const counts = reactive({})
 const history = reactive([]) // 每一次抽的結果：{ n, iso, ball, time }
@@ -410,8 +417,39 @@ function clearHistory() {
 const drum = ref(null)
 const spinning = ref(false)
 
+// 搖手機也會搖獎：加速度（含重力）一下子變很多就算搖了一下，短時間內搖兩下才開始，避免走路晃到
+let shakeOn = false, prevA = null, shakeHits = [], shakeCool = 0
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity
+  if (!a || a.x == null) return
+  if (prevA) {
+    const d = Math.abs(a.x - prevA.x) + Math.abs(a.y - prevA.y) + Math.abs(a.z - prevA.z)
+    const now = performance.now()
+    if (d > 22) {
+      shakeHits = shakeHits.filter((t) => now - t < 800); shakeHits.push(now)
+      if (shakeHits.length >= 2 && now > shakeCool && !spinning.value && atlas.value && !sheet.value) {
+        shakeHits = []; shakeCool = now + 1500
+        navigator.vibrate?.(40)
+        draw()
+      }
+    }
+  }
+  prevA = { x: a.x, y: a.y, z: a.z }
+}
+function enableShake() {
+  if (shakeOn || typeof window === 'undefined' || !('DeviceMotionEvent' in window)) return
+  const on = () => { shakeOn = true; window.addEventListener('devicemotion', onMotion) }
+  const ask = window.DeviceMotionEvent.requestPermission
+  if (typeof ask === 'function') ask().then((r) => r === 'granted' && on()).catch(() => {}) // iPhone：要使用者按過才能問
+  else on() // Android：不用問
+}
+// Android 不用權限，一打開就能搖；iPhone 等第一次按「搖一搖」
+if (typeof window !== 'undefined' && typeof window.DeviceMotionEvent?.requestPermission !== 'function') enableShake()
+onBeforeUnmount(() => window.removeEventListener('devicemotion', onMotion))
+
 // 遊戲模式：搖獎機轉完、掉出來的那顆就是（抽到誰由物理模擬決定）；地圖模式照人口抽一國；其他模式從全部球裡抽一顆
 async function draw() {
+  enableShake() // 第一次按：iPhone 要在按鈕裡問「動作與方向」權限
   if (spinning.value) return
   // 按 SPIN 一律回到遊戲（搖獎機）畫面再搖；等搖獎機掛好
   if (mode.value !== 'game') {
