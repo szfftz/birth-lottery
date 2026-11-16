@@ -6,7 +6,7 @@
     <div class="st-sign">
       <i class="st-tube"></i>
       <div class="st-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
-      <div v-if="zh" class="st-main zh"><span class="n-pink">投胎</span><span class="n-cyan">樂<b>透</b></span></div>
+      <div v-if="zh" class="st-main zh"><span class="n-pink">出生</span><span class="n-cyan">搖搖<b>樂</b></span></div>
       <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
       <div v-if="zh" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span></div>
       <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
@@ -38,7 +38,7 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 .st-stars i:nth-child(3) { font-size: 52px; }
 .st-main { position: relative; margin-top: 0; font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 108px; line-height: 1.05; letter-spacing: 0.02em; white-space: nowrap; }
 .st-main span { display: inline-block; }
-.st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: 0.14em; text-indent: 0.14em; }
+.st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: 0.08em; text-indent: 0.08em; }
 .n-pink { color: #ffe3f1; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fae, 0 0 18px #ff2d95, 0 0 40px #ff2d95, 0 0 80px #ff2d95; }
 .n-cyan { color: #e2feff; text-shadow: 0 0 2px #fff, 0 0 8px #3defff, 0 0 18px #19e6ff, 0 0 40px #19e6ff, 0 0 80px #19e6ff; }
 .n-cyan b { font-weight: inherit; animation: n-flicker 5s linear infinite; } /* 一個字母像接觸不良，偶爾閃掉 */

@@ -1,4 +1,4 @@
-// 投胎樂透的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
+// 出生搖搖樂的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
 // 機率＝球數比例（遊戲是真的從 891 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
 import { L } from './i18n.js'
 import { ref, shallowRef } from 'vue'

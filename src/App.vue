@@ -1,5 +1,5 @@
 <template>
-  <!-- 投胎樂透（手機版）：整個畫面就是舞台（預設 3D 樂透搖獎機），下面浮著一條玻璃操作列：模式選單（漢堡）、DRAW、資訊；
+  <!-- 出生搖搖樂（手機版）：整個畫面就是舞台（預設 3D 樂透搖獎機），下面浮著一條玻璃操作列：模式選單（漢堡）、DRAW、資訊；
        結果、歷史、獎項（含統計）、說明收在從下面拉上來的面板（按資訊或點結果卡打開）
        舞台蓋滿整個畫面（含狀態列、操作列後面）；insets＝上面狀態列、下面操作列擋住的高度，傳給各模式把內容放在看得到的地方
        電腦上也是手機寬度（.phone 最寬 430px，置中） -->
@@ -9,7 +9,7 @@
     <Transition name="fade">
       <div v-if="!atlas" class="loading">
         <div class="ld-ball"><i></i></div>
-        <div class="ld-title">{{ L('BIRTH LOTTERY', '投胎樂透') }}</div>
+        <div class="ld-title">{{ L('BIRTH LOTTERY', '出生搖搖樂') }}</div>
         <div class="ld-sub">{{ L('Loading…', '載入中…') }}</div>
       </div>
     </Transition>
@@ -83,7 +83,7 @@
       </nav>
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
         <i class="d-bulbs" aria-hidden="true"></i>
-        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? L('ROLLING', '轉動中') : L('DRAW', '轉動') }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
+        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖') }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
       <button type="button" class="ibtn" :aria-label="L('Info', '資訊')" @click="openSheet()">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>
@@ -146,7 +146,7 @@
           <div class="e-ball" :class="{ spin: spinning }"></div>
           <p v-if="spinning" class="e-main">{{ L('Drawing… waiting for a ball to drop', '搖獎中…等球掉進盤子') }}</p>
           <template v-else>
-            <p class="e-main">{{ L('Press', '按') }} <b class="kbd">{{ L('DRAW', '轉動') }}</b> {{ L('to be born', '開始投胎') }}</p>
+            <p class="e-main">{{ L('Press', '按') }} <b class="kbd">{{ L('SPIN', '搖一搖') }}</b> {{ L('to be born', '開始投胎') }}</p>
             <p v-if="mode === 'game'" class="e-sub">{{ L(`Which of the ${BALL_TOTAL} balls drops out is decided entirely by the physics simulation. Odds = that country's balls ÷ all balls.`, `${BALL_TOTAL} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
             <p v-else-if="mode === 'map'" class="e-sub">{{ L(`Odds = that country's population ÷ world population. Countries already drawn get a white circle sized by their share of draws.`, '抽中的機率＝那一國的人口 ÷ 全世界人口。抽過的國家畫白色圓，面積＝抽中次數佔幾成。') }}</p>
             <p v-else class="e-sub">{{ L(`One ball is drawn from ${BALL_TOTAL}. Odds = that country's balls ÷ all balls.`, `從 ${BALL_TOTAL} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
@@ -168,7 +168,7 @@
             <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
           </li>
         </ol>
-        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過') }}</p><p class="e-sub">{{ L('Press DRAW and every result will be listed here.', '按「轉動」抽一次，結果會一筆一筆記在這裡。') }}</p></div>
+        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過') }}</p><p class="e-sub">{{ L('Press SPIN and every result will be listed here.', '按「搖一搖」抽一次，結果會一筆一筆記在這裡。') }}</p></div>
       </section>
 
       <!-- 獎項＋統計：上面是你抽的成績，中間每一獎的「應該中幾成 vs 你中幾成」，下面全部國家 -->

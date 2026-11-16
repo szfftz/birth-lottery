@@ -1,4 +1,4 @@
-# 投胎樂透 Birth Lottery
+# 出生搖搖樂 Birth Lottery
 
 網頁：https://szfftz.github.io/birth-lottery/
 
