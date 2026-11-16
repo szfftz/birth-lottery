@@ -9,9 +9,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
-import { TrackballControls } from 'three/addons/controls/TrackballControls.js'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { BALL_R as R, makeBallMesh, setBallFace, fitFov } from '../lib/ball3d.js'
+import { BALL_R as R, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -223,7 +223,6 @@ function resize() {
   camera.fov = fitFov(22, camera.aspect) // 畫面比 4:5 長：視角放大，盒子不會被左右切掉
   camera.setViewOffset(w, h, 0, (props.insetBottom - props.insetTop) / 2, w, h) // 放在上下沒被擋住的中間
   camera.updateProjectionMatrix()
-  controls?.handleResize()
 }
 function frame() {
   raf = requestAnimationFrame(frame)
@@ -262,12 +261,10 @@ onMounted(() => {
   // 從正前方斜上看整個盒子
   camera.position.set(0, D() * CAM_DIST * Math.sin(TILT), D() * CAM_DIST * Math.cos(TILT) - D() * 0.32)
   // 鏡頭固定在預設視角，只能縮放（滾輪、兩指）：不能轉、不能平移
-  controls = new TrackballControls(camera, renderer.domElement)
+  controls = new OrbitControls(camera, renderer.domElement)
   controls.target.set(0, 0, -D() * 0.32)
-  controls.noRotate = true; controls.noPan = true
-  controls.zoomSpeed = 1.2
+  lockSpin(controls)
   { const d = camera.position.distanceTo(controls.target); controls.minDistance = d * 0.25; controls.maxDistance = d * 1.6 }
-  controls.dynamicDampingFactor = 0.15
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)
   resize()

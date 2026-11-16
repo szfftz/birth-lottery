@@ -66,3 +66,14 @@ export function fitFov(fov, aspect, ref = 0.8) {
   const t = Math.tan((fov * Math.PI) / 360) * (ref / aspect)
   return (Math.atan(t) * 360) / Math.PI
 }
+
+// 鏡頭：可以縮放、左右繞一圈（360°），上下只能歪一點點、不能翻過去；不能平移
+export function lockSpin(controls, tilt = 0.2) {
+  controls.update()
+  const polar = controls.getPolarAngle()
+  controls.minPolarAngle = Math.max(0.05, polar - tilt)
+  controls.maxPolarAngle = Math.min(Math.PI / 2 - 0.02, polar + tilt)
+  controls.enablePan = false
+  controls.enableDamping = true; controls.dampingFactor = 0.08
+  controls.rotateSpeed = 0.6; controls.zoomSpeed = 1.1
+}
