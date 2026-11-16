@@ -22,7 +22,6 @@
       <!-- 抽完在搖獎機下面顯示結果看板（國旗、英文國名、獎牌）；點了打開結果面板 -->
       <Transition name="board">
         <div v-if="last && !spinning && lastBall != null" :key="total" class="rb-wrap" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
-          <div class="rb-burst"></div>
           <i v-for="k in 8" :key="k" class="rb-star" :class="`s${k}`">✦</i>
           <div class="result-board">
             <div class="rb-bulbs"></div>
@@ -51,7 +50,7 @@
       <Transition name="chip">
         <button v-if="mode !== 'game' && last && tierIdx(last) >= 0" :key="`${total}-${last}`" type="button" class="chip glass" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
           <FlagBall class="c-flag" :iso="last" />
-          <span class="c-main"><b>{{ nameOf(last) }}</b><small>{{ L(`Draw #${total.toLocaleString('en-US')}`, `第 ${total.toLocaleString('en-US')} 次`) }}</small></span>
+          <span class="c-main"><b>{{ nameOf(last) }}</b></span>
           <span class="c-prize"><b>{{ prizeOf(last) }}</b><small>HDI {{ C[last].hdi.toFixed(3) }}</small></span>
           <svg class="c-go" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>
         </button>
@@ -125,21 +124,18 @@
                 </div>
               </div>
             </div>
-            <div class="t-title">{{ L(`DRAW #${total.toLocaleString('en-US')} · YOU WERE BORN IN`, `第 ${total.toLocaleString('en-US')} 次投胎・你出生在`) }}</div>
             <div class="rb-body t-body">
               <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(last)"></i><i :style="flagStyle(last)"></i></div></div></div>
-              <div class="rb-main"><div class="rb-name">{{ nameOf(last) }}</div></div>
-            </div>
-            <div class="t-prize">
-              <span class="t-range">HDI {{ TIERS[tierIdx(last)].range }}</span>
+              <div class="rb-main"><div class="t-title">{{ L(`DRAW #${total.toLocaleString('en-US')} · YOU WERE BORN IN`, `第 ${total.toLocaleString('en-US')} 次投胎・你出生在`) }}</div><div class="rb-name">{{ nameOf(last) }}</div></div>
             </div>
             <WorldLocator compact class="t-map" :iso="last" :color="colorOf(last)" />
             <div class="tiles">
               <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? L(`UNDP rank #${C[last].hdi_rank}`, `UNDP 第 ${C[last].hdi_rank} 名`) : L('Not ranked by UNDP', '不在 UNDP 排名') }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this prize', '抽到這一獎的機率') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this country', '抽到這一國的機率') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pIso(last)) }}</small></div>
+              <div class="tile"><span>{{ L('HDI of this prize', '這一獎的 HDI') }}</span><b>{{ TIERS[tierIdx(last)].range }}</b><small>{{ TIERS[tierIdx(last)].name }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this prize', '這一獎的機率') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L(`About 1 in ${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 1/${oneIn(pTier(TIERS[tierIdx(last)]))}`) }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this country', '這一國的機率') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L(`About 1 in ${oneIn(pIso(last))}`, `約 1/${oneIn(pIso(last))}`) }}</small></div>
               <div v-if="lastBall != null" class="tile"><span>{{ L('Ball', '球號') }}</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`) }}</small></div>
-              <div class="tile wide"><span>{{ L('Population', '人口') }}</span><b>{{ fmtBig(C[last].pop) }}</b><small>{{ C[last].pop_date }}</small></div>
+              <div class="tile" :class="{ wide: lastBall == null }"><span>{{ L('Population', '人口') }}</span><b>{{ fmtBig(C[last].pop) }}</b><small>{{ C[last].pop_date }}</small></div>
             </div>
             <p v-if="lastRerolls" class="note">{{ L(`${lastRerolls} redraw ${lastRerolls > 1 ? 'balls' : 'ball'} (${noHdiNames()}) dropped first, so it was drawn again automatically.`, `先掉出 ${lastRerolls} 次重抽球（${noHdiNames()}），自動再搖`) }}</p>
           </article>
@@ -692,11 +688,11 @@ section > .tiles .tile { background: var(--tile); }
 .prizes { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .prizes li { padding: 12px 14px; border-radius: 16px; background: var(--tile); border: 1px solid transparent; }
 .prizes li.on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 18px rgba(245, 196, 81, 0.25); }
-.p-top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.p-top { display: grid; grid-template-columns: 1fr auto; align-items: baseline; column-gap: 8px; row-gap: 2px; } /* 獎名＋國數球數一行，HDI 範圍寫在獎名下面 */
 .p-name { display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; }
 .p-name .sw { background: var(--tier); }
-.p-hdi { font-size: 13px; color: var(--muted); }
-.p-meta { margin-left: auto; font-size: 13px; color: var(--dim); }
+.p-hdi { grid-column: 1; grid-row: 2; padding-left: 19px; font-size: 13px; color: var(--muted); }
+.p-meta { grid-column: 2; grid-row: 1; font-size: 13px; color: var(--dim); }
 .p-bars { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
 .p-bar { position: relative; display: flex; align-items: center; gap: 8px; height: 22px; padding: 0 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
 .p-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: color-mix(in srgb, var(--tier) 70%, transparent); transition: width 0.4s; }
@@ -706,9 +702,9 @@ section > .tiles .tile { background: var(--tile); }
 .t-map { margin: 14px 0 4px; }
 /* 結果分頁的票卡：沿用 .result-board，縮到面板寬 */
 .result-board.t-board { min-width: 0; padding: 18px 16px 16px; }
-.t-board .t-title { position: relative; padding-right: 92px; font-family: 'Overpass', 'Huninn', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #fff3b0; }
-.t-board .t-body { justify-content: center; gap: 14px; margin: 12px 0 0; padding: 0 96px 0 0; } /* 國旗、國名水平置中（右上角留給獎牌，國名不要被蓋到） */
-.t-board .rb-flag { width: 72px; height: 72px; }
+.t-board .t-title { position: relative; margin-bottom: 2px; /* 在國名上面，一行寫完 */ font-family: 'Overpass', 'Huninn', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; color: #fff3b0; }
+.t-board .t-body { justify-content: flex-start; gap: 12px; margin: 4px 0 0; padding: 0 96px 0 0; } /* 國旗、國名靠左（右上角留給獎牌，國名不要被蓋到） */
+.t-board .rb-flag { width: 64px; height: 64px; }
 .t-board .rb-name { font-size: 34px; -webkit-text-stroke-width: 5px; text-shadow: 3px 3px 0 #2b0a5e; overflow-wrap: anywhere; }
 .t-board .t-medal { top: 6px; right: 6px; scale: 0.7; transform-origin: 100% 0; }
 .t-board .t-prize, .t-board .t-map, .t-board .tiles, .t-board .note { position: relative; }
@@ -720,10 +716,6 @@ section > .tiles .tile { background: var(--tile); }
 /* ── 舞台上的結果看板（Day 25 原樣，1080×1350 的單位） ── */
 .rb-wrap { position: relative; cursor: pointer; animation: rb-pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1); }
 @keyframes rb-pop { 0% { transform: scale(0.2) rotate(-6deg); } 60% { transform: scale(1.08) rotate(1deg); } 100% { transform: scale(1) rotate(0); } }
-.rb-burst { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; border-radius: 50%; pointer-events: none;
-  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--tier) 70%, #fff3b0) 0deg 9deg, rgba(255, 230, 140, 0) 9deg 18deg);
-  -webkit-mask: radial-gradient(circle, #000 18%, transparent 62%); mask: radial-gradient(circle, #000 18%, transparent 62%);
-  opacity: 0.75; animation: rb-spin 14s linear infinite; }
 .rb-star { position: absolute; font-style: normal; color: #fff6cf; text-shadow: 0 0 10px #ffd23f, 0 0 20px var(--tier); pointer-events: none; animation: rb-twinkle 1.2s ease-in-out infinite; }
 .rb-star.s1 { left: -40px; top: -30px; font-size: 40px; }
 .rb-star.s2 { right: -30px; top: -46px; font-size: 52px; animation-delay: 0.3s; }
@@ -752,7 +744,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-bulbs::after { content: ''; inset: 0; background-position: 9px 0, 9px 100%, 0 9px, 100% 9px; animation: rb-blink 0.8s steps(1) infinite reverse; }
 @keyframes rb-blink { 50% { opacity: 0.25; } }
 /* 國旗＋國名在看板裡水平置中；獎牌另外掛在右上角、壓在所有東西上面 */
-.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; padding-right: 80px; } /* 國旗、國名水平置中；右邊留給獎牌，國名不要被蓋到 */
+.rb-body { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 18px; padding-right: 80px; } /* 國旗、國名靠左；右邊留給獎牌，國名不要被蓋到 */
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
 .rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }
@@ -761,7 +753,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
 .rb-main { flex: 0 1 auto; min-width: 0; }
-.rb-name { font-family: 'Overpass', 'Huninn', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
+.rb-name { position: relative; top: 0.12em; /* 字形比行框中心高約 0.12em，往下推一點跟國旗球中心對齊 */ font-family: 'Overpass', 'Huninn', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
   -webkit-text-stroke: 6px #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
 .rb-medal { position: absolute; z-index: 10; top: -86px; right: -70px; width: 128px; height: 128px; scale: 1.45; transform: rotate(14deg); }
 /* 獎牌輕輕地左右晃（用 rotate 屬性，跟原本的 transform 斜角疊在一起） */
@@ -793,7 +785,6 @@ section > .tiles .tile { background: var(--tile); }
 .md-face b { margin: 0 0 2px; font-size: 34px; font-weight: 900; letter-spacing: 0.02em; }
 .md-face.long b { font-size: 26px; }
 .md-face small { font-size: 20px; font-weight: 800; letter-spacing: 0.2em; }
-@keyframes rb-spin { to { transform: rotate(360deg); } }
 .board-enter-active { transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
 .board-leave-active { transition: opacity 0.15s ease; }
 .board-enter-from { opacity: 0; transform: translateY(30px) scale(0.8); }

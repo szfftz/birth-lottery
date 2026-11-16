@@ -23,6 +23,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { mainCenter, svgRings } from '../lib/center.js'
 
 const props = defineProps({
   iso: { type: String, default: null },
@@ -35,7 +36,11 @@ const world = ref(null)
 import('../data/world-svg.json').then((m) => (world.value = m.default))
 
 const land = computed(() => (world.value ? Object.values(world.value).map((f) => f.d).join('') : ''))
-const shape = computed(() => (world.value && props.iso ? world.value[props.iso] : null))
+// 光環、圓點放在國家本土的中心（不是標籤點）
+const shape = computed(() => {
+  const f = world.value && props.iso ? world.value[props.iso] : null
+  return f && { ...f, c: mainCenter(svgRings(f.d), f.c) }
+})
 // 光環：小國大一點，才看得到在哪
 const ringR = computed(() => {
   if (!shape.value) return 6

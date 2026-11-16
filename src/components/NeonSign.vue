@@ -28,6 +28,16 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
   box-shadow: 0 0 4px #ff2d95, 0 0 16px #ff2d95, 0 0 42px #ff2d95, 0 0 90px rgba(255, 45, 149, 0.55),
     inset 0 0 6px #ff2d95, inset 0 0 26px rgba(255, 45, 149, 0.7), 0 20px 40px rgba(0, 0, 0, 0.6);
   animation: n-hum 1.6s ease-in-out infinite; }
+/* 背景橫條燈：一條條粉紫色的橫燈管（中間最亮、往上下淡掉），再加一道亮帶由下往上掃過 */
+.st-sign::before { content: ''; position: absolute; inset: 18px; border-radius: 24px; pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(255, 220, 245, 0.55) 46%, rgba(255, 220, 245, 0.55) 54%, transparent 100%) 0 0 / 100% 300% no-repeat,
+    repeating-linear-gradient(180deg, transparent 0 13px, rgba(255, 70, 170, 0.42) 13px 15px, rgba(255, 200, 240, 0.65) 15px 17px, rgba(255, 70, 170, 0.42) 17px 19px, transparent 19px 26px);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent), linear-gradient(180deg, rgba(0,0,0,.5), #000 40%, #000 60%, rgba(0,0,0,.5));
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  mix-blend-mode: screen; animation: n-bars 3.2s linear infinite, n-bars-hum 2.4s ease-in-out infinite; }
+@keyframes n-bars { from { background-position: 0 120%, 0 0; } to { background-position: 0 -20%, 0 0; } }
+@keyframes n-bars-hum { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 .st-tube { position: absolute; inset: 14px; border-radius: 28px; border: 4px solid #d8fdff; pointer-events: none;
   box-shadow: 0 0 4px #19e6ff, 0 0 14px #19e6ff, 0 0 30px rgba(25, 230, 255, 0.7), inset 0 0 4px #19e6ff, inset 0 0 16px rgba(25, 230, 255, 0.6); }
 /* 一排霓虹黃星星，輪流閃 */
@@ -64,5 +74,5 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7);
   font-size: 32px; font-weight: 800; letter-spacing: 0.1em; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .st-sub i { font-style: normal; font-size: 18px; color: #ff6fc1; text-shadow: 0 0 8px #ff2d95; }
-@media (prefers-reduced-motion: reduce) { .st-sign, .st-tube, .st-sub, .st-sub span, .st-sub i, .n-pink, .n-cyan, .n-cyan b, .st-stars i { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .st-sign::before, .st-tube, .st-sub, .st-sub span, .st-sub i, .n-pink, .n-cyan, .n-cyan b, .st-stars i { animation: none; } }
 </style>

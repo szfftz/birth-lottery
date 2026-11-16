@@ -6,6 +6,7 @@
 </template>
 
 <script setup>
+import { mainCenter, geoRings } from '../lib/center.js'
 import { L, lang } from '../i18n.js'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as maplibregl from 'maplibre-gl'
@@ -213,7 +214,7 @@ onMounted(() => {
   map.keyboard.disableRotation()
   map.on('load', async () => {
     const world = await (await fetch(worldUrl)).json()
-    at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, [f.properties.label_x, f.properties.label_y]]))
+    at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, mainCenter(geoRings(f.geometry), [f.properties.label_x, f.properties.label_y])])) // 本土的中心
     map.addSource('countries', {
       type: 'geojson', data: world,
       attribution: 'HDI, population: <a href="https://en.wikipedia.org/" target="_blank">Wikipedia</a>; <a href="https://www.naturalearthdata.com/" target="_blank">Natural Earth</a>',
