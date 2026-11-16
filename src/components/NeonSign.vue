@@ -6,18 +6,23 @@
     <div class="st-sign">
       <i class="st-tube"></i>
       <div class="st-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
-      <div class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
-      <div class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
+      <div v-if="zh" class="st-main zh"><span class="n-pink">投胎</span><span class="n-cyan">樂<b>透</b></span></div>
+      <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
+      <div v-if="zh" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span></div>
+      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { lang } from '../i18n.js'
+const zh = computed(() => lang.value === 'zh')
 defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, default: 0 } })
 </script>
 
 <style scoped>
-.neon-sign { width: 880px; text-align: center; font-family: 'Overpass', 'Noto Sans TC', sans-serif; }
+.neon-sign { width: 880px; text-align: center; font-family: 'Overpass', 'Huninn', 'Noto Sans TC', sans-serif; }
 .st-sign { position: relative; padding: 34px 40px 36px; border-radius: 40px; border: 7px solid #ffd6ec;
   background: radial-gradient(120% 120% at 50% 40%, rgba(255, 45, 149, 0.16), transparent 60%), linear-gradient(180deg, #120a24, #07040f);
   box-shadow: 0 0 4px #ff2d95, 0 0 16px #ff2d95, 0 0 42px #ff2d95, 0 0 90px rgba(255, 45, 149, 0.55),
@@ -33,6 +38,7 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 .st-stars i:nth-child(3) { font-size: 52px; }
 .st-main { position: relative; margin-top: 0; font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 108px; line-height: 1.05; letter-spacing: 0.02em; white-space: nowrap; }
 .st-main span { display: inline-block; }
+.st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: 0.14em; text-indent: 0.14em; }
 .n-pink { color: #ffe3f1; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fae, 0 0 18px #ff2d95, 0 0 40px #ff2d95, 0 0 80px #ff2d95; }
 .n-cyan { color: #e2feff; text-shadow: 0 0 2px #fff, 0 0 8px #3defff, 0 0 18px #19e6ff, 0 0 40px #19e6ff, 0 0 80px #19e6ff; }
 .n-cyan b { font-weight: inherit; animation: n-flicker 5s linear infinite; } /* 一個字母像接觸不良，偶爾閃掉 */

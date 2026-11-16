@@ -1,6 +1,6 @@
 /* 英文、數字一律 Overpass，中文落到 Noto Sans TC；黑色是 #161616 */
 :root {
-  --font: 'Overpass', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif;
+  --font: 'Overpass', 'Huninn', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif;
   --bg: #161616;
   --card: #222222;
   --line: #333333;

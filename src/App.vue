@@ -9,7 +9,7 @@
     <Transition name="fade">
       <div v-if="!atlas" class="loading">
         <div class="ld-ball"><i></i></div>
-        <div class="ld-title">BIRTH LOTTERY</div>
+        <div class="ld-title">{{ L('BIRTH LOTTERY', '投胎樂透') }}</div>
         <div class="ld-sub">{{ L('Loading…', '載入中…') }}</div>
       </div>
     </Transition>
@@ -30,12 +30,12 @@
             <div class="rb-body">
               <!-- 國旗球：兩面國旗並排成一條帶子，往左捲動，看起來像球在水平轉 -->
               <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(last)"></i><i :style="flagStyle(last)"></i></div></div></div>
-              <div class="rb-main"><div class="rb-name">{{ C[last].name_en }}</div></div>
+              <div class="rb-main"><div class="rb-name">{{ nameOf(last) }}</div></div>
               <div class="rb-medal">
                 <i class="md-tail l"></i><i class="md-tail r"></i>
                 <div class="md-coin">
-                  <div class="md-face" :class="{ long: TIER_EN[tierIdx(last)].length > 3 }">
-                    <b>{{ TIER_EN[tierIdx(last)] }}</b><small>PRIZE</small>
+                  <div class="md-face" :class="{ long: isZh ? TIER_ZH[tierIdx(last)].length > 2 : TIER_EN[tierIdx(last)].length > 3 }">
+                    <b>{{ isZh ? TIER_ZH[tierIdx(last)] : TIER_EN[tierIdx(last)] }}</b><small v-if="!isZh">PRIZE</small>
                   </div>
                 </div>
               </div>
@@ -83,7 +83,7 @@
       </nav>
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
         <i class="d-bulbs" aria-hidden="true"></i>
-        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? 'ROLLING' : 'DRAW' }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
+        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? L('ROLLING', '搖獎中') : L('DRAW', '抽獎') }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
       <button type="button" class="ibtn" :aria-label="L('Info', '資訊')" @click="openSheet()">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>
@@ -118,8 +118,8 @@
             <div class="rb-medal t-medal">
               <i class="md-tail l"></i><i class="md-tail r"></i>
               <div class="md-coin">
-                <div class="md-face" :class="{ long: TIER_EN[tierIdx(last)].length > 3 }">
-                  <b>{{ TIER_EN[tierIdx(last)] }}</b><small>PRIZE</small>
+                <div class="md-face" :class="{ long: isZh ? TIER_ZH[tierIdx(last)].length > 2 : TIER_EN[tierIdx(last)].length > 3 }">
+                  <b>{{ isZh ? TIER_ZH[tierIdx(last)] : TIER_EN[tierIdx(last)] }}</b><small v-if="!isZh">PRIZE</small>
                 </div>
               </div>
             </div>
@@ -134,8 +134,8 @@
             <WorldLocator compact class="t-map" :iso="last" :color="colorOf(last)" />
             <div class="tiles">
               <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? L(`UNDP rank #${C[last].hdi_rank}`, `UNDP 第 ${C[last].hdi_rank} 名`) : L('Not ranked by UNDP', '不在 UNDP 排名') }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this prize', '抽到這一獎') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this country', '抽到這一國') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pIso(last)) }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this prize', '抽到這一獎的機率') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this country', '抽到這一國的機率') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pIso(last)) }}</small></div>
               <div v-if="lastBall != null" class="tile"><span>{{ L('Ball', '球號') }}</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`) }}</small></div>
               <div class="tile wide"><span>{{ L('Population', '人口') }}</span><b>{{ C[last].pop.toLocaleString('en-US') }}</b><small>{{ C[last].pop_date }}</small></div>
             </div>
@@ -146,7 +146,7 @@
           <div class="e-ball" :class="{ spin: spinning }"></div>
           <p v-if="spinning" class="e-main">{{ L('Drawing… waiting for a ball to drop', '搖獎中…等球掉進盤子') }}</p>
           <template v-else>
-            <p class="e-main">{{ L('Press', '按') }} <b class="kbd">DRAW</b> {{ L('to be born', '開始投胎') }}</p>
+            <p class="e-main">{{ L('Press', '按') }} <b class="kbd">{{ L('DRAW', '抽獎') }}</b> {{ L('to be born', '開始投胎') }}</p>
             <p v-if="mode === 'game'" class="e-sub">{{ L(`Which of the ${BALL_TOTAL} balls drops out is decided entirely by the physics simulation. Odds = that country's balls ÷ all balls.`, `${BALL_TOTAL} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
             <p v-else-if="mode === 'map'" class="e-sub">{{ L(`Odds = that country's population ÷ world population. Countries already drawn get a white circle sized by their share of draws.`, '抽中的機率＝那一國的人口 ÷ 全世界人口。抽過的國家畫白色圓，面積＝抽中次數佔幾成。') }}</p>
             <p v-else class="e-sub">{{ L(`One ball is drawn from ${BALL_TOTAL}. Odds = that country's balls ÷ all balls.`, `從 ${BALL_TOTAL} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
@@ -168,7 +168,7 @@
             <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
           </li>
         </ol>
-        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過') }}</p><p class="e-sub">{{ L('Press DRAW and every result will be listed here.', '按 DRAW 抽一次，結果會一筆一筆記在這裡。') }}</p></div>
+        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過') }}</p><p class="e-sub">{{ L('Press DRAW and every result will be listed here.', '按「抽獎」抽一次，結果會一筆一筆記在這裡。') }}</p></div>
       </section>
 
       <!-- 獎項＋統計：上面是你抽的成績，中間每一獎的「應該中幾成 vs 你中幾成」，下面全部國家 -->
@@ -220,7 +220,7 @@
           <li v-for="(iso, k) in sorted" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
             <span class="r-n">{{ k + 1 }}</span><i class="fl" :style="flagStyle(iso)"></i>
             <span class="r-name">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
-            <b class="r-v">{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`) }}</small></b>
+            <b class="r-v"><em class="r-lbl">{{ L('odds', '機率') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`) }}</small></b>
           </li>
         </ol>
         <p class="note">{{ L(`Taiwan: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), ${BALLS.TWN} balls, odds ${fmtP(pIso('TWN'))} — about 1 birth in ${oneIn(pIso('TWN'))} lands in Taiwan. One ball ≈ ${POP_UNIT.toLocaleString('en-US')} people.`, `臺灣：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}），${BALLS.TWN} 顆球，機率 ${fmtP(pIso('TWN'))}，大約 ${oneIn(pIso('TWN'))} 次投胎才會出生在臺灣一次。1 顆球約 ${POP_UNIT.toLocaleString('en-US')} 人。`) }}</p>
@@ -241,9 +241,7 @@
           <li><b>Prizes</b>Countries are ranked by HDI and cut into {{ TIERS.length }} tiers. Each tier is more likely than the one above, as close as possible to 1:2:4:8:16:32:64:128. Countries with the same HDI aren't split, so the ratios are close but not exact.</li>
           <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ POP_UNIT.toLocaleString('en-US') }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
           <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from Natural Earth 1:50m, Esri Dark Gray basemap.</li>
-          <li><b>Balls mode</b>Each country's balls form a cluster at the center of its mainland (the Natural Earth label point), so crowded regions like Europe and the Middle East overlap. One ball is drawn, so odds follow ball counts. Each ball shows its flag.</li>
-          <li><b>Sorted</b>The same balls laid out by prize from top left to bottom right: Grand Prize at the top, Booby Prize at the bottom, then the grey redraw balls. Within a tier, higher HDI comes first and each country's balls stay together. Each tier's area equals its ball count.</li>
-          <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. Box by Region groups countries by where they are in the world; Box by Prize follows the Sorted order, with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
+          <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. Box by Region groups countries by where they are in the world; Box by Prize lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
           <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
         </ol>
         <ol v-else class="how">
@@ -253,9 +251,7 @@
           <li><b>獎項</b>把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
           <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ POP_UNIT.toLocaleString() }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
           <li><b>地圖模式</b>國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 Natural Earth 1:5,000 萬國界、Esri 深灰底圖。</li>
-          <li><b>彩球模式</b>每國的球排成一塊，放在那一國本土的中心（Natural Earth 的國名標籤點），國家靠得近的地方（歐洲、中東）球會疊在一起。抽一顆球，所以機率是球數比例。球面是國旗。</li>
-          <li><b>排列模式</b>同一批球照獎項從左上一列一列排到右下：特獎在最上面，哈哈獎在最下面，最後是重抽的灰色球；同一級裡 HDI 高的在前，同一國的球排在一起。每一級佔的面積就是它的球數。</li>
-          <li><b>盒子模式</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「盒子・照地區」照各國在世界上的相對位置放，同一洲的國家在一起；「盒子・照獎」照排列模式的順序，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
+          <li><b>盒子模式</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「盒子・照地區」照各國在世界上的相對位置放，同一洲的國家在一起；「盒子・照獎項」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
           <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
         </ol>
 
@@ -283,7 +279,7 @@ import { L, lang } from './i18n.js'
 import {
   MODES, MAP_MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
   meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, balls, isoOfBall, colors, flagMeta, flagsUrl, flagStyle, ballTip,
-  TIERS, TIER_EN, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
+  TIERS, TIER_EN, TIER_ZH, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
   HDI_EXPECT, pTier, pIso, fmtP, oneIn,
 } from './lottery.js'
 
@@ -301,8 +297,6 @@ const SITE = 'https://szfftz.github.io/birth-lottery/'
 const HINTS = {
   game: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
   map: ['Drag and pinch to move the map; tap a country to see its odds and HDI.', '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。'],
-  balls: ['Drag and pinch the map (balls scale with it); tap a ball to see its country.', '拖曳、兩指縮放地圖，球跟著變大；點一顆球看是哪一國。'],
-  grid: ['Tap a ball to see its country.', '點一顆球看是哪一國。'],
   box: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
   boxp: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
 }
@@ -672,8 +666,8 @@ section > .tiles .tile { background: var(--tile); }
 .t-map { margin: 14px 0 4px; }
 /* 結果分頁的票卡：沿用 .result-board，縮到面板寬 */
 .result-board.t-board { min-width: 0; padding: 18px 16px 16px; }
-.t-board .t-title { position: relative; padding-right: 92px; font-family: 'Overpass', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #fff3b0; }
-.t-board .t-body { justify-content: flex-start; gap: 14px; margin: 12px 0 0; padding-right: 96px; } /* 右上角留給獎牌，國名不要被蓋到 */
+.t-board .t-title { position: relative; padding-right: 92px; font-family: 'Overpass', 'Huninn', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #fff3b0; }
+.t-board .t-body { justify-content: center; gap: 14px; margin: 12px 0 0; padding: 0 96px 0 0; } /* 國旗、國名水平置中（右上角留給獎牌，國名不要被蓋到） */
 .t-board .rb-flag { width: 72px; height: 72px; }
 .t-board .rb-name { font-size: 34px; -webkit-text-stroke-width: 5px; text-shadow: 3px 3px 0 #2b0a5e; overflow-wrap: anywhere; }
 .t-board .t-medal { top: 6px; right: 6px; scale: 0.7; transform-origin: 100% 0; }
@@ -718,7 +712,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-bulbs::after { content: ''; inset: 0; background-position: 9px 0, 9px 100%, 0 9px, 100% 9px; animation: rb-blink 0.8s steps(1) infinite reverse; }
 @keyframes rb-blink { 50% { opacity: 0.25; } }
 /* 國旗＋國名在看板裡水平置中；獎牌另外掛在右上角、壓在所有東西上面 */
-.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; }
+.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; } /* 國旗、國名水平置中 */
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
 .rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }
@@ -727,7 +721,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
 .rb-main { flex: 0 1 auto; min-width: 0; }
-.rb-name { font-family: 'Overpass', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
+.rb-name { font-family: 'Overpass', 'Huninn', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
   -webkit-text-stroke: 6px #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
 .rb-medal { position: absolute; z-index: 10; top: -86px; right: -70px; width: 128px; height: 128px; scale: 1.45; transform: rotate(14deg); }
 .md-tail { position: absolute; top: 84px; width: 32px; height: 76px;
@@ -742,7 +736,7 @@ section > .tiles .tile { background: var(--tile); }
 .md-face { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
   background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--tier) 55%, #ffffff), var(--tier) 55%, color-mix(in srgb, var(--tier) 70%, #000000));
   box-shadow: inset 0 0 0 2px #fff3b0, inset 0 -6px 10px rgba(0, 0, 0, 0.3);
-  color: #ffffff; text-shadow: 0 0 2px #2b0a5e, 0 2px 0 #2b0a5e; font-family: 'Overpass', sans-serif; line-height: 1; }
+  color: #ffffff; text-shadow: 0 0 2px #2b0a5e, 0 2px 0 #2b0a5e; font-family: 'Overpass', 'Huninn', sans-serif; line-height: 1; }
 .md-face::after { content: ''; position: absolute; top: -30%; bottom: -30%; width: 26px; left: -40px; transform: skewX(-20deg);
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent); animation: md-glint 3s ease-in-out infinite; }
 @keyframes md-glint { 0%, 55% { left: -40px; } 85%, 100% { left: 120%; } }
@@ -755,4 +749,23 @@ section > .tiles .tile { background: var(--tile); }
 .board-leave-active { transition: opacity 0.15s ease; }
 .board-enter-from { opacity: 0; transform: translateY(30px) scale(0.8); }
 .board-leave-to { opacity: 0; }
+
+/* ── 按鈕統一跟主畫面同一套賭場風 ──
+   外框（中／英切換、分頁、排序）：深底＋粉紅霓虹燈管邊；選中的：DRAW 那種紅色圓頂＋金邊；
+   關閉鈕：跟操作列一樣的籌碼；其他小按鈕（清空…）：金邊紅色小按鈕 */
+.lang-switch, .tabs, .seg { background: rgba(10, 5, 24, 0.82); border: 2px solid #ffd6ec; border-radius: 999px;
+  box-shadow: 0 0 4px #ff2d95, 0 0 12px rgba(255, 45, 149, 0.7), inset 0 0 6px rgba(255, 45, 149, 0.4); }
+.lang-switch { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.tabs button, .seg button { border-radius: 999px; }
+.lang-switch button.on, .tabs button.on, .seg button.on {
+  background: radial-gradient(ellipse 70% 140% at 40% 0%, #ff8a8a 0%, #e0142a 48%, #8a0612 100%); color: #ffffff; font-weight: 800;
+  box-shadow: inset 0 0 0 2px #f5c451, inset 0 -4px 6px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 196, 90, 0.45); text-shadow: 0 1px 0 rgba(90, 0, 10, 0.6); }
+.close { border: 2px solid #f5c451; color: #ffffff;
+  background: radial-gradient(circle, #a3121f 0 52%, #f5c451 53% 56%, transparent 57%), repeating-conic-gradient(#ffffff 0 14deg, #b3121f 14deg 45deg);
+  box-shadow: 0 3px 0 #5a0a12, 0 6px 12px rgba(0, 0, 0, 0.45); }
+.pill { border: 2px solid #f5c451; border-radius: 999px; color: #ffffff; font-weight: 800;
+  background: radial-gradient(ellipse 70% 140% at 40% 0%, #ff8a8a 0%, #e0142a 48%, #8a0612 100%);
+  box-shadow: 0 3px 0 #5a420b, 0 0 10px rgba(255, 196, 90, 0.35); text-shadow: 0 1px 0 rgba(90, 0, 10, 0.6); }
+.pill:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #5a420b; }
+.r-lbl { margin-right: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: var(--dim); }
 </style>

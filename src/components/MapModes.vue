@@ -167,7 +167,7 @@ function paintTag() {
   const onBall = props.lastBall != null && mode.value !== 'map' && layLngLat
   if (!iso || !at[iso] || (mode.value !== 'map' && !onBall && onBoard())) { tag?.remove(); return }
   const el = tag?.getElement() ?? Object.assign(document.createElement('div'), { className: 'lottery-tag' })
-  el.innerHTML = `<b>${nameOf(iso)}</b> <span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>HDI ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>${L('Prize', '這一獎')} ${fmtP(pTier(TIERS[tierIdx(iso)]))} · ${L('Country', '這一國')} ${fmtP(pIso(iso))}`}`
+  el.innerHTML = `<b>${nameOf(iso)}</b> <span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>HDI ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>${L('Prize odds', '這一獎機率')} ${fmtP(pTier(TIERS[tierIdx(iso)]))} · ${L('Country odds', '這一國機率')} ${fmtP(pIso(iso))}`}`
   tag ??= new maplibregl.Marker({ element: el, anchor: 'bottom' })
   tag.setOffset([0, onBall ? -(BALL_SEL / 2 + 8) : -8])
   tag.setLngLat(onBall ? ballAt(props.lastBall) : at[iso]).addTo(map)
@@ -245,8 +245,8 @@ onMounted(() => {
       return [
         `<b>${nameOf(iso)}</b>`,
         ...(tierIdx(iso) < 0 ? [] : [
-          L(`Odds of this prize <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b> (about 1 in ${oneIn(pTier(TIERS[tierIdx(iso)]))})`, `抽到這一獎 <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b>（約 1/${oneIn(pTier(TIERS[tierIdx(iso)]))}）`),
-          L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)]),
+          L(`Odds of this prize <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b> (about 1 in ${oneIn(pTier(TIERS[tierIdx(iso)]))})`, `抽到這一獎的機率 <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b>（約 1/${oneIn(pTier(TIERS[tierIdx(iso)]))}）`),
+          L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)]),
         ...(BALLS[iso] ? [L(`${BALLS[iso]} ${BALLS[iso] > 1 ? 'balls' : 'ball'}`, `彩球 ${BALLS[iso]} 顆`)] : []),
         L(`Population ${c.pop.toLocaleString('en-US')} (${c.pop_date})`, `人口 ${c.pop.toLocaleString('en-US')}（${c.pop_date}）`),
         c.hdi == null ? L('No HDI data', '沒有 HDI 資料') : `HDI <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''} → ${prizeOf(iso)}`,

@@ -701,7 +701,7 @@ onBeforeUnmount(() => {
 .stage-gl :deep(canvas) { display: block; }
 /* 寬 1080 的設計稿，縮放到舞台（寬高由 uiStyle 給） */
 .stage-ui { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; transform-origin: 0 0; pointer-events: none;
-  font-family: 'Overpass', 'Noto Sans TC', sans-serif; }
+  font-family: 'Overpass', 'Huninn', 'Noto Sans TC', sans-serif; }
 /* 節目標題：賭場霓虹招牌——黑底板、外圈粉紅霓虹燈管、內圈青色燈管；字是霓虹燈管字（白芯＋一層層同色光暈），會微微呼吸、偶爾閃一下 */
 .show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%); width: 880px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
 @keyframes st-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
