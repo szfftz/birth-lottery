@@ -34,10 +34,10 @@ const props = defineProps({
 
 // 地圖、圖例共用：國界、這次抽到的外框、投胎紀錄圓的顏色，不透明度，線寬（px）
 const FLAT_BG = '#0d0926' // 跟盒子、主畫面同一個深靛藍
-const BORDER = '#ffffff'
+const BORDER = '#ffe2a0' // 國界：淡金色細線（跟舞台的金色菱格同一個金）
 const SEL = '#ffffff'
 const TALLY = { fill: '#ffffff', line: '#ffffff' }
-const OP = { fill: 0.85, line: 0.6, tally: 0.3, ballDim: 0.35 }
+const OP = { fill: 0.85, line: 0.75, tally: 0.3, ballDim: 0.35 }
 const BALL_SEL = 28 // 抽到的那顆放大成幾 px
 const GRID_FILL = 0.8 // 排列、格子模式：球的直徑＝格子的幾成
 const BALL_GAP = 1.15 // 彩球模式：球心距＝直徑的幾倍
@@ -200,12 +200,8 @@ onMounted(() => {
     zoom: z0,
     minZoom: z0 - 1,
     attributionControl: { compact: true },
-    // Esri 深灰底圖（跟 Day 25 一樣）
-    style: {
-      version: 8,
-      sources: { base: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, maxzoom: 16, attribution: '© Esri' } },
-      layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.4 } }],
-    },
+    // 沒有底圖：地圖是透明的，後面的賭場牆面（酒紅＋金色菱格，跟搖獎機舞台一樣）直接透出來
+    style: { version: 8, sources: {}, layers: [] },
   })
   map.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 })
   map.dragRotate.disable()
@@ -267,7 +263,12 @@ onBeforeUnmount(() => { tag?.remove(); map?.remove() })
 </script>
 
 <style scoped>
-.map-modes { position: absolute; inset: 0; background: #0d0926; }
+.map-modes { position: absolute; inset: 0;
+  /* 跟搖獎機舞台同一面牆：深酒紅（中間亮、四周暗）＋金色細線菱格 */
+  background:
+    repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    radial-gradient(120% 70% at 50% 50%, #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }
 </style>
 
 <style>
