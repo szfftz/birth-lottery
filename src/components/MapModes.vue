@@ -32,7 +32,7 @@ const props = defineProps({
 })
 
 // 地圖、圖例共用：國界、這次抽到的外框、投胎紀錄圓的顏色，不透明度，線寬（px）
-const FLAT_BG = '#161616'
+const FLAT_BG = '#0d0926' // 跟盒子、主畫面同一個深靛藍
 const BORDER = '#ffffff'
 const SEL = '#ffffff'
 const TALLY = { fill: '#ffffff', line: '#ffffff' }
@@ -203,7 +203,7 @@ onMounted(() => {
     style: {
       version: 8,
       sources: { base: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, maxzoom: 16, attribution: '© Esri' } },
-      layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base' }],
+      layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.6 } }],
     },
   })
   map.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 })
@@ -266,19 +266,21 @@ onBeforeUnmount(() => { tag?.remove(); map?.remove() })
 </script>
 
 <style scoped>
-.map-modes { position: absolute; inset: 0; background: #161616; }
+.map-modes { position: absolute; inset: 0; background: #0d0926; }
 </style>
 
 <style>
 /* 地圖的版權、控制項放在操作列上面、狀態列下面 */
 .map-modes .maplibregl-ctrl-bottom-right, .map-modes .maplibregl-ctrl-bottom-left { bottom: var(--ib, 0px); }
 .map-modes .maplibregl-ctrl-top-right, .map-modes .maplibregl-ctrl-top-left { top: var(--it, 0px); }
-.map-modes .maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(22, 22, 22, 0.6); color: rgba(255, 255, 255, 0.7); }
+.map-modes .maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(10, 5, 24, 0.75); color: rgba(255, 255, 255, 0.7); }
 .map-modes .maplibregl-ctrl-attrib a { color: rgba(255, 255, 255, 0.8); }
-.lottery-tag { padding: 5px 8px; border-radius: 4px; background: rgba(22, 22, 22, 0.85); color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; pointer-events: none; }
+.lottery-tag { padding: 5px 9px; border-radius: 10px; background: rgba(10, 5, 24, 0.92); border: 2px solid #ffd6ec; box-shadow: 0 0 4px #ff2d95, 0 0 12px rgba(255, 45, 149, 0.6); color: #fff; font-size: 11px; font-weight: 600; line-height: 1.5; white-space: nowrap; pointer-events: none; }
 .lottery-tag b { margin-right: 6px; font-size: 13px; }
 .map-tooltip { pointer-events: none; }
 .map-tooltip.pinned { pointer-events: auto; }
-.map-tooltip .maplibregl-popup-content { padding: 8px 10px; border-radius: 4px; color: #161616; font-size: 12px; line-height: 1.5; }
-.map-tooltip .en { color: #6b6b6b; }
+.map-tooltip .maplibregl-popup-content { padding: 8px 11px; border-radius: 12px; background: rgba(10, 5, 24, 0.94); color: #fff; border: 2px solid #ffd6ec;
+  box-shadow: 0 0 4px #ff2d95, 0 0 14px rgba(255, 45, 149, 0.7), 0 6px 16px rgba(0, 0, 0, 0.5); font-size: 12px; line-height: 1.5; }
+.map-tooltip .maplibregl-popup-tip { display: none; }
+.map-tooltip [style*="color"], .lottery-tag [style*="color"] { filter: brightness(1.4); }
 </style>

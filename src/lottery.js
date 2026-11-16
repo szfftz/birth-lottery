@@ -72,7 +72,7 @@ export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)
 
 // 模式：地圖、彩球、排列、格子、盒子・地圖、盒子・照獎、遊戲（預設遊戲）
-export const MODES = [['map', 'Map', '地圖'], ['box', 'Box by Region', '盒子・照地區'], ['boxp', 'Box by Prize', '盒子・照獎項'], ['game', 'Game', '遊戲']]
+export const MODES = [['map', 'Map', '地圖'], ['box', 'World Box', '世界彩球盒'], ['boxp', 'Prize Box', '獎項彩球盒'], ['game', 'Game', '遊戲']]
   .map(([key, en, zh]) => ({ key, get label() { return L(en, zh) } }))
 export const mode = ref('game')
 // 排列、格子模式：球排在框裡，不畫地圖

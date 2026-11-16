@@ -14,3 +14,7 @@ html, body { margin: 0; }
 body { background: #05040f; color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
 button { touch-action: manipulation; }
 .drum-tip .en { color: #6b6b6b; }
+/* 滑過／點球、國家跳出來的說明（每個模式同一套，跟主畫面操作列一樣）：深底、粉紅霓虹燈管邊 */
+.neon-tip { padding: 8px 11px; border-radius: 12px; background: rgba(10, 5, 24, 0.94); color: #ffffff; border: 2px solid #ffd6ec;
+  box-shadow: 0 0 4px #ff2d95, 0 0 14px rgba(255, 45, 149, 0.7), 0 6px 16px rgba(0, 0, 0, 0.5); font-size: 12px; line-height: 1.5; }
+.neon-tip [style*="color"] { filter: brightness(1.4); } /* 獎項色在深底上調亮 */

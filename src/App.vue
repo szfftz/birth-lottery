@@ -50,7 +50,7 @@
     <div class="stage-foot" :style="{ bottom: `${insets.bottom + 10}px` }">
       <Transition name="chip">
         <button v-if="mode !== 'game' && last && tierIdx(last) >= 0" :key="`${total}-${last}`" type="button" class="chip glass" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
-          <span class="c-flag" :style="flagStyle(last)"></span>
+          <FlagBall class="c-flag" :iso="last" />
           <span class="c-main"><b>{{ nameOf(last) }}</b><small>{{ L(`Draw #${total.toLocaleString('en-US')}`, `第 ${total.toLocaleString('en-US')} 次`) }}</small></span>
           <span class="c-prize"><b>{{ prizeOf(last) }}</b><small>HDI {{ C[last].hdi.toFixed(3) }}</small></span>
           <svg class="c-go" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>
@@ -59,11 +59,13 @@
     </div>
     </div>
 
-    <!-- 中／英切換：招牌上面、畫面最上面置中（預設中文，選過的記在瀏覽器） -->
+    <!-- 中／英切換：畫面最上面右邊（預設中文，選過的記在瀏覽器） -->
     <div class="lang-switch glass" role="group" aria-label="Language / 語言" :style="{ top: `${insets.top + 8}px` }">
       <button type="button" :class="{ on: isZh }" :aria-pressed="isZh" @click="setLang('zh')">中</button>
       <button type="button" :class="{ on: !isZh }" :aria-pressed="!isZh" @click="setLang('en')">EN</button>
     </div>
+    <!-- 模式名稱：遊戲以外的模式（遊戲有霓虹招牌），放在最上面左邊 -->
+    <div v-if="mode !== 'game'" class="mode-title" :style="{ top: `${insets.top + 8}px` }">{{ modeLabel }}</div>
     <!-- 操作列：浮在舞台上的玻璃條；模式選單（漢堡，往上展開）、DRAW（所有模式共用，唯一的抽獎按鈕）、資訊 -->
     <div v-if="menu" class="menu-scrim" @click="menu = false"></div>
     <div ref="dockEl" class="dock glass">
@@ -163,7 +165,7 @@
         </div>
         <ol v-if="history.length" class="rows">
           <li v-for="h in historyDesc" :key="h.n" :class="{ on: h.n === total }" @click="pick(h.iso)">
-            <span class="r-n">{{ h.n }}</span><i class="fl" :style="flagStyle(h.iso)"></i>
+            <span class="r-n">{{ h.n }}</span><FlagBall class="fl" :iso="h.iso" />
             <span class="r-name">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
             <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
           </li>
@@ -178,8 +180,8 @@
           <div class="tile"><span>{{ L('Draws', '已抽') }}</span><b>{{ total.toLocaleString('en-US') }}<em v-if="isZh">次</em></b><small>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`) }}</small></div>
           <div class="tile"><span>{{ L('Average HDI', '平均 HDI') }}</span><b>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small>{{ L('World expectation', '全世界期望') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
           <template v-if="total">
-            <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好') }}</span><b class="sm"><i class="fl" :style="flagStyle(best)"></i>{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
-            <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差') }}</span><b class="sm"><i class="fl" :style="flagStyle(worst)"></i>{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
+            <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好') }}</span><b class="sm"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
+            <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差') }}</span><b class="sm"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
           </template>
         </div>
 
@@ -203,7 +205,7 @@
           <h3>{{ L('Most drawn', '最常投胎到') }}</h3>
           <ol class="rows">
             <li v-for="(c, k) in topDrawn" :key="c.iso" :class="{ on: c.iso === last }" @click="pick(c.iso)">
-              <span class="r-n">{{ k + 1 }}</span><i class="fl" :style="flagStyle(c.iso)"></i>
+              <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="c.iso" />
               <span class="r-name">{{ nameOf(c.iso) }}<small><i class="sw" :style="{ background: colorOf(c.iso) }"></i>{{ prizeOf(c.iso) }}</small></span>
               <b class="r-v">{{ c.n.toLocaleString('en-US') }}{{ L('×', ' 次') }}<small>{{ fmtP(c.n / total) }}</small></b>
             </li>
@@ -218,7 +220,7 @@
         </div>
         <ol class="rows">
           <li v-for="(iso, k) in sorted" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
-            <span class="r-n">{{ k + 1 }}</span><i class="fl" :style="flagStyle(iso)"></i>
+            <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="iso" />
             <span class="r-name">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
             <b class="r-v"><em class="r-lbl">{{ L('odds', '機率') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`) }}</small></b>
           </li>
@@ -241,7 +243,7 @@
           <li><b>Prizes</b>Countries are ranked by HDI and cut into {{ TIERS.length }} tiers. Each tier is more likely than the one above, as close as possible to 1:2:4:8:16:32:64:128. Countries with the same HDI aren't split, so the ratios are close but not exact.</li>
           <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ POP_UNIT.toLocaleString('en-US') }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
           <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from Natural Earth 1:50m, Esri Dark Gray basemap.</li>
-          <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. Box by Region groups countries by where they are in the world; Box by Prize lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
+          <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world; Prize Box lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
           <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
         </ol>
         <ol v-else class="how">
@@ -251,7 +253,7 @@
           <li><b>獎項</b>把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
           <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ POP_UNIT.toLocaleString() }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
           <li><b>地圖模式</b>國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 Natural Earth 1:5,000 萬國界、Esri 深灰底圖。</li>
-          <li><b>盒子模式</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「盒子・照地區」照各國在世界上的相對位置放，同一洲的國家在一起；「盒子・照獎項」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
+          <li><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起；「獎項彩球盒」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
           <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
         </ol>
 
@@ -275,6 +277,7 @@ import LotteryDrum from './components/LotteryDrum.vue'
 import LotteryBox from './components/LotteryBox.vue'
 import MapModes from './components/MapModes.vue'
 import WorldLocator from './components/WorldLocator.vue'
+import FlagBall from './components/FlagBall.vue'
 import { L, lang } from './i18n.js'
 import {
   MODES, MAP_MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
@@ -308,7 +311,9 @@ const phoneEl = ref(null), dockEl = ref(null), safeTopEl = ref(null)
 const insets = reactive({ top: 0, bottom: 0 })
 // 最上面的中／英切換佔的高度：每個模式的內容（招牌、地圖、盒子）都往下讓這麼多
 const LANG_H = 44
+// 最上面一排：左邊模式名稱（遊戲以外）、右邊中／英切換
 const topInset = computed(() => insets.top + LANG_H)
+const modeLabel = computed(() => MODES.find((m) => m.key === mode.value)?.label ?? '')
 const isZh = computed(() => lang.value === 'zh')
 const setLang = (v) => (lang.value = v)
 function measure() {
@@ -471,7 +476,7 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .ld-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.1em; }
 
 /* 中／英切換 */
-.lang-switch { position: absolute; z-index: 14; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; padding: 3px; border-radius: 999px; }
+.lang-switch { position: absolute; z-index: 14; right: 12px; display: flex; gap: 2px; padding: 3px; border-radius: 999px; }
 .lang-switch button { min-width: 44px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .lang-switch button.on { background: linear-gradient(180deg, #ffe08a, var(--gold)); color: #2a1a05; }
 /* ── 操作列（浮動玻璃條） ── */
@@ -548,7 +553,7 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .chip { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px 10px 10px; border-radius: 20px; overflow: hidden;
   color: #fff; font: inherit; text-align: left; cursor: pointer; }
 .chip::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 30%, transparent), transparent 70%); pointer-events: none; }
-.c-flag { position: relative; flex: none; width: 44px; height: 44px; border-radius: 50%; box-shadow: 0 0 0 2px #fff3c4, 0 0 0 3.5px #c99a2e, 0 4px 10px rgba(0, 0, 0, 0.4); }
+.c-flag { flex: none; width: 44px; height: 44px; border-radius: 50%; box-shadow: 0 0 0 2px #fff3c4, 0 0 0 3.5px #c99a2e, 0 4px 10px rgba(0, 0, 0, 0.4); }
 .c-main, .c-prize { position: relative; min-width: 0; line-height: 1.25; }
 .c-main { flex: 1; }
 .c-main b { display: block; font-size: 17px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -768,4 +773,17 @@ section > .tiles .tile { background: var(--tile); }
   box-shadow: 0 3px 0 #5a420b, 0 0 10px rgba(255, 196, 90, 0.35); text-shadow: 0 1px 0 rgba(90, 0, 10, 0.6); }
 .pill:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #5a420b; }
 .r-lbl { margin-right: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: var(--dim); }
+/* 模式名稱：跟招牌子標同一套紫色霓虹燈管框 */
+.mode-title { position: absolute; z-index: 14; left: 12px; padding: 4px 18px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  background: rgba(8, 4, 18, 0.78); border: 2px solid #f1dcff; color: #ffffff; font-size: 17px; font-weight: 800; letter-spacing: 0.12em;
+  box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7); text-shadow: 0 0 8px rgba(214, 160, 255, 0.9);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+/* 滑過（hover）：跟主畫面同一套——沒選中的按鈕亮起粉紅霓虹、選中的紅色圓頂更亮 */
+@media (hover: hover) {
+  .lang-switch button:not(.on):hover, .tabs button:not(.on):hover, .seg button:not(.on):hover, .menu button:not(.on):hover {
+    background: rgba(255, 45, 149, 0.16); color: #ffffff; text-shadow: 0 0 8px #ff4fae; }
+  .lang-switch button.on:hover, .tabs button.on:hover, .seg button.on:hover, .pill:hover:not(:disabled), .draw:hover:not(:disabled) { filter: brightness(1.12); }
+  .ibtn:hover:not(:disabled), .close:hover { filter: brightness(1.15); box-shadow: 0 3px 0 #5a0a12, 0 0 14px rgba(255, 196, 90, 0.6); }
+  .rows li:hover, .tile.pick:hover { background: rgba(255, 45, 149, 0.1); box-shadow: inset 0 0 0 1.5px rgba(255, 214, 236, 0.6); }
+}
 </style>

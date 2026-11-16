@@ -2,7 +2,7 @@
   <!-- 盒子模式：891 顆彩球照格子模式的排法，一列一列放進透明壓克力收納盒（3D，蓋子打開）；球面是獎項顏色或國旗（國旗朝上），抽到的那顆浮起來放大 -->
   <!-- 手機：點一下球看是哪一國（拖曳不算點）；電腦：滑過去就看 -->
   <div ref="wrap" class="lottery-box" @pointerdown="onDown" @pointerup="onUp" @pointermove="onMove" @pointerleave="onLeave">
-    <div v-if="tip" class="box-tip" :style="tipPos" v-html="tip.html"></div>
+    <div v-if="tip" class="box-tip neon-tip" :style="tipPos" v-html="tip.html"></div>
   </div>
 </template>
 
@@ -47,7 +47,7 @@ const EDGE = '#9aa4ab' // 壓克力的邊（白底上要看得到）
 const TILT = THREE.MathUtils.degToRad(72)
 // 球往前轉幾度：國旗那面朝「前上方 45°」
 const FACE_TILT = THREE.MathUtils.degToRad(45)
-const CAM_DIST = 5.1 // 鏡頭離盒子中心幾倍盒子深度：整個盒子（含打開的蓋子）放得進畫面
+const CAM_DIST = 4.1 // 鏡頭離盒子中心幾倍盒子深度：整個盒子（含打開的蓋子）放得進畫面
 
 const wrap = ref(null)
 const tip = ref(null)
@@ -287,5 +287,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .lottery-box { position: absolute; inset: 0; z-index: 2; overflow: hidden; touch-action: none; }
 .lottery-box :deep(canvas) { display: block; }
-.box-tip { position: absolute; pointer-events: none; z-index: 5; max-width: min(240px, 70%); padding: 8px 10px; border-radius: 4px; background: #ffffff; color: #161616; font-size: 12px; line-height: 1.5; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.box-tip { position: absolute; pointer-events: none; z-index: 5; max-width: min(240px, 70%); }
 </style>

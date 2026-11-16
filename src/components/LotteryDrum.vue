@@ -31,7 +31,7 @@
           <i v-for="(c, i) in pieces" :key="i" :style="c"></i>
         </div>
       </div>
-      <div v-if="tip" class="drum-tip" :style="tipPos" v-html="tip.html"></div>
+      <div v-if="tip" class="drum-tip neon-tip" :style="tipPos" v-html="tip.html"></div>
     </div>
   </div>
 </template>
@@ -731,5 +731,5 @@ onBeforeUnmount(() => {
 @keyframes mq-l { from { background-position: 0 0, 0 0; } to { background-position: calc(var(--gap) * -3) 0, 0 0; } }
 @keyframes mq-d { from { background-position: 0 0, 0 0; } to { background-position: 0 calc(var(--gap) * 3), 0 0; } }
 @keyframes mq-u { from { background-position: 0 0, 0 0; } to { background-position: 0 calc(var(--gap) * -3), 0 0; } }
-.drum-tip { position: absolute; pointer-events: none; z-index: 5; max-width: min(240px, 70%); padding: 8px 10px; border-radius: 4px; background: #ffffff; color: #161616; font-size: 12px; line-height: 1.5; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); }
+.drum-tip { position: absolute; pointer-events: none; z-index: 5; max-width: min(240px, 70%); }
 </style>
