@@ -554,7 +554,8 @@ function resize() {
   camera.aspect = box.w / box.h
   // 直式手機：機器放大到約九成寬；畫面不夠長（扣掉上下的標題、操作列）就少放大一點，免得頂到標題
   const av = box.w / Math.max(1, H - props.insetTop - props.insetBottom)
-  camera.fov = fitFov(30, camera.aspect, av >= 0.62 ? 0.8 : Math.max(0.64, 0.8 - (0.62 - av) * 1.6))
+  // 0.85：搖獎機再放大一點（ref 越小、視角越窄、機器越大）
+  camera.fov = fitFov(30, camera.aspect, 0.85 * (av >= 0.62 ? 0.8 : Math.max(0.64, 0.8 - (0.62 - av) * 1.6)))
   // 4:5 時往上移 VIEW_UP；畫面更長時，多出來的高度三成拿來把搖獎機往下放（下面只剩結果看板，不用留那麼多）
   // 上面狀態列、下面操作列擋住的部分不算：搖獎機放在看得到的範圍裡
   const Hv = H - props.insetTop - props.insetBottom, H45 = Math.min(Hv, W * 1.25)
