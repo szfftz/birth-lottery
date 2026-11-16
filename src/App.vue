@@ -64,8 +64,8 @@
       <button type="button" :class="{ on: isZh }" :aria-pressed="isZh" @click="setLang('zh')">中</button>
       <button type="button" :class="{ on: !isZh }" :aria-pressed="!isZh" @click="setLang('en')">EN</button>
     </div>
-    <!-- 模式名稱：遊戲以外的模式（遊戲有霓虹招牌），放在最上面左邊 -->
-    <div v-if="mode !== 'game'" class="mode-title" :style="{ top: `${insets.top + 8}px` }">{{ modeLabel }}</div>
+    <!-- 頁面名稱：每一頁都在最上面左邊寫這是哪一頁（跟著中／英切換） -->
+    <div class="mode-title" :style="{ top: `${insets.top + 8}px` }">{{ modeLabel }}</div>
     <!-- 操作列：浮在舞台上的玻璃條；模式選單（漢堡，往上展開）、DRAW（所有模式共用，唯一的抽獎按鈕）、資訊 -->
     <div v-if="menu" class="menu-scrim" @click="menu = false"></div>
     <div ref="dockEl" class="dock glass">
@@ -231,28 +231,35 @@
       <!-- 說明 -->
       <section v-else>
         <h3>{{ L('How it works', '計算方法') }}</h3>
-        <p class="formula">
-          P<sub>i</sub> = {{ L('balls', '彩球數') }}<sub>i</sub> ÷ {{ BALL_TOTAL }}<br>
-          {{ L('balls', '彩球數') }}<sub>i</sub> ≈ {{ L('population', '人口') }}<sub>i</sub> ÷ {{ POP_UNIT.toLocaleString('en-US') }}{{ L(', at least 1', '，至少 1 顆') }}<br>
-          <template v-if="isZh">獎項<sub>i</sub> = HDI<sub>i</sub> 落在哪一段</template><template v-else>prize<sub>i</sub> = the band HDI<sub>i</sub> falls in</template>
-        </p>
+        <!-- 三個步驟，寫給國高中生看得懂 -->
+        <ol v-if="isZh" class="steps">
+          <li><b>把全世界的人換成彩球</b>每 {{ POP_UNIT.toLocaleString('en-US') }} 個人做成 1 顆球；人很少的國家也至少給 1 顆，所以總共 {{ BALL_TOTAL }} 顆。例如印度人最多，有 {{ BALLS.IND }} 顆；臺灣有 {{ BALLS.TWN }} 顆。</li>
+          <li><b>隨便抽一顆球</b>抽到某一國的機率＝那一國的球數 ÷ 全部的球數。例如臺灣：{{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}，大約每 {{ oneIn(pIso('TWN')) }} 次才會抽到一次。</li>
+          <li><b>看那一國的 HDI，決定中幾獎</b>HDI（人類發展指數）是 0 到 1 的分數，把平均壽命、受教育的年數、收入加在一起算，越接近 1 代表生活條件越好。HDI 越高獎越大，但這種國家人口少，所以越難抽到。</li>
+        </ol>
+        <ol v-else class="steps">
+          <li><b>Turn people into balls</b>We make 1 ball for every {{ POP_UNIT.toLocaleString('en-US') }} people. Even the smallest country gets 1 ball. That makes {{ BALL_TOTAL }} balls in total. India has the most people, so it gets {{ BALLS.IND }} balls. Taiwan gets {{ BALLS.TWN }}.</li>
+          <li><b>Pick one ball</b>Your chance of getting a country is its number of balls divided by all the balls. For Taiwan, that's {{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}. That's about 1 in {{ oneIn(pIso('TWN')) }}.</li>
+          <li><b>The country's HDI is your prize</b>HDI is a score from 0 to 1. It shows how long people live, how many years they go to school, and how much money they make. A higher score means a better life and a bigger prize. But high-score countries have fewer people, so they are harder to get.</li>
+        </ol>
+        <h3>{{ L('More details', '更多說明') }}</h3>
         <ol v-if="!isZh" class="how">
           <li><b>Idea</b>You can't choose where you're born — it's a lottery. Treat every person on Earth as one ticket: countries with more people hold more tickets, so India and China are the most likely draws. Your "prize" is that country's Human Development Index — life expectancy, education and income combined.</li>
-          <li><b>Population</b>English Wikipedia, "List of countries and dependencies by population", sovereign states only: the 193 UN members, the two observer states (Vatican City and Palestine), plus Taiwan — {{ meta.count }} countries in all.</li>
-          <li><b>HDI</b>English Wikipedia, "List of countries by Human Development Index", using UNDP's {{ meta.hdi.year }} HDI from the 2025 Human Development Report. Taiwan isn't in the UNDP data, so its {{ C.TWN.hdi }} (2023) comes from the English Wikipedia infobox. North Korea uses {{ C.PRK.hdi }} ({{ meta.prk.year }}) from the Chinese Wikipedia infobox. Monaco and Vatican City have no HDI, so drawing them means a redraw.</li>
+          <li><b>Population</b>English Wikipedia, "<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>", sovereign states only: the 193 UN members, the two observer states (Vatican City and Palestine), plus Taiwan — {{ meta.count }} countries in all.</li>
+          <li><b>HDI</b>English Wikipedia, "<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>", using UNDP's {{ meta.hdi.year }} HDI from the 2025 Human Development Report. Taiwan isn't in the UNDP data, so its {{ C.TWN.hdi }} (2023) comes from the <a :href="SOURCES[2].url" target="_blank" rel="noopener">English Wikipedia Taiwan</a> infobox. North Korea uses {{ C.PRK.hdi }} ({{ meta.prk.year }}) from the <a :href="SOURCES[3].url" target="_blank" rel="noopener">Chinese Wikipedia</a> infobox. Monaco and Vatican City have no HDI, so drawing them means a redraw.</li>
           <li><b>Prizes</b>Countries are ranked by HDI and cut into {{ TIERS.length }} tiers. Each tier is more likely than the one above, as close as possible to 1:2:4:8:16:32:64:128. Countries with the same HDI aren't split, so the ratios are close but not exact.</li>
           <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ POP_UNIT.toLocaleString('en-US') }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
-          <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from Natural Earth 1:50m, Esri Dark Gray basemap.</li>
+          <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m, Esri Dark Gray basemap.</li>
           <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world; Prize Box lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
           <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
         </ol>
         <ol v-else class="how">
           <li><b>想法</b>出生在哪裡自己選不了，就像抽樂透。全世界每個人當成一張彩券，人越多的國家彩券越多，所以抽到印度、中國的機會最大；抽到後拿到的「獎品」是那個國家的人類發展指數——壽命、教育、所得綜合起來的生活條件。</li>
-          <li><b>人口</b>英文維基百科〈List of countries and dependencies by population〉，只看正式國家：聯合國 193 個會員國、梵蒂岡和巴勒斯坦兩個觀察員國，加上臺灣，共 {{ meta.count }} 國。</li>
-          <li><b>HDI</b>英文維基百科〈List of countries by Human Development Index〉，數字是 UNDP《2025 人類發展報告》的 {{ meta.hdi.year }} 年 HDI。臺灣不在 UNDP 資料裡，用英文維基 Taiwan 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用中文維基資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有 HDI，抽到算「重抽」。</li>
+          <li><b>人口</b>英文維基百科〈<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>〉，只看正式國家：聯合國 193 個會員國、梵蒂岡和巴勒斯坦兩個觀察員國，加上臺灣，共 {{ meta.count }} 國。</li>
+          <li><b>HDI</b>英文維基百科〈<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>〉，數字是 UNDP《2025 人類發展報告》的 {{ meta.hdi.year }} 年 HDI。臺灣不在 UNDP 資料裡，用英文維基 <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用<a :href="SOURCES[3].url" target="_blank" rel="noopener">中文維基</a>資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有 HDI，抽到算「重抽」。</li>
           <li><b>獎項</b>把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
           <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ POP_UNIT.toLocaleString() }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
-          <li><b>地圖模式</b>國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 Natural Earth 1:5,000 萬國界、Esri 深灰底圖。</li>
+          <li><b>地圖模式</b>國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界、Esri 深灰底圖。</li>
           <li><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起；「獎項彩球盒」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
           <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
         </ol>
@@ -272,7 +279,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import LotteryDrum from './components/LotteryDrum.vue'
 import LotteryBox from './components/LotteryBox.vue'
 import MapModes from './components/MapModes.vue'
@@ -298,10 +305,10 @@ const SOURCES = [
 const SITE = 'https://szfftz.github.io/birth-lottery/'
 // 結果分頁底下的操作提示（[英文, 中文]）
 const HINTS = {
-  game: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
+  game: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
   map: ['Drag and pinch to move the map; tap a country to see its odds and HDI.', '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。'],
-  box: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
-  boxp: ['Drag sideways to orbit, pinch to zoom; tap a ball to see its country.', '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。'],
+  box: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
+  boxp: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
 }
 
 const face = 'flag' // 球面一律國旗
@@ -311,7 +318,7 @@ const phoneEl = ref(null), dockEl = ref(null), safeTopEl = ref(null)
 const insets = reactive({ top: 0, bottom: 0 })
 // 最上面的中／英切換佔的高度：每個模式的內容（招牌、地圖、盒子）都往下讓這麼多
 const LANG_H = 44
-// 最上面一排：左邊模式名稱（遊戲以外）、右邊中／英切換
+// 最上面一排：左邊頁面名稱、右邊中／英切換
 const topInset = computed(() => insets.top + LANG_H)
 const modeLabel = computed(() => MODES.find((m) => m.key === mode.value)?.label ?? '')
 const isZh = computed(() => lang.value === 'zh')
@@ -410,6 +417,12 @@ const spinning = ref(false)
 // 遊戲模式：搖獎機轉完、掉出來的那顆就是（抽到誰由物理模擬決定）；地圖模式照人口抽一國；其他模式從全部球裡抽一顆
 async function draw() {
   if (spinning.value) return
+  // 按 SPIN 一律回到遊戲（搖獎機）畫面再搖；等搖獎機掛好
+  if (mode.value !== 'game') {
+    setMode('game')
+    await nextTick()
+    for (let i = 0; i < 60 && !drum.value; i++) await new Promise((r) => setTimeout(r, 50))
+  }
   const game = mode.value === 'game'
   if (game && !drum.value) return
   if (game) spinning.value = true
@@ -644,6 +657,12 @@ section > .tiles .tile { background: var(--tile); }
 /* 獎項表 */
 
 /* 說明 */
+.steps { margin: 0 0 8px; padding: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 8px; }
+.steps li { position: relative; padding: 12px 14px 12px 48px; border-radius: 16px; background: var(--tile); font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.85); counter-increment: st; }
+.steps li::before { content: counter(st); position: absolute; left: 12px; top: 12px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: radial-gradient(ellipse 70% 140% at 40% 0%, #ff8a8a 0%, #e0142a 48%, #8a0612 100%); box-shadow: inset 0 0 0 2px #f5c451; color: #fff; font-weight: 800; font-size: 14px; }
+.steps li b { display: block; margin-bottom: 2px; font-size: 15px; color: #fff; }
+.how a, .steps a { color: #ffe08a; text-decoration: underline; text-underline-offset: 2px; }
 .formula { margin: 0; padding: 14px 16px; border-radius: 16px; background: var(--tile); font-size: 13px; line-height: 1.9; font-variant-numeric: tabular-nums; }
 .how { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .how li { padding: 12px 14px; border-radius: 16px; background: var(--tile); font-size: 13px; line-height: 1.7; color: rgba(255, 255, 255, 0.8); }
@@ -717,7 +736,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-bulbs::after { content: ''; inset: 0; background-position: 9px 0, 9px 100%, 0 9px, 100% 9px; animation: rb-blink 0.8s steps(1) infinite reverse; }
 @keyframes rb-blink { 50% { opacity: 0.25; } }
 /* 國旗＋國名在看板裡水平置中；獎牌另外掛在右上角、壓在所有東西上面 */
-.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; } /* 國旗、國名水平置中 */
+.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; padding-right: 80px; } /* 國旗、國名水平置中；右邊留給獎牌，國名不要被蓋到 */
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
 .rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }

@@ -47,7 +47,7 @@ const EDGE = '#9aa4ab' // 壓克力的邊（白底上要看得到）
 const TILT = THREE.MathUtils.degToRad(72)
 // 球往前轉幾度：國旗那面朝「前上方 45°」
 const FACE_TILT = THREE.MathUtils.degToRad(45)
-const CAM_DIST = 4.1 // 鏡頭離盒子中心幾倍盒子深度：整個盒子（含打開的蓋子）放得進畫面
+const CAM_DIST = 3.3 // 鏡頭離盒子中心幾倍盒子深度：重點是盒子裡面的球，盒子剛好塞滿畫面（打開的蓋子可以被切掉）
 
 const wrap = ref(null)
 const tip = ref(null)
@@ -259,11 +259,14 @@ onMounted(() => {
   place()
   camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500) // 視角窄一點，近大遠小不要太誇張
   // 從正前方斜上看整個盒子
-  camera.position.set(0, D() * CAM_DIST * Math.sin(TILT), D() * CAM_DIST * Math.cos(TILT) - D() * 0.32)
+  camera.position.set(0, D() * CAM_DIST * Math.sin(TILT), D() * CAM_DIST * Math.cos(TILT) + D() * 0.04)
   // 鏡頭固定在預設視角，只能縮放（滾輪、兩指）：不能轉、不能平移
   controls = new OrbitControls(camera, renderer.domElement)
-  controls.target.set(0, 0, -D() * 0.32)
+  controls.target.set(0, 0, D() * 0.04) // 看盒子裡面的中心
   lockSpin(controls)
+  // 操作跟搖獎機一樣：單指（左鍵）左右拖曳繞著轉、兩指縮放＋移動（右鍵移動、滾輪縮放）
+  controls.enablePan = true
+  controls.screenSpacePanning = true
   { const d = camera.position.distanceTo(controls.target); controls.minDistance = d * 0.25; controls.maxDistance = d * 1.6 }
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)

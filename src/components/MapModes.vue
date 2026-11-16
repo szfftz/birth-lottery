@@ -203,7 +203,7 @@ onMounted(() => {
     style: {
       version: 8,
       sources: { base: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, maxzoom: 16, attribution: '© Esri' } },
-      layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.6 } }],
+      layers: [{ id: 'bg', type: 'background', paint: { 'background-color': FLAT_BG } }, { id: 'base', type: 'raster', source: 'base', paint: { 'raster-opacity': 0.4 } }],
     },
   })
   map.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 })

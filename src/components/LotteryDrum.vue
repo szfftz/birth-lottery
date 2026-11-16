@@ -66,7 +66,7 @@ const ACRYLIC = '#e8f4ff'
 // 重力（場景單位／秒²）：一顆球直徑當 4 公分，真的重力 9.8 m/s² ≈ 245 單位／秒²；用 200，速度跟真的搖獎機差不多
 const G = 200
 const CAM = { az: 28, el: 22, dist: 100 } // 預設鏡頭：方位（往右幾度）、仰角、距離
-const VIEW_UP = 0.1 // 3D 畫面往上移幾成畫面高：上面是節目標題、下面是結果看板
+const VIEW_UP = 0.065 // 3D 畫面往上移幾成畫面高：上面是節目標題、下面是結果看板
 const SUB = 4 // 每一格畫面分幾小步算（重力大，步子要小才穩）
 // 轉速：ω²r 要比 g 小，球才不會被甩在筒壁上（ω < √(g/r) ≈ 4.3 弧度／秒）
 const SPIN = { w: 3.4, sec: 6, ramp: 0.8, alignW: 3 } // 轉的角速度、轉幾秒（每次再乘 0.85～1.15 的亂數＝搖的力道不一樣）、加減速秒數、對準出球口時的角速度
@@ -622,6 +622,9 @@ onMounted(() => {
   controls = new OrbitControls(camera, renderer.domElement)
   controls.target.set(0, DRUM.y * 0.85, 0)
   lockSpin(controls)
+  // 操作跟彩球盒一樣：單指（左鍵）左右拖曳繞著轉、兩指縮放＋移動（右鍵移動、滾輪縮放）
+  controls.enablePan = true
+  controls.screenSpacePanning = true
   controls.minDistance = CAM.dist * 0.3; controls.maxDistance = CAM.dist * 1.6
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)
