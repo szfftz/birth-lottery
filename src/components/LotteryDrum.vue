@@ -5,10 +5,9 @@
        文字類用寬 1080（4:5 時 1080×1350）設計再縮放，畫面比 4:5 長時設計稿跟著變長：標題貼上面、按鈕貼下面，多出來的空間給搖獎機 -->
   <div ref="wrap" class="lottery-drum">
     <div class="stage" :style="{ left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px`, '--itp': `${insetTop}px`, '--ibp': `${insetBottom}px` }">
-      <!-- 舞台背景：午夜靛藍、中間一圈暖光、慢慢轉的金色光芒、兩道聚光燈、飄著的光點（散景）、地上一圈反光 -->
+      <!-- 舞台背景：賭場——深酒紅牆（菱格壁紙）、中間一圈暖光、兩道聚光燈、飄著的光點（散景）、地上一圈反光 -->
       <div class="stage-bg">
         <div class="glow"></div>
-        <div class="rays"></div>
         <div class="beam l"></div><div class="beam r"></div>
         <div class="bokeh"><i v-for="b in BOKEH" :key="b.k" :style="b.style"></i></div>
         <!-- 賭場：飄著的撲克牌花色 -->
@@ -23,14 +22,9 @@
       <div class="stage-ui" :style="uiStyle">
         <!-- 整個舞台外圈的跑馬燈：搖獎時快速轉、中獎後慢慢轉 -->
         <div v-if="spinning || sel != null" class="marquee" :class="{ fast: spinning }"><i class="mt"></i><i class="mr"></i><i class="mb"></i><i class="ml"></i></div>
-        <!-- 節目標題：劇院跑馬燈招牌（金框、一圈會跑的燈泡、深藍底），金屬金字；下面一行數字 -->
+        <!-- 節目標題：賭場霓虹看板（黑底板、粉紅＋青色兩圈霓虹燈管框），BIRTH 粉紅、LOTTERY 青色霓虹字，偶爾閃一下；數字那行也在看板裡 -->
         <div class="show-title">
-          <div class="st-sign">
-            <i class="st-bulbs"></i><i class="st-bulbs alt"></i>
-            <div class="st-kicker"><i>♠</i>JACKPOT SHOW<i>♥</i></div>
-            <div class="st-main">BIRTH LOTTERY</div>
-          </div>
-          <div class="st-sub"><span>{{ balls.n.toLocaleString() }} BALLS</span><i>◆</i><span>{{ balls.isos.length }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
+          <NeonSign :balls="balls.n" :countries="balls.isos.length" />
         </div>
         <div class="show-board"><slot /></div>
         <div v-if="pieces.length" :key="party" class="confetti">
@@ -45,6 +39,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import * as THREE from 'three'
+import NeonSign from './NeonSign.vue'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BALL_R as R, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
@@ -100,7 +95,7 @@ const SUITS = (() => {
 const BOKEH = (() => {
   let seed = 7
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
-  const cols = ['#ffd27a', '#ff7ab6', '#8fb8ff', '#ffffff']
+  const cols = ['#ffd27a', '#ff7a8a', '#ffe9b0', '#ffffff']
   return Array.from({ length: 26 }, (_, k) => {
     const d = 6 + rnd() * 26
     return { k, style: { left: `${rnd() * 100}%`, top: `${rnd() * 62}%`, width: `${d}px`, height: `${d}px`, background: cols[k % cols.length],
@@ -331,13 +326,13 @@ function makeMachine() {
     transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 2.2 })
   const chrome = new THREE.MeshPhysicalMaterial({ color: '#f3f5f8', metalness: 1, roughness: 0.14, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.2, envMapIntensity: 1.4 })
   const gold = new THREE.MeshPhysicalMaterial({ color: '#f2b84a', metalness: 1, roughness: 0.3, roughnessMap: brushed, envMapIntensity: 1.3 })
-  const redLac = new THREE.MeshPhysicalMaterial({ color: '#3b2a9a', metalness: 0.65, roughness: 0.5, roughnessMap: flake, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.2 })
+  const redLac = new THREE.MeshPhysicalMaterial({ color: '#8e0f1f', metalness: 0.6, roughness: 0.5, roughnessMap: flake, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.2 })
   const add = (parent, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = !mat.transparent && !mat.isMeshBasicMaterial; parent.add(m); return m }
   // 地板
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(24, 96), new THREE.MeshPhysicalMaterial({ color: '#2a1a5e', roughness: 0.22, roughnessMap: flake, metalness: 0.2, clearcoat: 0.8, clearcoatRoughness: 0.05, transparent: true, alphaMap: fadeTexture() }))
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(24, 96), new THREE.MeshPhysicalMaterial({ color: '#0e4a2c', roughness: 0.9, metalness: 0, sheen: 0.8, sheenColor: '#3fae6e', sheenRoughness: 0.6, transparent: true, alphaMap: fadeTexture() }))
   floor.rotation.x = -Math.PI / 2; floor.position.y = PED.floor; floor.receiveShadow = true
   g.add(floor)
-  // 展示台：下層靛藍烤漆（邊上一圈燈泡）、上層金色（頂面＝BASE.h）、中間一條金邊
+  // 展示台：下層賭場紅烤漆（邊上一圈燈泡）、上層金色（頂面＝BASE.h）、中間一條金邊
   add(g, new THREE.CylinderGeometry(PED.r1, PED.r1 + 0.4, PED.h1, 96), redLac, 0, PED.floor + PED.h1 / 2, 0)
   bulbRing(g, 36, PED.r1 + 0.05, PED.floor + PED.h1 / 2, 0, false, 0.34)
   const h2 = BASE.h - (PED.floor + PED.h1)
@@ -648,16 +643,15 @@ onBeforeUnmount(() => {
 <style scoped>
 .lottery-drum { position: absolute; inset: 0; z-index: 2; overflow: hidden; background: #08061a; }
 .stage { position: absolute; overflow: hidden; }
-/* 舞台背景：午夜靛藍（上深下亮）、中間一圈暖光、慢慢轉的金色光芒、兩道聚光燈、散景光點、地上反光、四周壓暗 */
+/* 舞台背景：賭場——深酒紅牆面（中間亮、四周暗）、上面一層金色細線菱格壁紙、中間一圈暖光、兩道聚光燈、散景光點、地上綠色牌桌絨的反光、四周壓暗 */
 .stage-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; /* 自己一層 */
-  background: radial-gradient(120% 70% at 50% 58%, #4a2a96 0%, #23145a 38%, #120b33 70%, #08061a 100%); }
+  background:
+    repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    radial-gradient(120% 70% at 50% 55%, #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }
 .stage-bg > div, .stage-bg > .bokeh { position: absolute; pointer-events: none; }
 .glow { left: 50%; top: 52%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(255, 196, 110, 0.38) 0%, rgba(255, 92, 170, 0.18) 28%, transparent 58%); }
-.rays { left: 50%; top: 52%; width: 260%; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: 0.22; mix-blend-mode: screen;
-  background: repeating-conic-gradient(from 0deg, rgba(255, 214, 140, 0.9) 0deg 4deg, transparent 4deg 15deg);
-  -webkit-mask: radial-gradient(circle, #000 4%, transparent 48%); mask: radial-gradient(circle, #000 4%, transparent 48%); animation: rays 90s linear infinite; }
-@keyframes rays { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  background: radial-gradient(circle, rgba(255, 196, 110, 0.34) 0%, rgba(255, 70, 90, 0.16) 28%, transparent 58%); }
 /* 聚光燈：從上面兩角打下來、慢慢晃 */
 .beam { top: -6%; width: 70%; height: 115%; opacity: 0.5; mix-blend-mode: screen; filter: blur(10px);
   background: conic-gradient(from 0deg at 50% 0%, transparent 165deg, rgba(190, 210, 255, 0.55) 176deg, rgba(255, 255, 255, 0.75) 180deg, rgba(190, 210, 255, 0.55) 184deg, transparent 195deg);
@@ -697,8 +691,8 @@ onBeforeUnmount(() => {
 @keyframes bokeh { from { transform: translateY(0) scale(1); } to { transform: translateY(-14px) scale(1.25); opacity: 0.08; } }
 /* 地上反光：機器底下一圈暖光 */
 .floor { left: -10%; right: -10%; bottom: 0; height: 46%;
-  background: radial-gradient(60% 40% at 50% 38%, rgba(255, 190, 120, 0.28), transparent 70%), linear-gradient(180deg, transparent, rgba(8, 6, 26, 0.6)); }
-.vignette { inset: 0; background: radial-gradient(130% 90% at 50% 50%, transparent 55%, rgba(4, 3, 14, 0.7) 100%); }
+  background: radial-gradient(60% 40% at 50% 38%, rgba(255, 190, 120, 0.24), transparent 70%), radial-gradient(90% 70% at 50% 60%, rgba(20, 110, 60, 0.55), transparent 75%), linear-gradient(180deg, transparent, rgba(6, 4, 4, 0.6)); }
+.vignette { inset: 0; background: radial-gradient(130% 90% at 50% 50%, transparent 55%, rgba(8, 2, 4, 0.75) 100%); }
 /* 撲克牌花色：慢慢飄、轉一點 */
 .suits { inset: 0; }
 .suits i { position: absolute; font-style: normal; line-height: 1; text-shadow: 0 0 12px currentColor; animation: suit ease-in-out infinite alternate; }
@@ -708,34 +702,9 @@ onBeforeUnmount(() => {
 /* 寬 1080 的設計稿，縮放到舞台（寬高由 uiStyle 給） */
 .stage-ui { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; transform-origin: 0 0; pointer-events: none;
   font-family: 'Overpass', 'Noto Sans TC', sans-serif; }
-/* 節目標題：劇院跑馬燈招牌——金框（亮金→暗金）、裡面深藍底、一圈燈泡交替閃、金屬金字；輕輕上下浮 */
-.show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%); width: 860px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
+/* 節目標題：賭場霓虹招牌——黑底板、外圈粉紅霓虹燈管、內圈青色燈管；字是霓虹燈管字（白芯＋一層層同色光暈），會微微呼吸、偶爾閃一下 */
+.show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%); width: 880px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
 @keyframes st-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
-.st-sign { position: relative; padding: 34px 40px 30px; border: 10px solid transparent; border-radius: 44px;
-  background: radial-gradient(120% 140% at 50% 0%, #2f1d74 0%, #160c3c 60%, #0d0726 100%) padding-box,
-    linear-gradient(160deg, #fff4c8 0%, #f2c14e 22%, #a8741a 48%, #ffe08a 70%, #b4801f 100%) border-box;
-  box-shadow: 0 0 0 3px #3a2108, 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 60px rgba(255, 196, 90, 0.35), inset 0 0 40px rgba(0, 0, 0, 0.5); }
-/* 燈泡：四邊一排，兩組錯開交替亮 */
-.st-bulbs { position: absolute; inset: 10px; border-radius: 30px; pointer-events: none;
-  background:
-    radial-gradient(circle, #fff8dc 0 4px, #ffcf5a 5.5px, transparent 7px) 0 0 / 36px 14px repeat-x,
-    radial-gradient(circle, #fff8dc 0 4px, #ffcf5a 5.5px, transparent 7px) 0 100% / 36px 14px repeat-x,
-    radial-gradient(circle, #fff8dc 0 4px, #ffcf5a 5.5px, transparent 7px) 0 0 / 14px 36px repeat-y,
-    radial-gradient(circle, #fff8dc 0 4px, #ffcf5a 5.5px, transparent 7px) 100% 0 / 14px 36px repeat-y;
-  filter: drop-shadow(0 0 5px #ffc94a); animation: st-blink 0.9s steps(1) infinite; }
-.st-bulbs.alt { background-position: 18px 0, 18px 100%, 0 18px, 100% 18px; animation-delay: 0.45s; }
-@keyframes st-blink { 50% { opacity: 0.15; } }
-.st-kicker { position: relative; display: inline-flex; align-items: center; gap: 14px; padding: 4px 22px; border-radius: 999px;
-  background: linear-gradient(180deg, #ff4f8b, #c2185b); color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 0.28em; text-indent: 0.28em;
-  box-shadow: 0 3px 0 #5c0a2b, 0 0 18px rgba(255, 79, 139, 0.6); }
-.st-kicker i { font-style: normal; font-size: 22px; color: #ffe08a; letter-spacing: 0; text-indent: 0; }
-.st-main { position: relative; margin-top: 10px; font-size: 90px; font-weight: 900; line-height: 1; letter-spacing: 0.01em; white-space: nowrap;
-  background: linear-gradient(180deg, #fffbe8 0%, #ffe9a6 30%, #f4c04a 52%, #b97d17 56%, #f0c35a 78%, #fff1b8 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-  -webkit-text-stroke: 2px #4a2a06; filter: drop-shadow(0 4px 0 #3a1f05) drop-shadow(0 0 22px rgba(255, 200, 90, 0.55)); }
-.st-sub { display: inline-flex; align-items: center; gap: 16px; margin-top: 18px; padding: 8px 26px; border-radius: 999px;
-  background: rgba(10, 6, 30, 0.55); border: 1.5px solid rgba(255, 214, 120, 0.45); color: #ffe7a8;
-  font-size: 32px; font-weight: 800; letter-spacing: 0.1em; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.st-sub i { font-style: normal; font-size: 18px; color: #ff6fa5; }
 /* 結果看板（index.vue 的 slot）：貼著下面，放在搖獎機底座下面、不擋到機器 */
 .show-board { position: absolute; left: 50%; bottom: calc(60px + var(--ib, 0px)); transform: translateX(-50%) scale(1.15); transform-origin: 50% 100%; pointer-events: auto; }
 /* 彩帶 */

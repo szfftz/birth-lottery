@@ -28,7 +28,8 @@
             <div class="rb-bulbs"></div>
             <div class="rb-shine"></div>
             <div class="rb-body">
-              <div class="rb-ball"><div class="rb-flag" :style="flagStyle(last)"></div></div>
+              <!-- 國旗球：兩面國旗並排成一條帶子，往左捲動，看起來像球在水平轉 -->
+              <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(last)"></i><i :style="flagStyle(last)"></i></div></div></div>
               <div class="rb-main"><div class="rb-name">{{ C[last].name_en }}</div></div>
               <div class="rb-medal">
                 <i class="md-tail l"></i><i class="md-tail r"></i>
@@ -83,7 +84,8 @@
         </Transition>
       </nav>
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
-        <span class="d-dome"><b>{{ spinning ? 'ROLLING' : 'DRAW' }}</b><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
+        <i class="d-bulbs" aria-hidden="true"></i>
+        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? 'ROLLING' : 'DRAW' }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
       <button type="button" class="ibtn" aria-label="資訊" @click="openSheet()">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>
@@ -111,39 +113,45 @@
       <!-- 結果 -->
       <section v-if="tab === 'result'">
         <template v-if="last && !spinning && tierIdx(last) >= 0">
-          <article class="ticket" :style="{ '--tier': colorOf(last) }">
-            <header class="t-head">
-              <div class="t-flag" :style="flagStyle(last)"></div>
-              <div class="t-who">
-                <div class="t-title">第 {{ total.toLocaleString() }} 次投胎・你出生在</div>
-                <div class="t-name">{{ nameOf(last) }}</div>
-                <div class="t-en">{{ C[last].name_en }}</div>
+          <!-- 結果票卡：跟舞台上的中獎看板同一套樣式（燈泡框、斜體描邊國名、轉動的國旗球、斜貼獎牌），文字全英文 -->
+          <article class="result-board t-board" :style="{ '--tier': colorOf(last) }">
+            <div class="rb-bulbs"></div>
+            <div class="rb-shine"></div>
+            <div class="rb-medal t-medal">
+              <i class="md-tail l"></i><i class="md-tail r"></i>
+              <div class="md-coin">
+                <div class="md-face" :class="{ long: TIER_EN[tierIdx(last)].length > 3 }">
+                  <b>{{ TIER_EN[tierIdx(last)] }}</b><small>PRIZE</small>
+                </div>
               </div>
-            </header>
+            </div>
+            <div class="t-title">DRAW #{{ total.toLocaleString('en-US') }} · YOU WERE BORN IN</div>
+            <div class="rb-body t-body">
+              <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(last)"></i><i :style="flagStyle(last)"></i></div></div></div>
+              <div class="rb-main"><div class="rb-name">{{ C[last].name_en }}</div></div>
+            </div>
             <div class="t-prize">
-              <span class="t-badge">{{ prizeOf(last) }}</span>
-              <span class="t-pen">{{ TIER_EN_FULL[tierIdx(last)] }}</span>
               <span class="t-range">HDI {{ TIERS[tierIdx(last)].range }}</span>
             </div>
-            <WorldLocator class="t-map" :iso="last" :color="colorOf(last)" />
+            <WorldLocator compact class="t-map" :iso="last" :color="colorOf(last)" />
             <div class="tiles">
-              <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? `UNDP 第 ${C[last].hdi_rank} 名` : '不在 UNDP 排名' }}</small></div>
-              <div class="tile"><span>抽到這一獎</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>約 1/{{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
-              <div class="tile"><span>抽到這一國</span><b>{{ fmtP(pIso(last)) }}</b><small>約 1/{{ oneIn(pIso(last)) }}</small></div>
-              <div v-if="lastBall != null" class="tile"><span>球號</span><b>#{{ (lastBall + 1).toLocaleString() }}</b><small>這國 {{ BALLS[last] }} 顆／共 {{ BALL_TOTAL }} 顆</small></div>
-              <div class="tile wide"><span>人口</span><b>{{ C[last].pop.toLocaleString() }}</b><small>{{ C[last].pop_date }}</small></div>
+              <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? `UNDP rank #${C[last].hdi_rank}` : 'Not ranked by UNDP' }}</small></div>
+              <div class="tile"><span>Odds of this prize</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>About 1 in {{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
+              <div class="tile"><span>Odds of this country</span><b>{{ fmtP(pIso(last)) }}</b><small>About 1 in {{ oneIn(pIso(last)) }}</small></div>
+              <div v-if="lastBall != null" class="tile"><span>Ball</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ BALLS[last] }} of {{ BALL_TOTAL }} balls</small></div>
+              <div class="tile wide"><span>Population</span><b>{{ C[last].pop.toLocaleString('en-US') }}</b><small>{{ C[last].pop_date }}</small></div>
             </div>
-            <p v-if="lastRerolls" class="note">先掉出 {{ lastRerolls }} 次重抽球（{{ noHdiNames }}），自動再搖</p>
+            <p v-if="lastRerolls" class="note">{{ lastRerolls }} redraw {{ lastRerolls > 1 ? 'balls' : 'ball' }} ({{ noHdiNamesEn }}) dropped first, so it was drawn again automatically.</p>
           </article>
         </template>
         <div v-else class="empty">
           <div class="e-ball" :class="{ spin: spinning }"></div>
-          <p v-if="spinning" class="e-main">搖獎中…等球掉進盤子</p>
+          <p v-if="spinning" class="e-main">Drawing… waiting for a ball to drop</p>
           <template v-else>
-            <p class="e-main">按 <b class="kbd">DRAW</b> 開始投胎</p>
-            <p v-if="mode === 'game'" class="e-sub">{{ BALL_TOTAL }} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。</p>
-            <p v-else-if="mode === 'map'" class="e-sub">抽中的機率＝那一國的人口 ÷ 全世界人口。抽過的國家畫白色圓，面積＝抽中次數佔幾成。</p>
-            <p v-else class="e-sub">從 {{ BALL_TOTAL }} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。</p>
+            <p class="e-main">Press <b class="kbd">DRAW</b> to be born</p>
+            <p v-if="mode === 'game'" class="e-sub">Which of the {{ BALL_TOTAL }} balls drops out is decided entirely by the physics simulation. Odds = that country's balls ÷ all balls.</p>
+            <p v-else-if="mode === 'map'" class="e-sub">Odds = that country's population ÷ world population. Countries already drawn get a white circle sized by their share of draws.</p>
+            <p v-else class="e-sub">One ball is drawn from {{ BALL_TOTAL }}. Odds = that country's balls ÷ all balls.</p>
           </template>
         </div>
         <p class="hint"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>{{ HINTS[mode] }}</p>
@@ -254,7 +262,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import LotteryDrum from './components/LotteryDrum.vue'
 import LotteryBox from './components/LotteryBox.vue'
 import MapModes from './components/MapModes.vue'
@@ -276,15 +284,17 @@ const SOURCES = [
 ]
 // 實際網頁
 const SITE = 'https://szfftz.github.io/birth-lottery/'
+// 結果分頁底下的操作提示（結果畫面全英文）
 const HINTS = {
-  game: '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。',
-  map: '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。',
-  balls: '拖曳、兩指縮放地圖，球跟著變大；點一顆球看是哪一國。',
-  grid: '點一顆球看是哪一國。',
-  cells: '點一顆球、再點另一顆，兩顆交換格子。',
-  box: '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。',
-  boxp: '左右拖曳可以繞著轉一圈、兩指縮放；點一顆球看是哪一國。',
+  game: 'Drag sideways to orbit, pinch to zoom; tap a ball to see its country.',
+  map: 'Drag and pinch to move the map; tap a country to see its odds and HDI.',
+  balls: 'Drag and pinch the map (balls scale with it); tap a ball to see its country.',
+  grid: 'Tap a ball to see its country.',
+  cells: 'Tap one ball, then another, to swap their cells.',
+  box: 'Drag sideways to orbit, pinch to zoom; tap a ball to see its country.',
+  boxp: 'Drag sideways to orbit, pinch to zoom; tap a ball to see its country.',
 }
+const noHdiNamesEn = ISOS.filter((iso) => tierIdx(iso) < 0).map((iso) => C[iso].name_en).join(', ')
 
 const face = 'flag' // 球面一律國旗
 
@@ -365,6 +375,26 @@ const last = ref(null)
 const lastBall = ref(null)
 const rerolls = ref(0) // 抽到沒有 HDI 的國家（摩納哥、梵蒂岡）就自動再搖，不算投胎次數
 const lastRerolls = ref(0)
+// 歷史存在 localStorage：重新整理還在；載入時用它重建次數、各國中幾次、最後一次
+const HISTORY_KEY = 'birth-lottery:history'
+try {
+  const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
+  for (const h of Array.isArray(saved) ? saved : []) {
+    if (!h || !C[h.iso]) continue
+    history.push({ n: history.length + 1, iso: h.iso, ball: Number.isInteger(h.ball) ? h.ball : null, time: String(h.time ?? '') })
+    counts[h.iso] = (counts[h.iso] ?? 0) + 1
+  }
+  total.value = history.length
+  last.value = history.at(-1)?.iso ?? null
+} catch { /* 讀不到就從空的開始 */ }
+watch(history, () => { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)) } catch { /* 存不了就算了 */ } })
+function clearHistory() {
+  if (spinning.value || !history.length || !confirm('Clear all draw history?')) return
+  history.splice(0)
+  for (const k of Object.keys(counts)) delete counts[k]
+  total.value = 0; rerolls.value = 0; lastRerolls.value = 0
+  last.value = null; lastBall.value = null
+}
 const drum = ref(null)
 const spinning = ref(false)
 
@@ -445,20 +475,40 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .ibtn:disabled { opacity: 0.4; cursor: default; }
 .badge { position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #161616;
   font-size: 12px; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px rgba(20, 20, 24, 0.9); }
-/* DRAW：街機按鈕（金框、紅色圓頂、按下去會陷下去） */
-.draw { flex: 1; height: 52px; padding: 3px; border: 0; border-radius: 18px; cursor: pointer; font: inherit;
+/* 操作列：賭場霓虹框（粉紅燈管一明一暗） */
+.dock { border: 2px solid #ffd6ec; box-shadow: 0 0 4px #ff2d95, 0 0 14px rgba(255, 45, 149, 0.8), inset 0 0 8px rgba(255, 45, 149, 0.5); animation: dk-hum 1.6s ease-in-out infinite; }
+@keyframes dk-hum { 50% { box-shadow: 0 0 6px #ff2d95, 0 0 24px #ff2d95, inset 0 0 12px rgba(255, 45, 149, 0.7); } }
+/* 左右兩顆小按鈕：做成賭場籌碼（紅底、白色邊條、金邊） */
+.dock .ibtn { border-radius: 50%; border: 2px solid #f5c451;
+  background: radial-gradient(circle, #a3121f 0 52%, #f5c451 53% 56%, transparent 57%), repeating-conic-gradient(#ffffff 0 14deg, #b3121f 14deg 45deg);
+  box-shadow: 0 3px 0 #5a0a12, 0 6px 12px rgba(0, 0, 0, 0.45); }
+.dock .ibtn.on { background: radial-gradient(circle, #f5c451 0 52%, #fff3c4 53% 56%, transparent 57%), repeating-conic-gradient(#ffffff 0 14deg, #b3121f 14deg 45deg); }
+/* DRAW：街機按鈕（金框上一圈會跑的燈泡、紅色圓頂、兩邊閃星星，按下去會陷下去） */
+.draw { position: relative; flex: 1; height: 56px; padding: 7px; border: 0; border-radius: 18px; cursor: pointer; font: inherit;
   background: linear-gradient(160deg, #fff3c4, #d9a72e 45%, #8a6414); box-shadow: 0 4px 0 #5a420b, 0 8px 18px rgba(0, 0, 0, 0.35); transition: transform 0.08s, box-shadow 0.08s; }
 .d-dome { position: relative; display: flex; align-items: center; justify-content: center; gap: 2px; height: 100%; border-radius: 15px; overflow: hidden;
   background: radial-gradient(ellipse 70% 140% at 40% 0%, #ff8a8a 0%, #e0142a 48%, #8a0612 100%); color: #fff;
   box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.45); }
 .d-dome::after { content: ''; position: absolute; top: -40%; bottom: -40%; left: -60px; width: 40px; transform: skewX(-20deg);
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); animation: d-sweep 3.2s ease-in-out infinite; }
+/* 金框上下兩排小燈泡，往前跑 */
+.d-bulbs { position: absolute; inset: 1px 6px; pointer-events: none; border-radius: 16px;
+  background: radial-gradient(circle, #fffbe0 0 1.6px, #ffcf3a 2.4px, transparent 3.2px) 0 0 / 12px 6px repeat-x,
+    radial-gradient(circle, #fffbe0 0 1.6px, #ffcf3a 2.4px, transparent 3.2px) 0 100% / 12px 6px repeat-x;
+  filter: drop-shadow(0 0 2px #ffe27a); animation: d-chase 0.6s steps(2) infinite; }
+@keyframes d-chase { to { background-position: 12px 0, -12px 100%; } }
+.d-dome { z-index: 1; }
+.d-star { font-style: normal; font-size: 16px; color: #fff3b0; margin: 0 10px; text-shadow: 0 0 6px #ffd000, 0 0 12px #ffb000; animation: d-twinkle 0.8s steps(1) infinite; }
+.d-star.r { animation-delay: 0.4s; }
+@keyframes d-twinkle { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .dock, .d-bulbs, .d-star { animation: none; } }
 @keyframes d-sweep { 0%, 60% { left: -60px; } 100% { left: 110%; } }
 .d-dome b { font-size: 22px; font-weight: 900; letter-spacing: 0.12em; text-shadow: 0 2px 0 rgba(90, 0, 10, 0.5); }
 .draw:active:not(:disabled), .draw.busy { transform: translateY(3px); box-shadow: 0 1px 0 #5a420b, 0 4px 10px rgba(0, 0, 0, 0.35); }
 .draw:disabled { cursor: default; }
 .draw:disabled:not(.busy) { filter: grayscale(0.6) brightness(0.8); }
 .draw.busy .d-dome { animation: d-glow 0.5s ease-in-out infinite alternate; }
+.draw.busy .d-bulbs { animation-duration: 0.2s; }
 .draw.busy .d-dome b { font-size: 17px; }
 @keyframes d-glow { to { filter: brightness(1.3); } }
 .d-dots { display: inline-flex; gap: 3px; margin-left: 4px; }
@@ -507,7 +557,7 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 
 /* ── 資訊面板 ── */
 .scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
-.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; display: flex; flex-direction: column; max-height: 86%; border-radius: 28px 28px 0 0;
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 21; display: flex; flex-direction: column; height: 86%; border-radius: 28px 28px 0 0;
   background: var(--panel); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08); transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1); }
 .sheet-head { flex: none; padding: 8px 16px 10px; touch-action: none; cursor: grab; }
 .grip { display: block; width: 38px; height: 5px; margin: 0 auto 10px; border-radius: 3px; background: rgba(255, 255, 255, 0.22); }
@@ -536,24 +586,13 @@ section > h3:first-child { margin-top: 8px; }
 .url { color: var(--teal); word-break: break-all; text-decoration: none; }
 
 /* 結果：票卡（上面獎項色光暈） */
-.ticket { position: relative; padding: 16px; border-radius: 22px; overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--tier) 28%, var(--tile)) 0%, var(--tile) 55%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tier) 45%, transparent); }
-.t-head { display: flex; gap: 14px; align-items: center; }
-.t-flag { flex: none; width: 68px; height: 68px; border-radius: 50%; box-shadow: 0 0 0 3px #fff3c4, 0 0 0 5px #c99a2e, 0 8px 18px rgba(0, 0, 0, 0.4); }
-.t-who { min-width: 0; }
 .t-title { font-size: 13px; color: rgba(255, 255, 255, 0.65); }
-.t-name { font-size: 26px; font-weight: 900; line-height: 1.15; }
-.t-en { font-size: 13px; color: rgba(255, 255, 255, 0.6); }
-.t-prize { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 16px 0 14px; }
-.t-badge { padding: 3px 14px; border-radius: 999px; background: var(--tier); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); font-size: 20px; font-weight: 900; box-shadow: 0 4px 14px color-mix(in srgb, var(--tier) 45%, transparent); }
-.t-pen { font-size: 14px; font-weight: 800; color: color-mix(in srgb, var(--tier) 45%, #ffffff); }
+.t-prize { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 12px 0 14px; }
 .t-range { width: 100%; font-size: 13px; color: rgba(255, 255, 255, 0.68); }
 /* 數字小卡：兩欄 */
 .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tile { display: flex; flex-direction: column; min-width: 0; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.05); }
 section > .tiles .tile { background: var(--tile); }
-.ticket .tile { background: rgba(0, 0, 0, 0.22); }
 .tile.wide { grid-column: 1 / -1; }
 .tile.pick { cursor: pointer; }
 .tile > span { font-size: 12px; color: rgba(255, 255, 255, 0.68); }
@@ -617,6 +656,18 @@ section > .tiles .tile { background: var(--tile); }
 .p-bar b { position: relative; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .p-bar small { position: relative; margin-left: auto; font-size: 12px; color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .t-map { margin: 14px 0 4px; }
+/* 結果分頁的票卡：沿用 .result-board，縮到面板寬 */
+.result-board.t-board { min-width: 0; padding: 18px 16px 16px; }
+.t-board .t-title { position: relative; padding-right: 92px; font-family: 'Overpass', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: #fff3b0; }
+.t-board .t-body { justify-content: flex-start; gap: 14px; margin: 12px 0 0; padding-right: 96px; } /* 右上角留給獎牌，國名不要被蓋到 */
+.t-board .rb-flag { width: 72px; height: 72px; }
+.t-board .rb-name { font-size: 34px; -webkit-text-stroke-width: 5px; text-shadow: 3px 3px 0 #2b0a5e; overflow-wrap: anywhere; }
+.t-board .t-medal { top: 6px; right: 6px; scale: 0.7; transform-origin: 100% 0; }
+.t-board .t-prize, .t-board .t-map, .t-board .tiles, .t-board .note { position: relative; }
+.t-board .t-range { color: rgba(255, 255, 255, 0.8); }
+.t-board .tile { background: rgba(43, 10, 94, 0.45); }
+.t-board .tile > span, .t-board .tile > small { color: rgba(255, 255, 255, 0.78); }
+.t-board .note { color: rgba(255, 255, 255, 0.78); }
 .rb-map { position: relative; margin-top: 12px; }
 /* ── 舞台上的結果看板（Day 25 原樣，1080×1350 的單位） ── */
 .rb-wrap { position: relative; cursor: pointer; animation: rb-pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1); }
@@ -652,16 +703,19 @@ section > .tiles .tile { background: var(--tile); }
 .rb-bulbs { animation: rb-blink 0.8s steps(1) infinite; }
 .rb-bulbs::after { content: ''; inset: 0; background-position: 9px 0, 9px 100%, 0 9px, 100% 9px; animation: rb-blink 0.8s steps(1) infinite reverse; }
 @keyframes rb-blink { 50% { opacity: 0.25; } }
-.rb-body { position: relative; display: flex; align-items: center; gap: 18px; }
+/* 國旗＋國名在看板裡水平置中；獎牌另外掛在右上角、壓在所有東西上面 */
+.rb-body { position: relative; display: flex; align-items: center; justify-content: center; gap: 18px; }
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
+.rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }
+.rb-roll i { flex: none; width: 50%; height: 100%; }
+@keyframes rb-roll { to { transform: translateX(-50%); } }
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
-.rb-main { flex: 1; min-width: 0; }
+.rb-main { flex: 0 1 auto; min-width: 0; }
 .rb-name { font-family: 'Overpass', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
   -webkit-text-stroke: 6px #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
-.rb-medal { position: relative; flex: none; width: 128px; height: 128px; transform-origin: 50% -20px; animation: md-swing 2.6s ease-in-out infinite; }
-@keyframes md-swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+.rb-medal { position: absolute; z-index: 10; top: -86px; right: -70px; width: 128px; height: 128px; scale: 1.45; transform: rotate(14deg); }
 .md-tail { position: absolute; top: 84px; width: 32px; height: 76px;
   background: linear-gradient(90deg, var(--tier) 0 38%, #ffd23f 38% 62%, var(--tier) 62%); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }
