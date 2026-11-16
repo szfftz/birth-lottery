@@ -11,7 +11,7 @@
       <circle class="wl-ring late" :cx="shape.c[0]" :cy="shape.c[1]" :r="ringR" />
       <circle class="wl-dot" :cx="shape.c[0]" :cy="shape.c[1]" :r="compact ? 3.2 : 2.4" />
     </svg>
-    <div v-if="!compact" class="wl-zoom">
+    <div v-if="!compact" class="wl-zoom" :class="{ left: shape.c[0] > 190 }">
       <svg :viewBox="zoomBox" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
         <rect class="wl-sea" x="-360" y="-200" width="1080" height="600" />
         <path class="wl-land z" :d="land" />
@@ -66,6 +66,7 @@ const zoomBox = computed(() => {
 @keyframes wl-ping { from { transform: scale(0.4); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
 .wl-zoom { position: absolute; right: 8px; bottom: 8px; width: 34%; aspect-ratio: 1.3; border-radius: 10px; overflow: hidden;
   border: 2px solid #f5c451; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55); background: #0c1a3a; }
+.wl-zoom.left { right: auto; left: 8px; } /* 國家在東半球：放大圖改放左下（美洲那邊），不要蓋到它 */
 .wl-zoom svg { display: block; width: 100%; height: 100%; }
 .wl-land.z { stroke-width: 0.15; }
 .wl-hit.z { stroke-width: 0.25; filter: none; }

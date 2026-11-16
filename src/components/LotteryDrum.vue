@@ -15,10 +15,6 @@
         <div class="suits"><i v-for="c in SUITS" :key="c.k" :style="c.style">{{ c.ch }}</i></div>
         <div class="floor"></div>
         <div class="vignette"></div>
-        <!-- 綜藝節目：兩邊綁起來的紅絲絨布幕（金色繫繩）、上面一條波浪布簾＋金流蘇 -->
-        <div class="curtain l"><i v-for="k in 6" :key="k" class="fold" :style="{ '--k': k }"></i><i class="tie"></i></div>
-        <div class="curtain r"><i v-for="k in 6" :key="k" class="fold" :style="{ '--k': k }"></i><i class="tie"></i></div>
-        <div class="valance"><i v-for="k in 14" :key="k" class="vfold" :style="{ '--k': k }"></i><i class="fringe"></i></div>
       </div>
       <!-- 手機：點一下球看是哪一國（拖曳不算點）；電腦：滑過去就看 -->
       <div ref="glBox" class="stage-gl" @pointerdown="onDown" @pointerup="onUp" @pointermove="onMove" @pointerleave="onLeave"></div>
@@ -86,7 +82,7 @@ const FINS = { n: 3, len: 1.6, t: 0.15, a0: Math.PI / 2 }
 // 出球口：筒壁上靠前面的一個方洞（寬 HOLE.w、在 z 方向從前面的圓板往後 HOLE.d），角度 HOLE.a 是滾筒沒轉時的位置
 const HOLE = { a: Math.PI / 6, w: 1.5, d: 1.5 }
 // 滑道：球從出球口掉下來，球心沿著 A → B 這條斜線滾到盤子；盤子是透明淺盒
-const CHUTE = { z0: DRUM.d / 2 - HOLE.d / 2, y0: DRUM.y - DRUM.r - 0.4, z1: DRUM.d / 2 + 4.2, y1: BASE.h + 0.7 + R + 0.15, w: 1.4 }
+const CHUTE = { z0: DRUM.d / 2 - HOLE.d / 2, y0: DRUM.y - DRUM.r - 0.4, z1: DRUM.d / 2 + 4.2, y1: BASE.h + 1.1 + R + 0.15, w: 1.4 }
 const TRAY = { z: DRUM.d / 2 + 6, w: 5, d: 3.6, h: 0.7 }
 
 const wrap = ref(null), glBox = ref(null)
@@ -231,7 +227,7 @@ function outsideConstraints(b) {
     px[b] = Math.max(-CHUTE.w / 2 + R, Math.min(CHUTE.w / 2 - R, px[b]))
   }
   // 盤子：底、四邊
-  const floor = BASE.h + 0.1 + R
+  const floor = BASE.h + 0.14 + R
   if (toW(py[b]) < floor) py[b] = floor - DRUM.y
   if (pz[b] > CHUTE.z1) {
     px[b] = Math.max(-TRAY.w / 2 + R, Math.min(TRAY.w / 2 - R, px[b]))
@@ -336,7 +332,7 @@ function makeMachine() {
   const chrome = new THREE.MeshPhysicalMaterial({ color: '#f3f5f8', metalness: 1, roughness: 0.14, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.2, envMapIntensity: 1.4 })
   const gold = new THREE.MeshPhysicalMaterial({ color: '#f2b84a', metalness: 1, roughness: 0.3, roughnessMap: brushed, envMapIntensity: 1.3 })
   const redLac = new THREE.MeshPhysicalMaterial({ color: '#3b2a9a', metalness: 0.65, roughness: 0.5, roughnessMap: flake, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.2 })
-  const add = (parent, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = mat !== acrylic; parent.add(m); return m }
+  const add = (parent, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = !mat.transparent && !mat.isMeshBasicMaterial; parent.add(m); return m }
   // 地板
   const floor = new THREE.Mesh(new THREE.CircleGeometry(24, 96), new THREE.MeshPhysicalMaterial({ color: '#2a1a5e', roughness: 0.22, roughnessMap: flake, metalness: 0.2, clearcoat: 0.8, clearcoatRoughness: 0.05, transparent: true, alphaMap: fadeTexture() }))
   floor.rotation.x = -Math.PI / 2; floor.position.y = PED.floor; floor.receiveShadow = true
@@ -401,18 +397,24 @@ function makeMachine() {
   for (const sd of [-1, 1]) { const r = add(chute, new THREE.CylinderGeometry(0.07, 0.07, len, 8), chrome, sd * CHUTE.w / 2, 0.5, 0); r.rotation.x = Math.PI / 2 }
   g.add(chute)
   add(g, new THREE.CylinderGeometry(0.15, 0.15, CHUTE.y0 - R - BASE.h, 12), chrome, 0, (CHUTE.y0 - R + BASE.h) / 2, CHUTE.z0 - 1)
-  // 接球盒：跟金色台面分得開——黑色烤漆底座、裡面鋪紅絨布、鍍鉻厚邊、上緣一圈會亮的燈條
-  const T = 0.28, Hh = 1.1, y0 = BASE.h
-  const black = new THREE.MeshPhysicalMaterial({ color: '#111018', metalness: 0.3, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.05 })
-  const felt = new THREE.MeshPhysicalMaterial({ color: '#8e0c22', roughness: 0.95, sheen: 1, sheenColor: new THREE.Color('#ff6a7a'), sheenRoughness: 0.4 })
+  // 接球盒：跟滾筒一樣是透明壓克力（厚一點、比較看得到），四邊的稜角是鍍鉻細框、上緣一圈會亮的燈條，跟金色台面分得開
+  const T = 0.22, Hh = 1.1, y0 = BASE.h
+  const box = new THREE.MeshPhysicalMaterial({ color: '#dff1ff', roughness: 0.04, metalness: 0, ior: 1.49, clearcoat: 1, clearcoatRoughness: 0.02,
+    transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 2.4 })
   const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffd76a').multiplyScalar(1.6), toneMapped: false })
-  add(g, new THREE.BoxGeometry(TRAY.w + 1.4, 0.16, TRAY.d + 1.4), black, 0, y0 + 0.08, TRAY.z)
-  add(g, new THREE.BoxGeometry(TRAY.w, 0.12, TRAY.d), felt, 0, y0 + 0.16, TRAY.z)
+  const ow = TRAY.w + T * 2, od = TRAY.d + T * 2
+  add(g, new THREE.BoxGeometry(ow, 0.14, od), box, 0, y0 + 0.07, TRAY.z) // 底
   for (const sd of [-1, 1]) {
-    add(g, new THREE.BoxGeometry(TRAY.w + T * 2, Hh, T), chrome, 0, y0 + Hh / 2, TRAY.z + sd * (TRAY.d / 2 + T / 2))
-    add(g, new THREE.BoxGeometry(T, Hh, TRAY.d), chrome, sd * (TRAY.w / 2 + T / 2), y0 + Hh / 2, TRAY.z)
-    add(g, new THREE.BoxGeometry(TRAY.w + T * 2, 0.08, 0.1), glow, 0, y0 + Hh + 0.04, TRAY.z + sd * (TRAY.d / 2 + T / 2))
-    add(g, new THREE.BoxGeometry(0.1, 0.08, TRAY.d + T * 2), glow, sd * (TRAY.w / 2 + T / 2), y0 + Hh + 0.04, TRAY.z)
+    add(g, new THREE.BoxGeometry(ow, Hh, T), box, 0, y0 + Hh / 2, TRAY.z + sd * (TRAY.d / 2 + T / 2))
+    add(g, new THREE.BoxGeometry(T, Hh, TRAY.d), box, sd * (TRAY.w / 2 + T / 2), y0 + Hh / 2, TRAY.z)
+    // 上緣燈條
+    add(g, new THREE.BoxGeometry(ow, 0.09, 0.12), glow, 0, y0 + Hh, TRAY.z + sd * od / 2)
+    add(g, new THREE.BoxGeometry(0.12, 0.09, od), glow, sd * ow / 2, y0 + Hh, TRAY.z)
+    // 底下的鍍鉻框
+    add(g, new THREE.BoxGeometry(ow + 0.1, 0.12, 0.12), chrome, 0, y0 + 0.06, TRAY.z + sd * od / 2)
+    add(g, new THREE.BoxGeometry(0.12, 0.12, od + 0.1), chrome, sd * ow / 2, y0 + 0.06, TRAY.z)
+    // 四個角的鍍鉻立柱
+    for (const sx of [-1, 1]) add(g, new THREE.CylinderGeometry(0.08, 0.08, Hh, 10), chrome, sx * ow / 2, y0 + Hh / 2, TRAY.z + sd * od / 2)
   }
   return g
 }
@@ -462,7 +464,7 @@ function putBack(b) {
 }
 function placeInTray(b) {
   where[b] = 1
-  px[b] = ox[b] = 0; py[b] = oy[b] = BASE.h + 0.22 + R - DRUM.y; pz[b] = oz[b] = TRAY.z
+  px[b] = ox[b] = 0; py[b] = oy[b] = BASE.h + 0.14 + R - DRUM.y; pz[b] = oz[b] = TRAY.z
 }
 
 /** 抽一顆（全部照物理）：
@@ -647,7 +649,7 @@ onBeforeUnmount(() => {
 .lottery-drum { position: absolute; inset: 0; z-index: 2; overflow: hidden; background: #08061a; }
 .stage { position: absolute; overflow: hidden; }
 /* 舞台背景：午夜靛藍（上深下亮）、中間一圈暖光、慢慢轉的金色光芒、兩道聚光燈、散景光點、地上反光、四周壓暗 */
-.stage-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; /* 自己一層：布幕不會蓋到上面的招牌 */
+.stage-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; /* 自己一層 */
   background: radial-gradient(120% 70% at 50% 58%, #4a2a96 0%, #23145a 38%, #120b33 70%, #08061a 100%); }
 .stage-bg > div, .stage-bg > .bokeh { position: absolute; pointer-events: none; }
 .glow { left: 50%; top: 52%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%);
@@ -701,42 +703,6 @@ onBeforeUnmount(() => {
 .suits { inset: 0; }
 .suits i { position: absolute; font-style: normal; line-height: 1; text-shadow: 0 0 12px currentColor; animation: suit ease-in-out infinite alternate; }
 @keyframes suit { from { transform: translateY(0) rotate(var(--r)); } to { transform: translateY(-22px) rotate(calc(var(--r) * -1)); } }
-/* 紅絲絨布幕：一條一條圓筒狀的皺褶（中間亮、兩邊暗、絨布的柔光），每條皺褶各自慢慢擺、像有風吹；
-   整片布的輪廓（綁起來的形狀）也跟著飄；上面疊一層細細的布紋雜訊 */
-.curtain { top: 0; bottom: 0; width: 14%; z-index: 1; display: flex; filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.75)); }
-.curtain.l { left: 0; transform-origin: 0 0; animation: cur-l 7s ease-in-out infinite; }
-.curtain.r { right: 0; flex-direction: row-reverse; transform-origin: 100% 0; animation: cur-r 8s ease-in-out infinite; }
-@keyframes cur-l {
-  0%, 100% { clip-path: polygon(0 0, 100% 0, 100% 30%, 64% 55%, 40% 64%, 34% 100%, 0 100%); }
-  50% { clip-path: polygon(0 0, 100% 0, 96% 32%, 58% 56%, 36% 64%, 22% 100%, 0 100%); } }
-@keyframes cur-r {
-  0%, 100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 66% 100%, 60% 64%, 36% 55%, 0 30%); }
-  50% { clip-path: polygon(0 0, 100% 0, 100% 100%, 78% 100%, 64% 64%, 42% 56%, 4% 32%); } }
-.fold { flex: 1 1 0; height: 100%; margin: 0 -2px; transform-origin: 50% 0;
-  background:
-    linear-gradient(90deg, #1f0006 0%, #5e0614 18%, #a3122a 38%, #e0465a 50%, #b0162f 60%, #6a0818 80%, #1f0006 100%);
-  animation: fold calc(3.2s + var(--k) * 0.37s) ease-in-out infinite alternate; animation-delay: calc(var(--k) * -0.9s); }
-.fold:nth-child(odd) { flex-grow: 1.25; }
-@keyframes fold { from { transform: skewX(-2.5deg) scaleX(0.9); filter: brightness(0.92); } to { transform: skewX(2.5deg) scaleX(1.12); filter: brightness(1.1); } }
-/* 絨布的布紋＋上暗下暗（燈打不到） */
-.curtain::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.35; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4 0.25' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"); }
-.curtain::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 30%, transparent 62%, rgba(0, 0, 0, 0.6)); }
-.tie { position: absolute; top: 56%; width: 72%; height: 12px; border-radius: 6px; z-index: 2;
-  background: linear-gradient(180deg, #fff1b8, #d9a72e 50%, #7a5410); box-shadow: 0 3px 5px rgba(0, 0, 0, 0.55); }
-.curtain.l .tie { left: 8%; transform: rotate(-24deg); }
-.curtain.r .tie { right: 8%; transform: rotate(24deg); }
-/* 上面的波浪布簾（狀態列底下多垂一點）：一格一格的垂褶，輕輕晃；下緣一條金流蘇 */
-.valance { left: 0; right: 0; top: 0; height: calc(var(--itp, 0px) + 36px); z-index: 2; display: flex;
-  -webkit-mask: radial-gradient(28px 18px at 28px 0, #000 98%, transparent) 0 100% / 56px 18px repeat-x, linear-gradient(#000, #000) 0 0 / 100% calc(100% - 17px) no-repeat;
-  mask: radial-gradient(28px 18px at 28px 0, #000 98%, transparent) 0 100% / 56px 18px repeat-x, linear-gradient(#000, #000) 0 0 / 100% calc(100% - 17px) no-repeat;
-  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)); }
-.vfold { flex: 1; height: 100%; transform-origin: 50% 0;
-  background: linear-gradient(90deg, #3a020e, #9a1028 35%, #e04a5c 50%, #a3132a 65%, #3a020e);
-  animation: vfold calc(2.6s + var(--k) * 0.21s) ease-in-out infinite alternate; animation-delay: calc(var(--k) * -0.55s); }
-@keyframes vfold { from { transform: scaleY(0.94) skewX(-3deg); } to { transform: scaleY(1.04) skewX(3deg); } }
-.fringe { position: absolute; left: 0; right: 0; bottom: 17px; height: 4px; z-index: 1; background: linear-gradient(180deg, #fff1b8, #d9a72e); }
 .stage-gl { position: absolute; inset: 0; touch-action: none; }
 .stage-gl :deep(canvas) { display: block; }
 /* 寬 1080 的設計稿，縮放到舞台（寬高由 uiStyle 給） */
