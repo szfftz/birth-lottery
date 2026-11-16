@@ -6,6 +6,7 @@
 </template>
 
 <script setup>
+import { L, lang } from '../i18n.js'
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -14,7 +15,7 @@ import { addTooltip } from '../lib/tooltip.js'
 import { glBalls, createBallLayer } from '../lib/ballLayer.js'
 import worldUrl from '../data/countries-50m.geojson?url'
 import {
-  C, BALLS, balls as ballInfo, colors, flagMeta, cellMeta, cellOf, cellsSnap, swapPick, clickBall, gridOrder, BOX_PASTEL,
+  C, BALLS, balls as ballInfo, colors, flagMeta, cellMeta, cellOf, cellsSnap, gridOrder, BOX_PASTEL,
   mode, onBoard, tierIdx, nameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, ballTip,
 } from '../lottery.js'
 
@@ -33,7 +34,6 @@ const props = defineProps({
 // 地圖、圖例共用：國界、這次抽到的外框、投胎紀錄圓的顏色，不透明度，線寬（px）
 const FLAT_BG = '#161616'
 const BORDER = '#ffffff'
-const SWAP_SEL = '#ffe14d' // 格子模式換位置時，第一顆點的球
 const SEL = '#ffffff'
 const TALLY = { fill: '#ffffff', line: '#ffffff' }
 const OP = { fill: 0.85, line: 0.6, tally: 0.3, ballDim: 0.35 }
@@ -137,7 +137,6 @@ function layoutBalls() {
   map.getSource('cell-bg')?.setData(mode.value === 'cells' && cellBg ? cellBg : { type: 'FeatureCollection', features: [] })
   paintBallSel()
   paintHit()
-  paintSwapSel()
 }
 // 每顆球的 tooltip 位置（彩球類模式；地圖模式清空）
 function paintHit() {
@@ -147,11 +146,6 @@ function paintHit() {
   if (on) map.setPaintProperty('ball-hit', 'circle-radius', curSize(map.getZoom()) / 2)
 }
 // 格子模式換位置：第一顆點的球（黃色圈）
-function paintSwapSel() {
-  const b = swapPick.value
-  map?.getSource('swap-sel')?.setData({ type: 'FeatureCollection', features: b == null || mode.value !== 'cells' || !layLngLat ? [] : [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: ballAt(b) } }] })
-  if (map?.getLayer('swap-sel')) map.setPaintProperty('swap-sel', 'circle-radius', gridD / 2 + 3)
-}
 function paintBallSel() {
   const on = props.lastBall != null && mode.value !== 'map' && layLngLat
   map.getSource('ball-sel').setData({ type: 'FeatureCollection', features: !on ? [] : [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: ballAt(props.lastBall) } }] })
@@ -173,7 +167,7 @@ function paintTag() {
   const onBall = props.lastBall != null && mode.value !== 'map' && layLngLat
   if (!iso || !at[iso] || (mode.value !== 'map' && !onBall && onBoard())) { tag?.remove(); return }
   const el = tag?.getElement() ?? Object.assign(document.createElement('div'), { className: 'lottery-tag' })
-  el.innerHTML = `<b>${nameOf(iso)}</b><span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>HDI ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>這一獎 ${fmtP(pTier(TIERS[tierIdx(iso)]))}・這一國 ${fmtP(pIso(iso))}`}`
+  el.innerHTML = `<b>${nameOf(iso)}</b> <span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>HDI ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>${L('Prize', '這一獎')} ${fmtP(pTier(TIERS[tierIdx(iso)]))} · ${L('Country', '這一國')} ${fmtP(pIso(iso))}`}`
   tag ??= new maplibregl.Marker({ element: el, anchor: 'bottom' })
   tag.setOffset([0, onBall ? -(BALL_SEL / 2 + 8) : -8])
   tag.setLngLat(onBall ? ballAt(props.lastBall) : at[iso]).addTo(map)
@@ -191,9 +185,8 @@ function applyMode() {
   vis('prize', m === 'map')
   vis('tally', m === 'map')
   ballLayer?.setFlags(props.face === 'flag')
-  swapPick.value = null
   if (m !== 'map') layoutBalls()
-  else { layLngLat = null; paintHit(); paintSwapSel() }
+  else { layLngLat = null; paintHit() }
   paint()
 }
 
@@ -223,7 +216,7 @@ onMounted(() => {
     at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, [f.properties.label_x, f.properties.label_y]]))
     map.addSource('countries', {
       type: 'geojson', data: world,
-      attribution: 'HDI、人口：<a href="https://en.wikipedia.org/" target="_blank">Wikipedia</a>；<a href="https://www.naturalearthdata.com/" target="_blank">Natural Earth</a>',
+      attribution: 'HDI, population: <a href="https://en.wikipedia.org/" target="_blank">Wikipedia</a>; <a href="https://www.naturalearthdata.com/" target="_blank">Natural Earth</a>',
     })
     map.addSource('tally', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     map.addSource('ball-sel', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -233,8 +226,6 @@ onMounted(() => {
     map.addLayer({ id: 'prize-sel', type: 'line', source: 'countries', filter: ['==', 'adm0_a3', ''], paint: { 'line-color': SEL, 'line-width': W.sel } })
     map.addLayer({ id: 'tally', type: 'circle', source: 'tally',
       paint: { 'circle-radius': ['get', 'r'], 'circle-color': TALLY.fill, 'circle-opacity': OP.tally, 'circle-stroke-color': TALLY.line, 'circle-stroke-width': W.tally } })
-    map.addSource('swap-sel', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-    map.addLayer({ id: 'swap-sel', type: 'circle', source: 'swap-sel', paint: { 'circle-radius': 10, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': SWAP_SEL, 'circle-stroke-width': W.sel } })
     map.addLayer({ id: 'ball-sel', type: 'circle', source: 'ball-sel', paint: { 'circle-radius': BALL_SEL / 2 + 2, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': SEL, 'circle-stroke-width': W.sel } })
     map.addLayer({ id: 'grid-bg', type: 'background', layout: { visibility: 'none' }, paint: { 'background-color': FLAT_BG } }, 'prize-sel')
     map.addSource('cell-bg', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -248,17 +239,18 @@ onMounted(() => {
     map.on('move', layoutBalls)
     map.on('resize', layoutBalls)
     addTooltip(map, ['ball-hit'], (f) => ballTip(f.properties.b))
-    map.on('click', 'ball-hit', (e) => clickBall(e.features[0].properties.b))
     addTooltip(map, ['prize'], (f) => {
       const iso = f.properties.adm0_a3, c = C[iso]
-      if (!c) return `<b>${f.properties.name_zh}</b><br>不在人口表裡`
+      if (!c) return L(`<b>${f.properties.name_en ?? f.properties.name}</b><br>Not in the population list`, `<b>${f.properties.name_zh ?? f.properties.name}</b><br>不在人口表裡`)
       return [
-        `<b>${nameOf(iso)}</b> <span class="en">${c.name_en}</span>`,
-        ...(tierIdx(iso) < 0 ? [] : [`抽到這一獎 <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b>（約 1/${oneIn(pTier(TIERS[tierIdx(iso)]))}）`, `抽到這一國 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`]),
-        ...(BALLS[iso] ? [`彩球 ${BALLS[iso]} 顆`] : []),
-        `人口 ${c.pop.toLocaleString()}（${c.pop_date}）`,
-        c.hdi == null ? '沒有 HDI 資料' : `HDI <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? `（UNDP 第 ${c.hdi_rank} 名）` : ''}→ ${prizeOf(iso)}`,
-        ...(props.counts[iso] ? [`抽中 ${props.counts[iso]} 次`] : []),
+        `<b>${nameOf(iso)}</b>`,
+        ...(tierIdx(iso) < 0 ? [] : [
+          L(`Odds of this prize <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b> (about 1 in ${oneIn(pTier(TIERS[tierIdx(iso)]))})`, `抽到這一獎 <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b>（約 1/${oneIn(pTier(TIERS[tierIdx(iso)]))}）`),
+          L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)]),
+        ...(BALLS[iso] ? [L(`${BALLS[iso]} ${BALLS[iso] > 1 ? 'balls' : 'ball'}`, `彩球 ${BALLS[iso]} 顆`)] : []),
+        L(`Population ${c.pop.toLocaleString('en-US')} (${c.pop_date})`, `人口 ${c.pop.toLocaleString('en-US')}（${c.pop_date}）`),
+        c.hdi == null ? L('No HDI data', '沒有 HDI 資料') : `HDI <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''} → ${prizeOf(iso)}`,
+        ...(props.counts[iso] ? [L(`Drawn ${props.counts[iso]} ${props.counts[iso] > 1 ? 'times' : 'time'}`, `抽中 ${props.counts[iso]} 次`)] : []),
       ].join('<br>')
     })
     applyMode()
@@ -268,8 +260,8 @@ watch(mode, applyMode)
 watch(() => [props.insetTop, props.insetBottom], () => { map?.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 }); layoutBalls() })
 watch(() => [props.last, props.lastBall, props.total], paint)
 watch(() => props.face, (f) => { ballLayer?.setFlags(f === 'flag'); layoutBalls() })
-watch(swapPick, paintSwapSel)
 watch(cellsSnap, layoutBalls)
+watch(lang, () => paintTag()) // 換語言：結果標籤重寫
 onBeforeUnmount(() => { tag?.remove(); map?.remove() })
 </script>
 

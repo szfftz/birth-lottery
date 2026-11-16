@@ -1,5 +1,6 @@
 // 投胎樂透的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
 // 機率＝球數比例（遊戲是真的從 891 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
+import { L } from './i18n.js'
 import { ref, shallowRef } from 'vue'
 import data from './data/lottery.json'
 import cellMeta from './data/cells.json'
@@ -40,33 +41,35 @@ function rampColor(colors, t) {
   return '#' + a.map((v, j) => Math.round(v + (b[j] - v) * (x - i)).toString(16).padStart(2, '0')).join('')
 }
 
-const TIER_NAMES = ['特獎', '頭獎', '二獎', '三獎', '四獎', '五獎', '六獎', '哈哈獎']
-// 舞台上用英文
+// 中／英切換（預設中文）
+export const TIER_ZH = ['特獎', '頭獎', '二獎', '三獎', '四獎', '五獎', '六獎', '哈哈獎']
 export const TIER_EN = ['GRAND', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', 'BOOBY']
 export const TIER_EN_FULL = ['Grand Prize', '1st Prize', '2nd Prize', '3rd Prize', '4th Prize', '5th Prize', '6th Prize', 'Booby Prize']
+const TIER_NAMES = TIER_EN_FULL
 const LAST = TIER_NAMES.length - 1
 const CUTS = tierMeta.cuts // 每一級最低的 HDI 千分位（整數，避免浮點誤差）
 export const TIER_R = tierMeta.r
 export const tierOfHdi = (v) => { const h = Math.round(v * 1000); return CUTS.findIndex((c) => h >= c) }
 const f3 = (h) => (h / 1000).toFixed(3)
 export const tierIdx = (iso) => (C[iso].hdi == null ? -1 : tierOfHdi(C[iso].hdi))
-export const TIERS = TIER_NAMES.map((name, i) => ({
-  name, en: TIER_EN_FULL[i], color: rampColor(QUAKE5, 1 - i / LAST),
-  range: i === 0 ? `${f3(CUTS[0])} 以上` : i === LAST ? `${f3(CUTS[LAST - 1] - 1)} 以下` : CUTS[i] === CUTS[i - 1] - 1 ? f3(CUTS[i]) : `${f3(CUTS[i])}–${f3(CUTS[i - 1] - 1)}`,
+export const TIERS = TIER_NAMES.map((_, i) => ({
+  get name() { return L(TIER_EN_FULL[i], TIER_ZH[i]) }, en: TIER_EN_FULL[i], color: rampColor(QUAKE5, 1 - i / LAST),
+  range: i === 0 ? `≥ ${f3(CUTS[0])}` : i === LAST ? `≤ ${f3(CUTS[LAST - 1] - 1)}` : CUTS[i] === CUTS[i - 1] - 1 ? f3(CUTS[i]) : `${f3(CUTS[i])}–${f3(CUTS[i - 1] - 1)}`,
   p: 0, n: 0, balls: 0,
 }))
 export const noHdi = { n: 0, p: 0, balls: 0 }
 for (const iso of ISOS) { const t = TIERS[tierIdx(iso)] ?? noHdi; t.p += C[iso].p; t.n++; t.balls += BALLS[iso] }
-export const nameOf = (iso) => C[iso].name_zh ?? C[iso].name_en
-export const noHdiNames = ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join('、')
-export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? '重抽'
+export const nameOf = (iso) => L(C[iso].name_en, C[iso].name_zh ?? C[iso].name_en)
+export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、'))
+export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? L('Redraw', '重抽')
 export const colorOf = (iso) => TIERS[tierIdx(iso)]?.color ?? NODATA
 export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[b].hdi - C[a].hdi)
 // 照人口比例算的 HDI 期望值（沒有 HDI 的不算；跟 Day 25 一樣）
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)
 
 // 模式：地圖、彩球、排列、格子、盒子・地圖、盒子・照獎、遊戲（預設遊戲）
-export const MODES = [{ key: 'map', label: '地圖' }, { key: 'balls', label: '彩球' }, { key: 'grid', label: '排列' }, { key: 'cells', label: '格子' }, { key: 'box', label: '盒子・地圖' }, { key: 'boxp', label: '盒子・照獎' }, { key: 'game', label: '遊戲' }]
+export const MODES = [['map', 'Map', '地圖'], ['balls', 'Balls', '彩球'], ['grid', 'Sorted', '排列'], ['box', 'Box by Region', '盒子・照地區'], ['boxp', 'Box by Prize', '盒子・照獎'], ['game', 'Game', '遊戲']]
+  .map(([key, en, zh]) => ({ key, get label() { return L(en, zh) } }))
 export const mode = ref('game')
 // 排列、格子模式：球排在框裡，不畫地圖
 export const onBoard = () => mode.value === 'grid' || mode.value === 'cells'
@@ -93,60 +96,10 @@ export function drawBall() {
   return [isoOfBall(b), b]
 }
 
-// 格子模式手動換位置：點一顆球、再點另一顆，兩顆交換格子；換過的記在瀏覽器
-// cellOf[b]＝第 b 顆球現在在第幾格；swaps＝換過的兩格 [格, 格]，照順序
+// 格子排法（盒子・地圖模式用）：cellOf[b]＝第 b 顆球在第幾格
 export { cellMeta }
 export const cellOf = Int32Array.from(cellMeta.cell)
-// 鍵名帶 cells.json 的指紋：cells.json 換過之後，舊的交換就不會再套一次
-const SWAP_KEY = `birth-lottery-cell-swaps-${cellMeta.cell.reduce((h, v) => (h * 31 + v) >>> 0, 7).toString(36)}`
-export const swaps = ref([])
-export const swapPick = ref(null) // 第一顆點的球
-function swapCells(a, b) {
-  const ba = cellOf.indexOf(a), bb = cellOf.indexOf(b)
-  cellOf[ba] = b; cellOf[bb] = a
-}
-// 給盒子模式、格子模式的排法（換過位置就換一份新的，才會重畫）
 export const cellsSnap = shallowRef(Int32Array.from(cellOf))
-function saveSwaps() {
-  cellsSnap.value = Int32Array.from(cellOf)
-  try { localStorage.setItem(SWAP_KEY, JSON.stringify(swaps.value)) } catch {}
-}
-try {
-  const saved = JSON.parse(localStorage.getItem(SWAP_KEY) ?? '[]')
-  for (const [a, b] of saved) swapCells(a, b)
-  swaps.value = saved
-  cellsSnap.value = Int32Array.from(cellOf)
-} catch {}
-export function clickBall(b) {
-  if (mode.value !== 'cells') return
-  if (swapPick.value == null) { swapPick.value = b; return }
-  const a = swapPick.value
-  swapPick.value = null
-  if (a !== b) {
-    const pair = [cellOf[a], cellOf[b]]
-    swapCells(...pair)
-    swaps.value = [...swaps.value, pair]
-    saveSwaps()
-  }
-}
-export function undoSwap() {
-  const pair = swaps.value.at(-1)
-  if (!pair) return
-  swapCells(...pair)
-  swaps.value = swaps.value.slice(0, -1)
-  saveSwaps()
-}
-export function resetSwaps() {
-  cellOf.set(cellMeta.cell)
-  swaps.value = []
-  swapPick.value = null
-  saveSwaps()
-}
-// SWAPS 格式：((欄, 列), (欄, 列))，從 1 數（Day 25 build_cells.py 用）
-export const swapsText = () => {
-  const rc = (k) => `(${(k % cellMeta.cols) + 1}, ${Math.floor(k / cellMeta.cols) + 1})`
-  return swaps.value.map(([a, b]) => `    (${rc(a)}, ${rc(b)}),`).join('\n')
-}
 
 // 排列模式、盒子・照獎的順序：獎項（特獎→哈哈獎→重抽）→ 同一級 HDI 高到低 → 人口多到少；同一國的球排在一起
 // gridOrder[k]＝排第 k 的是第幾顆球；gridRank[b]＝第 b 顆球排第幾
@@ -172,7 +125,7 @@ export const boxRank = (() => {
   return { cells: gridRank, walls, frames }
 })()
 export const fmtP = (p) => (p >= 0.001 || p === 0 ? `${(p * 100).toFixed(1)}%` : `${(p * 100).toPrecision(2)}%`)
-export const oneIn = (p) => Math.round(1 / p).toLocaleString()
+export const oneIn = (p) => Math.round(1 / p).toLocaleString('en-US')
 
 // 每國球的顏色（獎項色）
 export const colors = Object.fromEntries(ISOS.map((iso) => [iso, colorOf(iso)]))
@@ -188,12 +141,12 @@ export function ballTip(b) {
   const iso = isoOfBall(b), c = C[iso], t = TIERS[tierIdx(iso)]
   const k = balls.isos.indexOf(iso)
   return [
-    `<b>${nameOf(iso)}</b> <span class="en">${c.name_en}</span>`,
-    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `（HDI ${t.range}）` : '（沒有 HDI，抽到再抽一次）'}`,
-    ...(t ? [`抽到這一國 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`] : []),
-    `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? `（UNDP 第 ${c.hdi_rank} 名）` : ''}`,
-    `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`,
-    mode.value === 'cells' ? `格子第 ${Math.floor(cellOf[b] / cellMeta.cols) + 1} 列、第 ${(cellOf[b] % cellMeta.cols) + 1} 欄（${cellMeta.cols}×${cellMeta.rows} 格）`
-      : mode.value === 'grid' || mode.value === 'boxp' ? `排列第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆，從左上數）` : `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`,
+    `<b>${nameOf(iso)}</b>`,
+    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? ` (HDI ${t.range})` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）')}`,
+    ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)] : []),
+    `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''}`,
+    L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`),
+    mode.value === 'grid' || mode.value === 'boxp' ? L(`Sorted #${gridRank[b] + 1} of ${BALL_TOTAL} (from top left)`, `排列第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆，從左上數）`)
+      : L(`Ball #${b + 1} of ${BALL_TOTAL}`, `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`),
   ].join('<br>')
 }
