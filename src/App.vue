@@ -85,7 +85,7 @@
       </nav>
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
         <i class="d-bulbs" aria-hidden="true"></i>
-        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b>{{ spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖') }}</b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
+        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b :aria-label="spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖')"><span v-for="(ch, i) in [...(spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖'))]" :key="`${spinning}${i}`" class="d-ch" :style="{ '--i': i }" aria-hidden="true">{{ ch }}</span></b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
       <button type="button" class="ibtn" :aria-label="L('Info', '資訊')" @click="openSheet()">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>
@@ -139,7 +139,7 @@
               <div class="tile"><span>{{ L('Odds of this prize', '抽到這一獎的機率') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pTier(TIERS[tierIdx(last)])) }}</small></div>
               <div class="tile"><span>{{ L('Odds of this country', '抽到這一國的機率') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L('About 1 in', '約 1/') }} {{ oneIn(pIso(last)) }}</small></div>
               <div v-if="lastBall != null" class="tile"><span>{{ L('Ball', '球號') }}</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`) }}</small></div>
-              <div class="tile wide"><span>{{ L('Population', '人口') }}</span><b>{{ C[last].pop.toLocaleString('en-US') }}</b><small>{{ C[last].pop_date }}</small></div>
+              <div class="tile wide"><span>{{ L('Population', '人口') }}</span><b>{{ fmtBig(C[last].pop) }}</b><small>{{ C[last].pop_date }}</small></div>
             </div>
             <p v-if="lastRerolls" class="note">{{ L(`${lastRerolls} redraw ${lastRerolls > 1 ? 'balls' : 'ball'} (${noHdiNames()}) dropped first, so it was drawn again automatically.`, `先掉出 ${lastRerolls} 次重抽球（${noHdiNames()}），自動再搖`) }}</p>
           </article>
@@ -225,7 +225,7 @@
             <b class="r-v"><em class="r-lbl">{{ L('odds', '機率') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`) }}</small></b>
           </li>
         </ol>
-        <p class="note">{{ L(`Taiwan: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), ${BALLS.TWN} balls, odds ${fmtP(pIso('TWN'))} — about 1 birth in ${oneIn(pIso('TWN'))} lands in Taiwan. One ball ≈ ${POP_UNIT.toLocaleString('en-US')} people.`, `臺灣：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}），${BALLS.TWN} 顆球，機率 ${fmtP(pIso('TWN'))}，大約 ${oneIn(pIso('TWN'))} 次投胎才會出生在臺灣一次。1 顆球約 ${POP_UNIT.toLocaleString('en-US')} 人。`) }}</p>
+        <p class="note">{{ L(`Taiwan: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), ${BALLS.TWN} balls, odds ${fmtP(pIso('TWN'))} — about 1 birth in ${oneIn(pIso('TWN'))} lands in Taiwan. One ball ≈ ${fmtBig(POP_UNIT)} people.`, `臺灣：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}），${BALLS.TWN} 顆球，機率 ${fmtP(pIso('TWN'))}，大約 ${oneIn(pIso('TWN'))} 次投胎才會出生在臺灣一次。1 顆球約 ${fmtBig(POP_UNIT)} 人。`) }}</p>
       </section>
 
       <!-- 說明 -->
@@ -233,12 +233,12 @@
         <h3>{{ L('How it works', '計算方法') }}</h3>
         <!-- 三個步驟，寫給國高中生看得懂 -->
         <ol v-if="isZh" class="steps">
-          <li><b>把全世界的人換成彩球</b>每 {{ POP_UNIT.toLocaleString('en-US') }} 個人做成 1 顆球；人很少的國家也至少給 1 顆，所以總共 {{ BALL_TOTAL }} 顆。例如印度人最多，有 {{ BALLS.IND }} 顆；臺灣有 {{ BALLS.TWN }} 顆。</li>
+          <li><b>把全世界的人換成彩球</b>每 {{ fmtBig(POP_UNIT) }} 個人做成 1 顆球；人很少的國家也至少給 1 顆，所以總共 {{ BALL_TOTAL }} 顆。例如印度人最多，有 {{ BALLS.IND }} 顆；臺灣有 {{ BALLS.TWN }} 顆。</li>
           <li><b>隨便抽一顆球</b>抽到某一國的機率＝那一國的球數 ÷ 全部的球數。例如臺灣：{{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}，大約每 {{ oneIn(pIso('TWN')) }} 次才會抽到一次。</li>
           <li><b>看那一國的 HDI，決定中幾獎</b>HDI（人類發展指數）是 0 到 1 的分數，把平均壽命、受教育的年數、收入加在一起算，越接近 1 代表生活條件越好。HDI 越高獎越大，但這種國家人口少，所以越難抽到。</li>
         </ol>
         <ol v-else class="steps">
-          <li><b>Turn people into balls</b>We make 1 ball for every {{ POP_UNIT.toLocaleString('en-US') }} people. Even the smallest country gets 1 ball. That makes {{ BALL_TOTAL }} balls in total. India has the most people, so it gets {{ BALLS.IND }} balls. Taiwan gets {{ BALLS.TWN }}.</li>
+          <li><b>Turn people into balls</b>We make 1 ball for every {{ fmtBig(POP_UNIT) }} people. Even the smallest country gets 1 ball. That makes {{ BALL_TOTAL }} balls in total. India has the most people, so it gets {{ BALLS.IND }} balls. Taiwan gets {{ BALLS.TWN }}.</li>
           <li><b>Pick one ball</b>Your chance of getting a country is its number of balls divided by all the balls. For Taiwan, that's {{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}. That's about 1 in {{ oneIn(pIso('TWN')) }}.</li>
           <li><b>The country's HDI is your prize</b>HDI is a score from 0 to 1. It shows how long people live, how many years they go to school, and how much money they make. A higher score means a better life and a bigger prize. But high-score countries have fewer people, so they are harder to get.</li>
         </ol>
@@ -248,7 +248,7 @@
           <li><b>Population</b>English Wikipedia, "<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>", sovereign states only: the 193 UN members, the two observer states (Vatican City and Palestine), plus Taiwan — {{ meta.count }} countries in all.</li>
           <li><b>HDI</b>English Wikipedia, "<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>", using UNDP's {{ meta.hdi.year }} HDI from the 2025 Human Development Report. Taiwan isn't in the UNDP data, so its {{ C.TWN.hdi }} (2023) comes from the <a :href="SOURCES[2].url" target="_blank" rel="noopener">English Wikipedia Taiwan</a> infobox. North Korea uses {{ C.PRK.hdi }} ({{ meta.prk.year }}) from the <a :href="SOURCES[3].url" target="_blank" rel="noopener">Chinese Wikipedia</a> infobox. Monaco and Vatican City have no HDI, so drawing them means a redraw.</li>
           <li><b>Prizes</b>Countries are ranked by HDI and cut into {{ TIERS.length }} tiers. Each tier is more likely than the one above, as close as possible to 1:2:4:8:16:32:64:128. Countries with the same HDI aren't split, so the ratios are close but not exact.</li>
-          <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ POP_UNIT.toLocaleString('en-US') }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
+          <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ fmtBig(POP_UNIT) }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
           <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m, Esri Dark Gray basemap.</li>
           <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world; Prize Box lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
           <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
@@ -258,7 +258,7 @@
           <li><b>人口</b>英文維基百科〈<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>〉，只看正式國家：聯合國 193 個會員國、梵蒂岡和巴勒斯坦兩個觀察員國，加上臺灣，共 {{ meta.count }} 國。</li>
           <li><b>HDI</b>英文維基百科〈<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>〉，數字是 UNDP《2025 人類發展報告》的 {{ meta.hdi.year }} 年 HDI。臺灣不在 UNDP 資料裡，用英文維基 <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用<a :href="SOURCES[3].url" target="_blank" rel="noopener">中文維基</a>資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有 HDI，抽到算「重抽」。</li>
           <li><b>獎項</b>把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
-          <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ POP_UNIT.toLocaleString() }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
+          <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ fmtBig(POP_UNIT) }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
           <li><b>地圖模式</b>國家照獎項填色；抽籤照人口比例，抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界、Esri 深灰底圖。</li>
           <li><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起；「獎項彩球盒」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
           <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
@@ -290,7 +290,7 @@ import {
   MODES, MAP_MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
   meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, balls, isoOfBall, colors, flagMeta, flagsUrl, flagStyle, ballTip,
   TIERS, TIER_EN, TIER_ZH, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
-  HDI_EXPECT, pTier, pIso, fmtP, oneIn,
+  HDI_EXPECT, pTier, pIso, fmtP, oneIn, fmtBig,
 } from './lottery.js'
 
 const SOURCES = [
@@ -466,7 +466,8 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .phone { --gold: #f5c451; --teal: #6fd6e0; --pink: #ff4f8b; --glass: rgba(16, 11, 40, 0.6); --glass-line: rgba(255, 226, 160, 0.16); --panel: #120d2b; --tile: #1e1840;
   --muted: #c9c3e3; --dim: #a59ec8;
   position: relative; width: 100%; max-width: 430px; height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #08061a; }
-@media (min-width: 600px) {
+/* 電腦（夠寬也夠高）才框成一支手機；橫拿的手機（矮）就用整個畫面 */
+@media (min-width: 600px) and (min-height: 600px) {
   .phone { height: min(932px, calc(100dvh - 48px)); margin: 24px auto; border-radius: 36px;
     box-shadow: 0 0 0 10px #0b0b0b, 0 0 0 11px #333, 0 30px 80px rgba(0, 0, 0, 0.6); }
 }
@@ -524,18 +525,33 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
   filter: drop-shadow(0 0 2px #ffe27a); animation: d-chase 0.6s steps(2) infinite; }
 @keyframes d-chase { to { background-position: 12px 0, -12px 100%; } }
 .d-dome { z-index: 1; }
-.d-star { font-style: normal; font-size: 16px; color: #fff3b0; margin: 0 10px; text-shadow: 0 0 6px #ffd000, 0 0 12px #ffb000; animation: d-twinkle 0.8s steps(1) infinite; }
+.d-star { font-style: normal; font-size: 16px; color: #fff3b0; margin: 0 clamp(4px, 2.5vw, 10px); text-shadow: 0 0 6px #ffd000, 0 0 12px #ffb000; animation: d-twinkle 0.8s steps(1) infinite; }
 .d-star.r { animation-delay: 0.4s; }
 @keyframes d-twinkle { 50% { opacity: 0.25; } }
 @media (prefers-reduced-motion: reduce) { .dock, .d-bulbs, .d-star { animation: none; } }
 @keyframes d-sweep { 0%, 60% { left: -60px; } 100% { left: 110%; } }
-.d-dome b { font-size: 22px; font-weight: 900; letter-spacing: 0.12em; text-shadow: 0 2px 0 rgba(90, 0, 10, 0.5); }
+.d-dome b { font-size: clamp(17px, 5.4vw, 22px); font-weight: 900; letter-spacing: 0.12em; white-space: nowrap; text-shadow: 0 2px 0 rgba(90, 0, 10, 0.5); }
 .draw:active:not(:disabled), .draw.busy { transform: translateY(3px); box-shadow: 0 1px 0 #5a420b, 0 4px 10px rgba(0, 0, 0, 0.35); }
 .draw:disabled { cursor: default; }
 .draw:disabled:not(.busy) { filter: grayscale(0.6) brightness(0.8); }
 .draw.busy .d-dome { animation: d-glow 0.5s ease-in-out infinite alternate; }
 .draw.busy .d-bulbs { animation-duration: 0.2s; }
 .draw.busy .d-dome b { font-size: 17px; }
+/* 「搖一搖／搖獎中」每個字輪流可愛地搖（平常一下一下跳，搖獎中搖快一點） */
+.d-ch { display: inline-block; transform-origin: 50% 80%; animation: d-wobble 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * 0.12s); }
+.draw.busy .d-ch { animation: d-shake 0.42s ease-in-out infinite; animation-delay: calc(var(--i) * 0.07s); }
+@keyframes d-wobble {
+  0%, 55%, 100% { transform: translateY(0) rotate(0) scale(1); }
+  62% { transform: translateY(-4px) rotate(-10deg) scale(1.12); }
+  70% { transform: translateY(0) rotate(8deg) scale(0.96); }
+  78% { transform: translateY(-2px) rotate(-5deg) scale(1.04); }
+  86% { transform: translateY(0) rotate(2deg); }
+}
+@keyframes d-shake {
+  0%, 100% { transform: translateY(0) rotate(-9deg); }
+  50% { transform: translateY(-3px) rotate(9deg); }
+}
+@media (prefers-reduced-motion: reduce) { .d-ch, .draw.busy .d-ch { animation: none; } }
 @keyframes d-glow { to { filter: brightness(1.3); } }
 .d-dots { display: inline-flex; gap: 3px; margin-left: 4px; }
 .d-dots i { width: 4px; height: 4px; border-radius: 50%; background: #fff; animation: d-dot 0.9s ease-in-out infinite; }
@@ -748,6 +764,15 @@ section > .tiles .tile { background: var(--tile); }
 .rb-name { font-family: 'Overpass', 'Huninn', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
   -webkit-text-stroke: 6px #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
 .rb-medal { position: absolute; z-index: 10; top: -86px; right: -70px; width: 128px; height: 128px; scale: 1.45; transform: rotate(14deg); }
+/* 獎牌輕輕地左右晃（用 rotate 屬性，跟原本的 transform 斜角疊在一起） */
+.rb-medal { animation: md-sway 2.6s ease-in-out infinite; }
+@keyframes md-sway {
+  0%, 100% { rotate: -5deg; translate: 0 0; }
+  25% { translate: 0 -3px; }
+  50% { rotate: 5deg; translate: 0 0; }
+  75% { translate: 0 -3px; }
+}
+@media (prefers-reduced-motion: reduce) { .rb-medal { animation: none; } }
 .md-tail { position: absolute; top: 84px; width: 32px; height: 76px;
   background: linear-gradient(90deg, var(--tier) 0 38%, #ffd23f 38% 62%, var(--tier) 62%); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }

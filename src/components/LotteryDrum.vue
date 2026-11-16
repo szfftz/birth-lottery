@@ -23,7 +23,7 @@
         <!-- 整個舞台外圈的跑馬燈：搖獎時快速轉、中獎後慢慢轉 -->
         <div v-if="spinning || sel != null" class="marquee" :class="{ fast: spinning }"><i class="mt"></i><i class="mr"></i><i class="mb"></i><i class="ml"></i></div>
         <!-- 節目標題：賭場霓虹看板（黑底板、粉紅＋青色兩圈霓虹燈管框），BIRTH 粉紅、LOTTERY 青色霓虹字，偶爾閃一下；數字那行也在看板裡 -->
-        <div class="show-title">
+        <div ref="titleEl" class="show-title">
           <NeonSign :balls="balls.n" :countries="balls.isos.length" />
         </div>
         <div class="show-board"><slot /></div>
@@ -66,7 +66,6 @@ const ACRYLIC = '#e8f4ff'
 // 重力（場景單位／秒²）：一顆球直徑當 4 公分，真的重力 9.8 m/s² ≈ 245 單位／秒²；用 200，速度跟真的搖獎機差不多
 const G = 200
 const CAM = { az: 28, el: 22, dist: 100 } // 預設鏡頭：方位（往右幾度）、仰角、距離
-const VIEW_UP = 0.065 // 3D 畫面往上移幾成畫面高：上面是節目標題、下面是結果看板
 const SUB = 4 // 每一格畫面分幾小步算（重力大，步子要小才穩）
 // 轉速：ω²r 要比 g 小，球才不會被甩在筒壁上（ω < √(g/r) ≈ 4.3 弧度／秒）
 const SPIN = { w: 3.4, sec: 6, ramp: 0.8, alignW: 3 } // 轉的角速度、轉幾秒（每次再乘 0.85～1.15 的亂數＝搖的力道不一樣）、加減速秒數、對準出球口時的角速度
@@ -106,7 +105,9 @@ const BOKEH = (() => {
 const uiStyle = computed(() => {
   const s = Math.min(box.w / 1080, box.h / 1350) || 1
   return { width: `${box.w / s}px`, height: `${box.h / s}px`, transform: `scale(${s})`, '--fall': `${box.h / s + 70}px`,
-    '--it': `${props.insetTop / s}px`, '--ib': `${props.insetBottom / s}px` }
+    '--it': `${props.insetTop / s}px`, '--ib': `${props.insetBottom / s}px`,
+    // 招牌：畫面越矮（橫的、短的）縮越小，留空間給搖獎機
+    '--ss': Math.min(1, Math.max(0.55, ((box.h - props.insetTop - props.insetBottom) / box.w - 0.5) / 0.9)) }
 })
 // 說明框不要超出舞台：靠右、靠下時翻到手指的另一邊
 const tipPos = computed(() => {
@@ -211,6 +212,7 @@ function drumConstraints(h, first) {
   }
 }
 // 掉出來的球：滑道（斜線，左右有邊）、盤子（淺盒）、地面；座標一樣以滾筒中心為原點
+const CHUTE_PUSH = 14 // 滑道上往前的額外加速度（場景單位／秒²）
 const toW = (y) => y + DRUM.y // 滾筒座標 → 世界座標的 y
 function outsideConstraints(b) {
   const wy = toW(py[b])
@@ -228,7 +230,7 @@ function outsideConstraints(b) {
     px[b] = Math.max(-TRAY.w / 2 + R, Math.min(TRAY.w / 2 - R, px[b]))
     pz[b] = Math.min(TRAY.z + TRAY.d / 2 - R, pz[b])
     // 盤子底有摩擦：慢慢停下來
-    if (toW(py[b]) < floor + 0.01) { ox[b] += (px[b] - ox[b]) * 0.02; oz[b] += (pz[b] - oz[b]) * 0.02 }
+    if (toW(py[b]) < floor + 0.01) { ox[b] += (px[b] - ox[b]) * 0.05; oz[b] += (pz[b] - oz[b]) * 0.05 }
   }
 }
 function step(h) {
@@ -239,6 +241,8 @@ function step(h) {
     maxV = Math.max(maxV, Math.abs(vx), Math.abs(vy), Math.abs(vz))
     ox[b] = px[b]; oy[b] = py[b]; oz[b] = pz[b]
     px[b] += vx; py[b] += vy - gh; pz[b] += vz
+    // 滑道上多推一把（像滑道有點陡又很滑），球滾出來快一點
+    if (where[b] && pz[b] >= CHUTE.z0 - 1 && pz[b] <= CHUTE.z1) pz[b] += CHUTE_PUSH * h * h
   }
   for (let it = 0; it < 4; it++) {
     collideBalls()
@@ -503,7 +507,7 @@ function update(dt) {
     rollT += dt // 用模擬時間算（手機慢、一格畫面算比較少時，不會還沒滾到就逾時）
     const v = Math.hypot(px[b] - ox[b], py[b] - oy[b], pz[b] - oz[b]) / (dt / SUB)
     const inTrayNow = pz[b] > CHUTE.z1
-    if ((inTrayNow && v < 0.3) || rollT > 5) {
+    if ((inTrayNow && v < 0.8) || rollT > 3.5) {
       if (!inTrayNow) placeInTray(b) // 萬一卡在滑道上：直接放進盤子
       phase = 'idle'; inTray = b; busy = null
       resolveFn?.(b); resolveFn = null
@@ -544,22 +548,48 @@ function onUp(e) {
 }
 function onLeave(e) { if (e.pointerType === 'mouse') tip.value = null }
 
-// 舞台＝整個元件（手機整個畫面）；搖獎機往上移一點，下面留給結果看板
-// 畫面比 4:5 長時把視角放大，讓搖獎機在畫面上跟 4:5 時一樣寬（不會被左右切掉）
+// RWD：不管畫面多寬多長，搖獎機（含展示台、燈泡圈）都放進「招牌下緣 ～ 操作列上緣」中間的空間，招牌不會擋到它。
+// 做法：先用 30° 視角把搖獎機的外框點投影到畫面，量出它佔多高多寬，再算剛好塞滿可用空間的視角、把它移到空間正中間。
+const FIT_PTS = (() => {
+  const pts = []
+  for (let k = 0; k < 24; k++) {
+    const a = (k / 24) * Math.PI * 2, c = Math.cos(a), s = Math.sin(a)
+    pts.push(new THREE.Vector3(c * PED.r1, PED.floor, s * PED.r1), new THREE.Vector3(c * PED.r1, BASE.h, s * PED.r1)) // 展示台上下緣
+    for (const z of [-DRUM.d / 2, DRUM.d / 2]) pts.push(new THREE.Vector3(c * (DRUM.r + 1.3), DRUM.y + s * (DRUM.r + 1.3), z)) // 滾筒＋燈泡圈
+  }
+  return pts
+})()
+const titleEl = ref(null)
+const _v = new THREE.Vector3()
 function resize() {
   const W = wrap.value.clientWidth, H = wrap.value.clientHeight
   if (!W || !H) return
   Object.assign(box, { x: 0, y: 0, w: W, h: H })
   renderer.setSize(box.w, box.h)
   camera.aspect = box.w / box.h
-  // 直式手機：機器放大到約九成寬；畫面不夠長（扣掉上下的標題、操作列）就少放大一點，免得頂到標題
-  const av = box.w / Math.max(1, H - props.insetTop - props.insetBottom)
-  // 0.85：搖獎機再放大一點（ref 越小、視角越窄、機器越大）
-  camera.fov = fitFov(30, camera.aspect, 0.85 * (av >= 0.62 ? 0.8 : Math.max(0.64, 0.8 - (0.62 - av) * 1.6)))
-  // 4:5 時往上移 VIEW_UP；畫面更長時，多出來的高度三成拿來把搖獎機往下放（下面只剩結果看板，不用留那麼多）
-  // 上面狀態列、下面操作列擋住的部分不算：搖獎機放在看得到的範圍裡
-  const Hv = H - props.insetTop - props.insetBottom, H45 = Math.min(Hv, W * 1.25)
-  camera.setViewOffset(box.w, box.h, 0, H45 * VIEW_UP - (Hv - H45) * 0.3 + (props.insetBottom - props.insetTop) / 2, box.w, box.h)
+  // 可用空間：上＝招牌下緣（設計稿縮放 s 倍，再加招牌上下浮動的 8 設計 px）＋一點空隙；下＝操作列上緣
+  const s = Math.min(W / 1080, H / 1350) || 1
+  const t = titleEl.value
+  const ss = Math.min(1, Math.max(0.55, ((H - props.insetTop - props.insetBottom) / W - 0.5) / 0.9)) // 跟 uiStyle 的 --ss 一樣
+  const top = t ? (t.offsetTop + t.offsetHeight * ss + 8) * s + 10 : props.insetTop
+  const bottom = H - props.insetBottom - 6
+  const availH = Math.max(80, bottom - top), availW = W * 0.96
+  // 先用 30° 量
+  camera.fov = 30
+  camera.clearViewOffset()
+  camera.updateProjectionMatrix()
+  camera.updateMatrixWorld()
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
+  for (const p of FIT_PTS) {
+    _v.copy(p).project(camera)
+    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y)
+  }
+  // k＝要放大幾倍（視角變窄）才剛好塞滿：高、寬取比較緊的那個
+  const k = Math.min(availH / (((y1 - y0) / 2) * H), availW / (((x1 - x0) / 2) * W))
+  camera.fov = (Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) / k) * 360) / Math.PI
+  // 放大後搖獎機中心在畫面上的位置 → 移到可用空間的正中間
+  const cy = H / 2 - (((y0 + y1) / 2) * k * H) / 2, cx = W / 2 + (((x0 + x1) / 2) * k * W) / 2
+  camera.setViewOffset(W, H, cx - W / 2, cy - (top + bottom) / 2, W, H)
   camera.updateProjectionMatrix()
 }
 // 彩帶：每次公布結果灑一次（位置、顏色、速度隨機）
@@ -628,6 +658,7 @@ onMounted(() => {
   controls.minDistance = CAM.dist * 0.3; controls.maxDistance = CAM.dist * 1.6
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)
+  if (titleEl.value) ro.observe(titleEl.value) // 招牌大小變了（字型載入、換語言）也重算
   resize()
   frame()
 })
@@ -663,8 +694,8 @@ onBeforeUnmount(() => {
 .beam.l { left: -22%; transform-origin: 50% 0; animation: sway 7s ease-in-out infinite alternate; }
 .beam.r { right: -22%; transform-origin: 50% 0; animation: sway 7s ease-in-out infinite alternate-reverse; }
 /* 探照燈：疊在 3D 上面（不擋點擊）。四盞彩色探照燈一直開著，燈頭在上面左右滑、光束亂掃，掃到的地方有一圈光斑；搖獎時掃得更快 */
-.spots { position: absolute; inset: 0; overflow: hidden; pointer-events: none; mix-blend-mode: screen; --k: 1; }
-.spots.fast { --k: 0.4; }
+.spots { position: absolute; inset: 0; overflow: hidden; pointer-events: none; mix-blend-mode: screen; --k: 1.8; }
+.spots.fast { --k: 0.8; }
 .spots i { position: absolute; top: calc(var(--itp, 0px) - 3%); left: 50%; width: 60%; height: 120%; margin-left: -30%; transform-origin: 50% 0;
   animation: sp-a calc(var(--d) * var(--k)) ease-in-out infinite, sp-pulse calc(1.3s * var(--k)) ease-in-out infinite alternate; }
 .spots i::before { content: ''; position: absolute; inset: 0; filter: blur(3px);
@@ -687,7 +718,7 @@ onBeforeUnmount(() => {
 @keyframes sp-d { 0% { transform: translateX(45%) rotate(40deg); } 20% { transform: translateX(15%) rotate(-30deg); } 40% { transform: translateX(50%) rotate(-55deg); }
   65% { transform: translateX(20%) rotate(20deg); } 85% { transform: translateX(40%) rotate(-10deg); } 100% { transform: translateX(45%) rotate(40deg); } }
 @keyframes sp-pulse { from { opacity: 0.7; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .spots { --k: 3; } }
+@media (prefers-reduced-motion: reduce) { .spots { --k: 4; } }
 @keyframes sway { from { transform: rotate(-24deg); } to { transform: rotate(14deg); } }
 /* 散景光點：模糊的小圓、慢慢浮動閃爍 */
 .bokeh { inset: 0; }
@@ -707,7 +738,7 @@ onBeforeUnmount(() => {
 .stage-ui { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; transform-origin: 0 0; pointer-events: none;
   font-family: 'Overpass', 'Huninn', 'Noto Sans TC', sans-serif; }
 /* 節目標題：賭場霓虹招牌——黑底板、外圈粉紅霓虹燈管、內圈青色燈管；字是霓虹燈管字（白芯＋一層層同色光暈），會微微呼吸、偶爾閃一下 */
-.show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%); width: 880px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
+.show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%) scale(var(--ss, 1)); transform-origin: 50% 0; width: 880px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
 @keyframes st-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
 /* 結果看板（index.vue 的 slot）：貼著下面，放在搖獎機底座下面、不擋到機器 */
 .show-board { position: absolute; left: 50%; bottom: calc(60px + var(--ib, 0px)); transform: translateX(-50%) scale(1.15); transform-origin: 50% 100%; pointer-events: auto; }

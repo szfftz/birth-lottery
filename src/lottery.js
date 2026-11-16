@@ -1,6 +1,6 @@
 // 出生搖搖樂的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
 // 機率＝球數比例（遊戲是真的從 891 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
-import { L } from './i18n.js'
+import { L, lang } from './i18n.js'
 import { ref, shallowRef } from 'vue'
 import data from './data/lottery.json'
 import cellMeta from './data/cells.json'
@@ -129,7 +129,20 @@ export const boxRank = (() => {
   return { cells: gridRank, walls, frames }
 })()
 export const fmtP = (p) => (p >= 0.001 || p === 0 ? `${(p * 100).toFixed(1)}%` : `${(p * 100).toPrecision(2)}%`)
-export const oneIn = (p) => Math.round(1 / p).toLocaleString('en-US')
+// 大數字：中文用「萬／億」，英文用 million / billion（一萬以下照原樣）
+const trim = (x, d) => String(+x.toFixed(d))
+export const fmtBig = (n) => {
+  if (n == null) return '—'
+  if (lang.value === 'zh') {
+    if (n >= 1e8) return `${trim(n / 1e8, n >= 1e9 ? 1 : 2)} 億`
+    if (n >= 1e4) return `${n >= 1e6 ? Math.round(n / 1e4).toLocaleString('en-US') : trim(n / 1e4, 1)} 萬`
+  } else {
+    if (n >= 1e9) return `${trim(n / 1e9, 2)} billion`
+    if (n >= 1e6) return `${trim(n / 1e6, n >= 1e8 ? 0 : 1)} million`
+  }
+  return Math.round(n).toLocaleString('en-US')
+}
+export const oneIn = (p) => fmtBig(Math.round(1 / p))
 
 // 每國球的顏色（獎項色）
 export const colors = Object.fromEntries(ISOS.map((iso) => [iso, colorOf(iso)]))
@@ -146,7 +159,7 @@ export function ballTip(b) {
   const k = balls.isos.indexOf(iso)
   return [
     `<b>${nameOf(iso)}</b>`,
-    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? ` (HDI ${t.range})` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）')}`,
+    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>HDI ${t.range}` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）')}`,
     ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)] : []),
     `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''}`,
     L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`),

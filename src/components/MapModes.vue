@@ -16,7 +16,7 @@ import { glBalls, createBallLayer } from '../lib/ballLayer.js'
 import worldUrl from '../data/countries-50m.geojson?url'
 import {
   C, BALLS, balls as ballInfo, colors, flagMeta, cellMeta, cellOf, cellsSnap, gridOrder, BOX_PASTEL,
-  mode, onBoard, tierIdx, nameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, ballTip,
+  mode, onBoard, tierIdx, nameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, fmtBig, ballTip,
 } from '../lottery.js'
 
 const props = defineProps({
@@ -248,7 +248,7 @@ onMounted(() => {
           L(`Odds of this prize <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b> (about 1 in ${oneIn(pTier(TIERS[tierIdx(iso)]))})`, `抽到這一獎的機率 <b>${fmtP(pTier(TIERS[tierIdx(iso)]))}</b>（約 1/${oneIn(pTier(TIERS[tierIdx(iso)]))}）`),
           L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)]),
         ...(BALLS[iso] ? [L(`${BALLS[iso]} ${BALLS[iso] > 1 ? 'balls' : 'ball'}`, `彩球 ${BALLS[iso]} 顆`)] : []),
-        L(`Population ${c.pop.toLocaleString('en-US')} (${c.pop_date})`, `人口 ${c.pop.toLocaleString('en-US')}（${c.pop_date}）`),
+        L(`Population ${fmtBig(c.pop)} (${c.pop_date})`, `人口 ${fmtBig(c.pop)}（${c.pop_date}）`),
         c.hdi == null ? L('No HDI data', '沒有 HDI 資料') : `HDI <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''} → ${prizeOf(iso)}`,
         ...(props.counts[iso] ? [L(`Drawn ${props.counts[iso]} ${props.counts[iso] > 1 ? 'times' : 'time'}`, `抽中 ${props.counts[iso]} 次`)] : []),
       ].join('<br>')

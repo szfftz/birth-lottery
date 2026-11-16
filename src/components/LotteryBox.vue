@@ -11,7 +11,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { BALL_R as R, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
+import { BALL_R as R, makeBallMesh, setBallFace, lockSpin } from '../lib/ball3d.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -215,13 +215,27 @@ const tipPos = computed(() => {
   return { [right ? 'right' : 'left']: `${right ? t.w - t.x + 12 : t.x + 12}px`, [below ? 'top' : 'bottom']: `${below ? t.y + 12 : t.h - t.y + 12}px` }
 })
 
+// RWD：不管畫面多寬多長，盒子（底＋框，不含打開的蓋子）都剛好塞進上面標題列 ～ 下面結果卡、操作列中間
+const _v = new THREE.Vector3()
 function resize() {
   const w = wrap.value.clientWidth, h = wrap.value.clientHeight
   if (!w || !h) return
   renderer.setSize(w, h)
   camera.aspect = w / h
-  camera.fov = fitFov(22, camera.aspect) // 畫面比 4:5 長：視角放大，盒子不會被左右切掉
-  camera.setViewOffset(w, h, 0, (props.insetBottom - props.insetTop) / 2, w, h) // 放在上下沒被擋住的中間
+  camera.fov = 22
+  camera.clearViewOffset()
+  camera.updateProjectionMatrix()
+  camera.updateMatrixWorld()
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity
+  for (const x of [-W() / 2, W() / 2]) for (const z of [-D() / 2, D() / 2]) for (const y of [0, CASE.rim]) {
+    _v.set(x, y, z).project(camera)
+    x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y)
+  }
+  const top = props.insetTop + 8, bottom = h - props.insetBottom - 76 // 下面留給結果卡
+  const k = Math.min((bottom - top) / (((y1 - y0) / 2) * h), (w * 0.96) / (((x1 - x0) / 2) * w))
+  camera.fov = (Math.atan(Math.tan(THREE.MathUtils.degToRad(11)) / k) * 360) / Math.PI
+  const cy = h / 2 - (((y0 + y1) / 2) * k * h) / 2, cx = w / 2 + (((x0 + x1) / 2) * k * w) / 2
+  camera.setViewOffset(w, h, cx - w / 2, cy - (top + bottom) / 2, w, h)
   camera.updateProjectionMatrix()
 }
 function frame() {
