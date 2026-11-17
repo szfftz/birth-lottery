@@ -3,17 +3,19 @@
 import * as THREE from 'three'
 
 export const BALL_R = 0.5
+// 手機（觸控螢幕）：球的面數少一點、不要清漆，畫面才不會卡
+export const LOW = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
 
 /**
  * @param {{ n: number, isos: string[], start: Int32Array }} balls  loadBalls() 的結果
  * @param {Record<string, string>} colors  每一國球的顏色（獎項色）
- * @param {ImageBitmap | null} atlas  國旗拼圖
+ * @param {HTMLImageElement | null} atlas  國旗拼圖
  * @param {[number, number]} grid  拼圖幾欄幾列
  * @param {'prize' | 'flag'} face
  */
 export function makeBallMesh({ balls, colors, atlas, grid, face }) {
   const { n, isos, start } = balls
-  const geo = new THREE.SphereGeometry(BALL_R, 24, 16)
+  const geo = new THREE.SphereGeometry(BALL_R, LOW ? 14 : 24, LOW ? 10 : 16)
   const cellOf = new Float32Array(n * 2)
   isos.forEach((iso, k) => {
     for (let b = start[k]; b < start[k + 1]; b++) { cellOf[b * 2] = k % grid[0]; cellOf[b * 2 + 1] = Math.floor(k / grid[0]) }
@@ -28,7 +30,9 @@ export function makeBallMesh({ balls, colors, atlas, grid, face }) {
     tex.needsUpdate = true
   }
   // 亮面樂透球：表面一層清漆（clearcoat），打光有亮點
-  const mat = new THREE.MeshPhysicalMaterial({ roughness: 0.35, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.06, map: tex })
+  const mat = LOW
+    ? new THREE.MeshStandardMaterial({ roughness: 0.25, metalness: 0, map: tex })
+    : new THREE.MeshPhysicalMaterial({ roughness: 0.35, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.06, map: tex })
   mat.userData.flag = face === 'flag' ? 1 : 0
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uGrid = { value: new THREE.Vector2(...grid) }

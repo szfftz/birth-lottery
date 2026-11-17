@@ -11,7 +11,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { BALL_R as R, makeBallMesh, setBallFace, lockSpin } from '../lib/ball3d.js'
+import { BALL_R as R, LOW, makeBallMesh, setBallFace, lockSpin } from '../lib/ball3d.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -25,7 +25,7 @@ const props = defineProps({
   rows: { type: Number, required: true },
   // 每國球的顏色（獎項色）
   colors: { type: Object, required: true },
-  // 國旗拼圖（ImageBitmap）、幾欄幾列
+  // 國旗拼圖（<img>）、幾欄幾列
   atlas: { type: Object, default: null },
   grid: { type: Array, default: () => [1, 1] },
   face: { type: String, default: 'prize' }, // prize＝獎項色、flag＝國旗
@@ -245,8 +245,8 @@ function frame() {
 }
 
 onMounted(() => {
-  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW ? 1.5 : 2))
   renderer.setClearColor(props.bg)
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.shadowMap.enabled = true
@@ -268,7 +268,7 @@ onMounted(() => {
   scene.add(makeBox())
   scene.add(makeFrames())
   mesh = makeBallMesh({ balls: props.balls, colors: props.colors, atlas: props.atlas, grid: props.grid, face: props.face })
-  mesh.castShadow = true
+  mesh.castShadow = !LOW
   scene.add(mesh)
   place()
   camera = new THREE.PerspectiveCamera(22, 1, 0.1, 500) // 視角窄一點，近大遠小不要太誇張

@@ -377,14 +377,11 @@ function pick(iso) {
 
 // 國旗拼圖（three.js 貼圖用）
 const atlas = ref(null)
-// 國旗拼圖：先用 createImageBitmap；舊手機不支援或失敗就改用 <img>（不然會一直卡在「載入中」）
+// 國旗拼圖：一律用 <img> 載入。不用 createImageBitmap：有些 iPhone Safari 把 ImageBitmap 傳進 WebGL 會變全黑（球都黑的）
 function loadImg() {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = flagsUrl })
 }
-;(typeof createImageBitmap === 'function'
-  ? fetch(flagsUrl).then((r) => r.blob()).then((bl) => createImageBitmap(bl)).catch(loadImg)
-  : loadImg()
-).then((a) => (atlas.value = a)).catch(() => setTimeout(() => loadImg().then((a) => (atlas.value = a)), 1500))
+loadImg().then((a) => (atlas.value = a)).catch(() => setTimeout(() => loadImg().then((a) => (atlas.value = a)), 1500))
 
 const counts = reactive({})
 const history = reactive([]) // 每一次抽的結果：{ n, iso, ball, time }

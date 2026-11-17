@@ -42,7 +42,7 @@ import * as THREE from 'three'
 import NeonSign from './NeonSign.vue'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
-import { BALL_R as R, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
+import { BALL_R as R, LOW, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -616,8 +616,9 @@ function frame() {
 }
 
 onMounted(() => {
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（891 顆球再畫一次影子很吃效能）
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW ? 1.5 : 2))
   renderer.setClearColor(0x000000, 0) // 透明：後面是 CSS 畫的舞台
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.15
@@ -628,17 +629,17 @@ onMounted(() => {
   pmrem.dispose()
   // 燈光：前上方一盞暖白主燈（打影子）、左右兩盞彩色側光（洋紅、青），像攝影棚
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.shadowMap.type = LOW ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap
   const key = new THREE.SpotLight('#fff4e0', 2600, 0, Math.PI / 7, 0.5, 1.6)
   key.position.set(8, 60, 46); key.target.position.set(0, DRUM.y * 0.6, 0)
   key.castShadow = true; key.shadow.bias = -0.0004
-  key.shadow.mapSize.setScalar(matchMedia('(pointer: coarse)').matches ? 1024 : 2048) // 手機影子貼圖小一點，比較順
+  key.shadow.mapSize.setScalar(LOW ? 1024 : 2048) // 手機影子貼圖小一點，比較順
   const left = new THREE.SpotLight('#ff4fa3', 1500, 0, Math.PI / 6, 0.6, 1.6); left.position.set(-40, 26, 18); left.target.position.set(0, DRUM.y, 0)
   const right = new THREE.SpotLight('#5ff2ff', 1500, 0, Math.PI / 6, 0.6, 1.6); right.position.set(40, 26, 18); right.target.position.set(0, DRUM.y, 0)
   scene.add(key, key.target, left, left.target, right, right.target)
   scene.add(makeMachine())
   mesh = makeBallMesh({ balls: props.balls, colors: props.colors, atlas: props.atlas, grid: props.grid, face: props.face })
-  mesh.castShadow = true
+  mesh.castShadow = !LOW
   scene.add(mesh)
   initBalls()
   if (props.sel != null) placeInTray(props.sel)
@@ -719,6 +720,12 @@ onBeforeUnmount(() => {
   65% { transform: translateX(20%) rotate(20deg); } 85% { transform: translateX(40%) rotate(-10deg); } 100% { transform: translateX(45%) rotate(40deg); } }
 @keyframes sp-pulse { from { opacity: 0.7; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .spots { --k: 4; } }
+/* 手機：探照燈疊在 3D 上面，用 screen 混色＋模糊的話每一格都要重算整個畫面，很卡 → 改成一般半透明、不模糊（看起來差不多） */
+@media (pointer: coarse) {
+  .spots, .beam, .bokeh i { mix-blend-mode: normal; }
+  .spots i::before, .spots i::after, .bokeh i { filter: none; }
+  .beam { filter: none; opacity: 0.35; }
+}
 @keyframes sway { from { transform: rotate(-24deg); } to { transform: rotate(14deg); } }
 /* 散景光點：模糊的小圓、慢慢浮動閃爍 */
 .bokeh { inset: 0; }
