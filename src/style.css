@@ -36,3 +36,14 @@ button { touch-action: manipulation; }
     repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
     repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
     radial-gradient(120% 70% at 50% var(--wall-y, 50%), #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }
+
+/* 捲軸：跟賭場霓虹風同一套（深紫軌道、金色膠囊把手、滑過去亮粉紅光）。手機的捲軸是系統畫的，只有電腦看得到 */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(20, 8, 40, 0.6); border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255, 45, 149, 0.25); }
+::-webkit-scrollbar-thumb { border-radius: 999px; border: 2px solid transparent; background: linear-gradient(180deg, #ffe9a8, var(--gold) 45%, #b9801f) padding-box; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #fff3c9, #ffd66b 45%, #d89a2a) padding-box; box-shadow: 0 0 8px var(--neon-pink); }
+::-webkit-scrollbar-thumb:active { background: linear-gradient(180deg, #ffc0e0, var(--neon-pink)) padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+@supports not selector(::-webkit-scrollbar) {
+  * { scrollbar-width: thin; scrollbar-color: var(--gold) rgba(20, 8, 40, 0.6); }
+}
