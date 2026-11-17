@@ -1,7 +1,7 @@
 // 整個 app 共用的狀態：抽過的結果（存在 localStorage）、這次抽到誰、搖獎中、面板開關；各元件直接 import
 import { computed, reactive, ref, watch } from 'vue'
 import { L } from './i18n.js'
-import { C, mode, tierIdx } from './lottery.js'
+import { C, mode, tierIdx, isoOfBall, BALL_TOTAL } from './lottery.js'
 
 export const counts = reactive({}) // 每一國抽中幾次
 export const history = reactive([]) // 每一次抽的結果：{ n, iso, ball, time }
@@ -20,11 +20,13 @@ export const showTally = ref(false) // 地圖：抽過的圓開不開（預設�
 
 // 歷史存在 localStorage：重新整理還在；載入時用它重建次數、各國中幾次、最後一次
 const HISTORY_KEY = 'birth-lottery:history'
+// 球號要對得上那一國（球數改過之後，舊紀錄的球號可能變成別國的球：那就不記球號）
+const okBall = (h) => Number.isInteger(h.ball) && h.ball >= 0 && h.ball < BALL_TOTAL && isoOfBall(h.ball) === h.iso
 try {
   const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
   for (const h of Array.isArray(saved) ? saved : []) {
     if (!h || !C[h.iso]) continue
-    history.push({ n: history.length + 1, iso: h.iso, ball: Number.isInteger(h.ball) ? h.ball : null, time: String(h.time ?? '') })
+    history.push({ n: history.length + 1, iso: h.iso, ball: okBall(h) ? h.ball : null, time: String(h.time ?? '') })
     counts[h.iso] = (counts[h.iso] ?? 0) + 1
   }
   total.value = history.length

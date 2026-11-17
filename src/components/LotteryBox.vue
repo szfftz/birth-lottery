@@ -1,5 +1,5 @@
 <template>
-  <!-- 盒子模式：891 顆彩球照格子模式的排法，一列一列放進透明壓克力收納盒（3D，蓋子打開）；球面是獎項顏色或國旗（國旗朝上），抽到的那顆浮起來放大 -->
+  <!-- 盒子模式：872 顆彩球照格子模式的排法，一列一列放進透明壓克力收納盒（3D，蓋子打開）；球面是獎項顏色或國旗（國旗朝上），抽到的那顆浮起來放大 -->
   <!-- 手機：點一下球看是哪一國（拖曳不算點）；電腦：滑過去就看 -->
   <div ref="wrap" class="lottery-box" @pointerdown="onDown" @pointerup="onUp" @pointermove="onMove" @pointerleave="onLeave">
     <div v-if="tip" class="box-tip neon-tip" :style="tipPos" v-html="tip.html"></div>

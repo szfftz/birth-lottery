@@ -1,5 +1,5 @@
 <template>
-  <!-- 遊戲模式：891 顆彩球放進透明的樂透搖獎機（3D 圓滾筒）。按「抽一次」滾筒轉起來，筒裡的擋板把球帶上去再翻下來；
+  <!-- 遊戲模式：872 顆彩球放進透明的樂透搖獎機（3D 圓滾筒）。按「抽一次」滾筒轉起來，筒裡的擋板把球帶上去再翻下來；
        停下來後滾筒慢慢轉到出球口朝下、打開閘門，哪一顆球靠重力掉出去就是抽到的，沿著滑道滾進前面的盤子（全部照物理模擬） -->
   <!-- 整個舞台蓋滿外層 App.vue 的 .stage-wrap（手機整個畫面）：舞台背景（CSS）→ 3D 搖獎機（透明畫布）→ 節目標題、結果看板（slot）、彩帶；
        文字類用寬 1080（4:5 時 1080×1350）設計再縮放，畫面比 4:5 長時設計稿跟著變長：標題貼上面、按鈕貼下面，多出來的空間給搖獎機 -->
@@ -476,7 +476,7 @@ function sway(t, dt) {
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 onMounted(() => {
-  // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（891 顆球再畫一次影子很吃效能）
+  // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（872 顆球再畫一次影子很吃效能）
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW ? 1.5 : 2))
   renderer.setClearColor(0x000000, 0) // 透明：後面是 CSS 畫的舞台

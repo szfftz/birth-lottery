@@ -10,10 +10,10 @@
       <div v-else-if="lang === 'ja'" class="st-main zh"><span class="n-pink">国</span><span class="n-cyan">ガチ<b>ャ</b></span></div>
       <div v-else-if="lang === 'ko'" class="st-main zh ko"><span class="n-pink">출생</span> <span class="n-cyan">로<b>또</b></span></div>
       <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
-      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span><i>◆</i><span>1 球 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
-      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span><i>◆</i><span>1 個 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
-      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span><i>◆</i><span>1개 ≈ {{ fmtBig(POP_UNIT) }} 명</span></div>
-      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 BALL ≈ {{ (POP_UNIT / 1e6).toFixed(1) }}M</span></div>
+      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span><i>◆</i><span>1 球 = {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span><i>◆</i><span>1 個 = {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span><i>◆</i><span>1개 = {{ fmtBig(POP_UNIT) }} 명</span></div>
+      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 BALL = {{ POP_UNIT / 1e6 }}M</span></div>
     </div>
   </div>
 </template>
