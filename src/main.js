@@ -3,6 +3,7 @@ import App from './App.vue'
 import './style.css'
 import './styles/app.css'
 import { dbg } from './lib/debug.js'
+import { vFit } from './lib/fit.js'
 
 // 除錯用（暫時）：手機上出錯時把錯誤訊息直接顯示在畫面最上面，方便截圖回報
 function showError(msg) {
@@ -22,4 +23,5 @@ window.addEventListener('unhandledrejection', (e) => showError(`Promise: ${e.rea
 
 const app = createApp(App)
 app.config.errorHandler = (err, _vm, info) => { showError(`Vue (${info}): ${err?.stack || err}`); console.error(err) }
+app.directive('fit', vFit) // v-fit：字放不下就縮小
 app.mount('#app')

@@ -1,14 +1,11 @@
 /* 整個 app 的版面樣式（原本寫在 App.vue；拆成很多元件之後共用，所以是全域的） */
-/* 整個畫面一支「手機」：舞台蓋滿，操作列浮在下面；不捲動；電腦上置中、固定手機大小 */
+/* 整個畫面就是舞台：舞台蓋滿，搖一搖浮在下面；不捲動 */
 /* 主題：午夜靛藍＋金色（跟搖獎機舞台同一套） */
 .phone { --teal: #6fd6e0; --pink: #ff4f8b; --glass: rgba(16, 11, 40, 0.6); --glass-line: rgba(255, 226, 160, 0.16); --panel: #120d2b; --tile: #1e1840;
   --muted: #c9c3e3; --dim: #a59ec8;
-  position: relative; width: 100%; height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #08061a; }
-/* 手機、iPad（觸控）：整個畫面滿版。電腦（滑鼠）：照手機的直式比例（430:932）框成一支手機，跟著視窗高度等比例放大縮小 */
-@media (hover: hover) and (pointer: fine) and (min-width: 600px) and (min-height: 500px) {
-  .phone { height: calc(100dvh - 48px); width: auto; aspect-ratio: 430 / 932; max-width: calc(100vw - 48px); margin: 24px auto; border-radius: 36px;
-    box-shadow: 0 0 0 10px #0b0b0b, 0 0 0 11px #333, 0 30px 80px rgba(0, 0, 0, 0.6); }
-}
+  position: relative; width: 100%; max-width: 80vh; max-width: 80dvh; /* 上下一定滿版；寬最多是高的 0.8 倍（IG 直式貼文 4:5＝1080×1350，跟舞台的設計稿同一個比例），更寬的螢幕就置中、兩邊留黑 */
+  height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #08061a; }
+/* 每一種裝置上下都滿版（手機、平板、電腦都一樣），最寬到 IG 直式 4:5；版面自己照畫面大小調整（RWD） */
 .safe-top { position: absolute; top: 0; height: env(safe-area-inset-top); width: 0; visibility: hidden; }
 .stage-wrap { position: absolute; inset: 0; overflow: hidden; background: #08061a; }
 /* 玻璃：操作列、選單、結果卡 */
@@ -164,8 +161,8 @@
 section > .tiles .tile { background: var(--tile); }
 .tile.wide { grid-column: 1 / -1; }
 .tile.pick { cursor: pointer; }
-.tile > span { font-size: 12px; color: rgba(255, 255, 255, 0.68); }
-.tile > b { display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile > span { font-size: 12px; color: rgba(255, 255, 255, 0.68); white-space: nowrap; overflow: hidden; } /* 標籤、數字、小字都一行寫完；放不下由 v-fit 縮小字 */
+.tile > b { display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
 .tile > b.sm { font-size: calc(16px * var(--fit, 1)); overflow: visible; } /* 國名太長就縮小（--fit），不切掉 */
 .tile > b em { font-style: normal; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.68); }
 .tile > small { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -278,7 +275,11 @@ section > .tiles .tile { background: var(--tile); }
 .rb-body { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 18px; padding-right: 80px; } /* 國旗、國名靠左；右邊留給獎牌，國名不要被蓋到 */
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
-.rb-face { position: absolute; inset: 0; } /* 國旗置中蓋滿整顆球（不捲動，國旗才會一直在正中間） */
+/* 中獎的國旗球一直轉：兩面國旗並排成一條帶子，等速往左捲（4 秒一圈），看起來像球在水平轉 */
+.rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }
+.rb-roll i { flex: none; width: 50%; height: 100%; }
+@keyframes rb-roll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .rb-roll { animation: none; } }
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
 .rb-main { flex: 0 1 auto; min-width: 0; }
@@ -374,3 +375,6 @@ section > .tiles .tile { background: var(--tile); }
    版面是照 390px 寬設計的；--u＝畫面寬 ÷ 390（App.vue 算），按鈕、選單、面板裡的字和東西一起放大縮小，
    畫面再窄字也不會換行、被擋到；地圖、彩球盒的 3D 畫面不縮放（它們自己會照大小重畫） */
 .lang-switch, .modes, .dock, .sheet-head, .sheet .content { zoom: var(--u, 1); }
+/* 資訊面板：畫面很寬（電腦、平板）時不要拉到整個寬，最寬 520px（照 --u 縮放）、置中；票卡、數字方塊才不會被拉得很大 */
+.sheet:not(.view-sheet) { max-width: calc(520px * var(--u, 1)); margin-inline: auto; }
+

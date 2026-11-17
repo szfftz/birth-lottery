@@ -6,3 +6,24 @@ export const fitScale = (s, cap, min = 0.45) => Math.max(min, Math.min(1, cap / 
 export const needsWrap = (s, cap, min = 0.45) => textUnits(s) * min > cap
 /** 給元素用的 style：字太長就設 --fit（CSS 裡 font-size: calc(原本的大小 * var(--fit, 1))） */
 export const fit = (s, cap, min = 0.5) => ({ '--fit': fitScale(s, cap, min) })
+
+/** v-fit：實際量這個元素的字有沒有超出自己的寬度，超出就把字縮到剛好放得下（不切掉、不換行）。
+ *  元素要是 white-space: nowrap＋overflow: hidden。字型載入完、元素大小變了、內容換了都會重量一次 */
+const MIN_SCALE = 0.45
+function fitNow(el) {
+  el.style.fontSize = ''
+  const need = el.scrollWidth, have = el.clientWidth
+  if (!have || need <= have + 0.5) return
+  const base = parseFloat(getComputedStyle(el).fontSize)
+  el.style.fontSize = `${base * Math.max(MIN_SCALE, (have / need) * 0.97)}px`
+}
+export const vFit = {
+  mounted(el) {
+    fitNow(el)
+    el._fitRo = new ResizeObserver(() => fitNow(el))
+    el._fitRo.observe(el.parentElement ?? el)
+    document.fonts?.ready.then(() => fitNow(el))
+  },
+  updated: fitNow,
+  unmounted(el) { el._fitRo?.disconnect() },
+}

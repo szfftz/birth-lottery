@@ -3,11 +3,11 @@
   <section>
     <h3>{{ L('Your results', '你的成績', 'あなたの成績', '나의 성적') }}</h3>
     <div class="tiles">
-      <div class="tile"><span>{{ L('Draws', '已抽', '抽選回数', '뽑은 횟수') }}</span><b>{{ total.toLocaleString('en-US') }}<em v-if="isCJK()">{{ L('', '次', '回', '번') }}</em></b><small>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`, `${Object.keys(counts).length} か国${rerolls ? `・引き直し ${rerolls}` : ''}`, `${Object.keys(counts).length}개국${rerolls ? ` · 다시 뽑기 ${rerolls}` : ''}`) }}</small></div>
-      <div class="tile"><span>{{ L('Average HDI', '平均 HDI', '平均 HDI', '평균 HDI') }}</span><b>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small>{{ L('Expected worldwide', '全世界期望值', '世界全体の期待値', '세계 평균 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
+      <div class="tile"><span v-fit>{{ L('Draws', '已抽', '抽選回数', '뽑은 횟수') }}</span><b v-fit>{{ total.toLocaleString('en-US') }}<em v-if="isCJK()">{{ L('', '次', '回', '번') }}</em></b><small v-fit>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`, `${Object.keys(counts).length} か国${rerolls ? `・引き直し ${rerolls}` : ''}`, `${Object.keys(counts).length}개국${rerolls ? ` · 다시 뽑기 ${rerolls}` : ''}`) }}</small></div>
+      <div class="tile"><span v-fit>{{ L('Average HDI', '平均 HDI', '平均 HDI', '평균 HDI') }}</span><b v-fit>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small v-fit>{{ L('Expected worldwide', '全世界期望值', '世界全体の期待値', '세계 평균 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
       <template v-if="total">
-        <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好', '最高', '최고') }}</span><b class="sm" :style="fit(nameOf(best), 7)"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
-        <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差', '最低', '최저') }}</span><b class="sm" :style="fit(nameOf(worst), 7)"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
+        <div class="tile pick" @click="pick(best)"><span v-fit>{{ L('Best', '最好', '最高', '최고') }}</span><b v-fit class="sm" :style="fit(nameOf(best), 7)"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small v-fit :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
+        <div class="tile pick" @click="pick(worst)"><span v-fit>{{ L('Worst', '最差', '最低', '최저') }}</span><b v-fit class="sm" :style="fit(nameOf(worst), 7)"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small v-fit :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
       </template>
     </div>
 
