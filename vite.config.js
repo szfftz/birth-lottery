@@ -8,5 +8,7 @@ export default defineConfig({
   plugins: [vue()],
   // MapLibre 的 worker 是 ES module（見 src/lib/maplibre-worker.js）
   worker: { format: 'es' },
+  // three.js、Vue 各自一包：平行下載，而且改 app 程式之後這兩包不用重新下載（瀏覽器有快取）
+  build: { rollupOptions: { output: { manualChunks: { three: ['three'], vue: ['vue'] } } } },
   server: { port: 8085, strictPort: true, host: true, open: true },
 })

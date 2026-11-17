@@ -44,6 +44,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BALL_R as R, LOW, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
 import { DRUM, BASE, SUB, SPIN, FINS, HOLE, CHUTE, TRAY, wrapA, createDrumSim } from '../lib/drumPhysics.js'
+import settled from '../data/settled.json'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -496,7 +497,7 @@ onMounted(() => {
   mesh = makeBallMesh({ balls: props.balls, colors: props.colors, atlas: props.atlas, grid: props.grid, face: props.face })
   mesh.castShadow = !LOW
   turntable.add(mesh)
-  initBalls()
+  initBalls(settled) // 預先算好的位置，打開網頁不用等
   if (props.sel != null) placeInTray(props.sel)
   inTray = props.sel ?? -1
   initSpin()

@@ -155,7 +155,12 @@ export function createDrumSim(n) {
     return maxV / h // 最快的球多快（場景單位／秒）
   }
   // 一開始：球亂放在滾筒裡，掉下來堆在底部
-  function initBalls() {
+  // preset＝預先算好的位置（scripts/build_settled.mjs 產生的 { n, xyz }）：球數對得上就直接用，不用現場跑 600 步（手機上會卡 1～3 秒）
+  function initBalls(preset) {
+    if (preset?.n === n && preset.xyz?.length === n * 3) {
+      for (let b = 0; b < n; b++) { px[b] = ox[b] = preset.xyz[b * 3]; py[b] = oy[b] = preset.xyz[b * 3 + 1]; pz[b] = oz[b] = preset.xyz[b * 3 + 2] }
+      return
+    }
     for (let b = 0; b < n; b++) {
       const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * (DRUM.r - 1)
       px[b] = ox[b] = Math.cos(a) * r

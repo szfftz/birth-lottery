@@ -23,13 +23,15 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import BottomSheet from './BottomSheet.vue'
-import WorldMap from './WorldMap.vue'
-import LotteryBox from './LotteryBox.vue'
 import { L } from '../i18n.js'
 import { MODES, mode, balls, boxRank, worldCells, cellMeta, colors, flagMeta, ballTip } from '../lottery.js'
 import { last, lastBall, counts, total, showTally, setMode } from '../store.js'
+
+// 地圖（MapLibre 很大）、彩球盒：第一次打開那一頁才下載，網頁一開始比較輕
+const WorldMap = defineAsyncComponent(() => import('./WorldMap.vue'))
+const LotteryBox = defineAsyncComponent(() => import('./LotteryBox.vue'))
 
 defineProps({
   open: { type: Boolean, default: false },
