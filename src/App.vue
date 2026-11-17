@@ -437,10 +437,13 @@ function onMotion(e) {
   prevA = { x: a.x, y: a.y, z: a.z }
 }
 function enableShake() {
+  try { enableShake0() } catch {} // 不管怎樣都不能擋到按鈕
+}
+function enableShake0() {
   if (shakeOn || typeof window === 'undefined' || !('DeviceMotionEvent' in window)) return
   const on = () => { shakeOn = true; window.addEventListener('devicemotion', onMotion) }
   const ask = window.DeviceMotionEvent.requestPermission
-  if (typeof ask === 'function') ask().then((r) => r === 'granted' && on()).catch(() => {}) // iPhone：要使用者按過才能問
+  if (typeof ask === 'function') Promise.resolve(ask.call(window.DeviceMotionEvent)).then((r) => r === 'granted' && on()).catch(() => {}) // iPhone：要使用者按過才能問
   else on() // Android：不用問
 }
 // Android 不用權限，一打開就能搖；iPhone 等第一次按「搖一搖」
