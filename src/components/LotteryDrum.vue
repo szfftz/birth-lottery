@@ -45,6 +45,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BALL_R as R, LOW, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
 import { DRUM, BASE, SUB, SPIN, FINS, HOLE, CHUTE, TRAY, wrapA, createDrumSim } from '../lib/drumPhysics.js'
 import settled from '../data/settled.json'
+import { DEBUG, dbg, dbgInfo } from '../lib/debug.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -319,6 +320,7 @@ function play() {
     sim.escaped = -1
     spinSec = SPIN.sec * (0.85 + Math.random() * 0.3)
     phase = 'spin'; t0 = performance.now(); sim.moving = true
+    dbg('搖獎機：開始轉')
   })
   return busy
 }
@@ -350,6 +352,7 @@ function update(dt) {
     if ((inTrayNow && v < 0.8) || rollT > 3.5) {
       if (!inTrayNow) placeInTray(b) // 萬一卡在滑道上：直接放進盤子
       phase = 'idle'; inTray = b; busy = null
+      dbg(`搖獎機：球 #${b + 1} 進盤子`)
       resolveFn?.(b); resolveFn = null
     }
   }
@@ -481,9 +484,23 @@ onMounted(() => {
   renderer.toneMappingExposure = 1.15
   glBox.value.appendChild(renderer.domElement)
   scene = new THREE.Scene()
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-  pmrem.dispose()
+  // 環境反光（金屬、壓克力靠它才有顏色）：要能畫到半浮點貼圖。有些手機不行 → 環境會是全黑、金屬整個變黑，
+  // 所以不支援就不用環境貼圖，改補一盞半球光（不會那麼亮晶晶，但顏色都在）
+  const gl = renderer.getContext()
+  const canEnv = !!(gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float'))
+  if (canEnv) {
+    const pmrem = new THREE.PMREMGenerator(renderer)
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    pmrem.dispose()
+  } else scene.add(new THREE.HemisphereLight('#fff4e0', '#5a2030', 2.2))
+  // 3D 畫面被系統收走（手機記憶體不夠、切到別的 app 再回來）：畫面會整片黑、按了也不會動 → 重新整理最保險
+  renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dbg('3D 畫面被系統收走（context lost）') })
+  renderer.domElement.addEventListener('webglcontextrestored', () => { dbg('3D 畫面回來了 → 重新整理'); location.reload() })
+  if (DEBUG) {
+    const ext = gl.getExtension('WEBGL_debug_renderer_info')
+    dbgInfo('3D', `${ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)}`.slice(0, 70))
+    dbgInfo('3D 設定', `省電版:${LOW}　環境反光:${canEnv}　最大貼圖:${gl.getParameter(gl.MAX_TEXTURE_SIZE)}　球:${n}`)
+  }
   // 燈光：前上方一盞暖白主燈（打影子）、左右兩盞彩色側光（洋紅、青），像攝影棚
   renderer.shadowMap.enabled = !LOW // 手機不畫影子：每一格少畫一次整台機器
   renderer.shadowMap.type = LOW ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap

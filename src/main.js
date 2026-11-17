@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import './style.css'
 import './styles/app.css'
+import { dbg } from './lib/debug.js'
 
 // 除錯用（暫時）：手機上出錯時把錯誤訊息直接顯示在畫面最上面，方便截圖回報
 function showError(msg) {
@@ -14,6 +15,7 @@ function showError(msg) {
     document.body.appendChild(box)
   }
   box.textContent += (box.textContent ? '\n' : '') + String(msg).slice(0, 400)
+  dbg(`錯誤：${String(msg).slice(0, 120)}`)
 }
 window.addEventListener('error', (e) => showError(`${e.message} @ ${e.filename?.split('/').pop()}:${e.lineno}`))
 window.addEventListener('unhandledrejection', (e) => showError(`Promise: ${e.reason?.stack || e.reason}`))

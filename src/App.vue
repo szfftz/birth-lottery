@@ -39,6 +39,7 @@ import SpinButton from './components/SpinButton.vue'
 import ViewSheet from './components/ViewSheet.vue'
 import InfoSheet from './components/InfoSheet.vue'
 import { useShake } from './composables/useShake.js'
+import { dbg } from './lib/debug.js'
 import { mode, balls, isoOfBall, colors, flagMeta, flagsUrl, ballTip, tierIdx, colorOf } from './lottery.js'
 import { last, lastBall, total, spinning, sheet, tab, openSheet, setMode, record } from './store.js'
 
@@ -85,6 +86,7 @@ const shake = useShake({
 })
 async function draw() {
   shake.enable() // 第一次按：iPhone 要在按鈕裡問「動作與方向」權限
+  dbg(`draw()　搖獎中:${spinning.value}　正在抽:${drawing}　搖獎機:${!!drum.value}　國旗:${!!atlas.value}`)
   if (spinning.value || drawing || !drum.value) return
   drawing = true
   try {
