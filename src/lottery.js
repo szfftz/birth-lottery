@@ -64,7 +64,12 @@ for (const iso of ISOS) { const t = TIERS[tierIdx(iso)] ?? noHdi; t.p += C[iso].
 const ZH_SHORT = { CHN: '中國', TWN: '臺灣', KOR: '南韓', PRK: '北韓', IDN: '印尼', COD: '民主剛果', COG: '剛果', SAU: '沙烏地', ARE: '阿聯', CZE: '捷克',
   MLI: '馬利', CAF: '中非', PNG: '巴紐', PSX: '巴勒斯坦', BIH: '波赫', TTO: '千里達', STP: '聖多美', VCT: '聖文森', ATG: '安地卡', KNA: '聖克里斯多福',
   FSM: '密克羅尼西亞', MNG: '蒙古' }
-export const nameOf = (iso) => L(C[iso].name_en, ZH_SHORT[iso] ?? C[iso].name_zh ?? C[iso].name_en, namesJaKo[iso]?.[0], namesJaKo[iso]?.[1])
+// 英、日、韓也用各國常用的簡稱（正式全名太長，手機上放不下）
+const EN_SHORT = { COD: 'DR Congo', COG: 'Congo', ARE: 'UAE', DOM: 'Dominican Rep.', CAF: 'Central African Rep.', BIH: 'Bosnia & Herzegovina', TTO: 'Trinidad & Tobago',
+  STP: 'São Tomé & Príncipe', VCT: 'St Vincent', ATG: 'Antigua & Barbuda', KNA: 'St Kitts & Nevis' }
+const JA_SHORT = { BIH: 'ボスニア', TTO: 'トリニダード・トバゴ', STP: 'サントメ・プリンシペ', VCT: 'セントビンセント', ATG: 'アンティグア', KNA: 'セントキッツ' }
+const KO_SHORT = { BIH: '보스니아', VCT: '세인트빈센트', FSM: '미크로네시아', KNA: '세인트키츠' }
+export const nameOf = (iso) => L(EN_SHORT[iso] ?? C[iso].name_en, ZH_SHORT[iso] ?? C[iso].name_zh ?? C[iso].name_en, JA_SHORT[iso] ?? namesJaKo[iso]?.[0], KO_SHORT[iso] ?? namesJaKo[iso]?.[1])
 // 地圖上的國家（含不在人口表裡的地區）：日韓用 Natural Earth 的名字
 export const mapNameOf = (iso, en, zh) => L(en, zh ?? en, namesJaKo[iso]?.[0], namesJaKo[iso]?.[1])
 export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、', '、', ', '))

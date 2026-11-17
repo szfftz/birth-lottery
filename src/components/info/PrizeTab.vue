@@ -6,8 +6,8 @@
       <div class="tile"><span>{{ L('Draws', '已抽', '抽選回数', '뽑은 횟수') }}</span><b>{{ total.toLocaleString('en-US') }}<em v-if="isCJK()">{{ L('', '次', '回', '번') }}</em></b><small>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`, `${Object.keys(counts).length} か国${rerolls ? `・引き直し ${rerolls}` : ''}`, `${Object.keys(counts).length}개국${rerolls ? ` · 다시 뽑기 ${rerolls}` : ''}`) }}</small></div>
       <div class="tile"><span>{{ L('Average HDI', '平均 HDI', '平均 HDI', '평균 HDI') }}</span><b>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small>{{ L('Expected worldwide', '全世界期望值', '世界全体の期待値', '세계 평균 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
       <template v-if="total">
-        <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好', '最高', '최고') }}</span><b class="sm"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
-        <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差', '最低', '최저') }}</span><b class="sm"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
+        <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好', '最高', '최고') }}</span><b class="sm" :style="fit(nameOf(best), 7)"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
+        <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差', '最低', '최저') }}</span><b class="sm" :style="fit(nameOf(worst), 7)"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
       </template>
     </div>
 
@@ -32,7 +32,7 @@
       <ol class="rows">
         <li v-for="(c, k) in topDrawn" :key="c.iso" :class="{ on: c.iso === last }" @click="pick(c.iso)">
           <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="c.iso" />
-          <span class="r-name">{{ nameOf(c.iso) }}<small><i class="sw" :style="{ background: colorOf(c.iso) }"></i>{{ prizeOf(c.iso) }}</small></span>
+          <span class="r-name" :style="fit(nameOf(c.iso), R_CAP, 0.6)">{{ nameOf(c.iso) }}<small><i class="sw" :style="{ background: colorOf(c.iso) }"></i>{{ prizeOf(c.iso) }}</small></span>
           <b class="r-v">{{ c.n.toLocaleString('en-US') }}{{ L('×', ' 次', ' 回', '번') }}<small>{{ fmtP(c.n / total) }}</small></b>
         </li>
       </ol>
@@ -47,7 +47,7 @@
     <ol class="rows">
       <li v-for="(iso, k) in sorted" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
         <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="iso" />
-        <span class="r-name">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
+        <span class="r-name" :style="fit(nameOf(iso), R_CAP, 0.6)">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
         <b class="r-v"><em class="r-lbl">{{ L('odds', '機率', '確率', '확률') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`, `${BALLS[iso]} 個${counts[iso] ? `・当選 ${counts[iso]}` : ''}`, `공 ${BALLS[iso]}개${counts[iso] ? ` · 당첨 ${counts[iso]}` : ''}`) }}</small></b>
       </li>
     </ol>
@@ -58,6 +58,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import FlagBall from '../FlagBall.vue'
+import { fit } from '../../lib/fit.js'
+const R_CAP = 10.5 // 清單的國名放得下幾個全形字（14px）
 import { L, isCJK } from '../../i18n.js'
 import { meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, TIERS, TIER_R, noHdi, HDI_EXPECT, mode, tierIdx, nameOf, prizeOf, colorOf, pTier, pIso, fmtP, oneIn, fmtBig } from '../../lottery.js'
 import { counts, total, last, rerolls, drawnMean, best, worst, drawnByTier, topDrawn, pick } from '../../store.js'

@@ -8,7 +8,10 @@
     <div class="rb-body" :class="{ 't-body': ticket }">
       <!-- 國旗球：國旗置中、不捲動 -->
       <div class="rb-ball"><div class="rb-flag"><i class="rb-face" :style="flagStyle(iso)"></i></div></div>
-      <div class="rb-main"><div v-if="title" class="t-title">{{ title }}</div><div class="rb-name">{{ nameOf(iso) }}</div></div>
+      <div class="rb-main">
+        <div v-if="title" class="t-title" :style="{ '--fit': fitScale(title, TITLE_CAP, 0.5) }">{{ title }}</div>
+        <div class="rb-name" :class="{ wrap: needsWrap(nameOf(iso), nameCap) }" :style="{ '--fit': fitScale(nameOf(iso), nameCap) }">{{ nameOf(iso) }}</div>
+      </div>
       <PrizeMedal v-if="!ticket" :iso="iso" />
     </div>
     <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="colorOf(iso)" />
@@ -20,9 +23,15 @@
 import PrizeMedal from './PrizeMedal.vue'
 import WorldLocator from './WorldLocator.vue'
 import { colorOf, flagStyle, nameOf } from '../lottery.js'
-defineProps({
+import { fitScale, needsWrap } from '../lib/fit.js'
+import { computed } from 'vue'
+
+// 國名、標題放得下幾個全形字（照設計稿的寬度算）：超過就縮小字，不換行、不被右上角的獎牌蓋到
+const TITLE_CAP = 10 // 票卡的標題（11px，國名上面那一行）
+const props = defineProps({
   iso: { type: String, required: true },
   ticket: { type: Boolean, default: false },
   title: { type: String, default: '' },
 })
+const nameCap = computed(() => (props.ticket ? 3.6 : 4.6)) // 票卡 34px 字、舞台看板 54px 字
 </script>

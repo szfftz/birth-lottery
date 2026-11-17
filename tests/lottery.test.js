@@ -84,5 +84,6 @@ describe('國名', () => {
     lang.value = 'ja'; expect(nameOf('TWN')).toBe('台湾')
     lang.value = 'ko'; expect(nameOf('TWN')).toBe('대만')
     lang.value = 'en'; expect(nameOf('TWN')).toBe(C.TWN.name_en)
+    expect(nameOf('COD')).toBe('DR Congo') // 太長的用常用簡稱
   })
 })

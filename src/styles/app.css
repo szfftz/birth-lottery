@@ -166,7 +166,7 @@ section > .tiles .tile { background: var(--tile); }
 .tile.pick { cursor: pointer; }
 .tile > span { font-size: 12px; color: rgba(255, 255, 255, 0.68); }
 .tile > b { display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; line-height: 1.3; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tile > b.sm { font-size: 16px; }
+.tile > b.sm { font-size: calc(16px * var(--fit, 1)); overflow: visible; } /* 國名太長就縮小（--fit），不切掉 */
 .tile > b em { font-style: normal; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.68); }
 .tile > small { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 還沒抽 */
@@ -186,7 +186,7 @@ section > .tiles .tile { background: var(--tile); }
 .r-n { flex: none; width: 22px; font-size: 13px; font-weight: 700; color: var(--dim); text-align: right; font-variant-numeric: tabular-nums; }
 .fl { flex: none; display: inline-block; width: 26px; height: 26px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.25); }
 .tile .fl { width: 20px; height: 20px; }
-.r-name { flex: 1; min-width: 0; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-name { flex: 1; min-width: 0; font-size: calc(14px * var(--fit, 1)); /* 國名太長就縮小（--fit） */ font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .r-name small { display: flex; align-items: center; font-size: 12px; font-weight: 500; color: var(--dim); }
 .r-v { flex: none; font-weight: 700; color: rgba(255, 255, 255, 0.85); font-variant-numeric: tabular-nums; text-align: right; line-height: 1.3; }
 .r-v small { display: block; font-size: 12px; font-weight: 600; color: var(--gold); }
@@ -233,10 +233,10 @@ section > .tiles .tile { background: var(--tile); }
 .t-map { margin: 14px 0 4px; }
 /* 結果分頁的票卡：沿用 .result-board，縮到面板寬 */
 .result-board.t-board { min-width: 0; padding: 18px 16px 16px; }
-.t-board .t-title { position: relative; margin-bottom: 2px; /* 在國名上面，一行寫完 */ font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; color: #fff3b0; }
+.t-board .t-title { position: relative; margin-bottom: 2px; /* 在國名上面，一行寫完 */ font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', sans-serif; font-size: calc(11px * var(--fit, 1)); font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; color: #fff3b0; }
 .t-board .t-body { justify-content: flex-start; gap: 12px; margin: 4px 0 0; padding: 0 96px 0 0; } /* 國旗、國名靠左（右上角留給獎牌，國名不要被蓋到） */
 .t-board .rb-flag { width: 64px; height: 64px; }
-.t-board .rb-name { font-size: 34px; -webkit-text-stroke-width: 5px; text-shadow: 3px 3px 0 #2b0a5e; overflow-wrap: anywhere; }
+.t-board .rb-name { font-size: calc(34px * var(--fit, 1)); -webkit-text-stroke-width: calc(5px * var(--fit, 1)); text-shadow: 3px 3px 0 #2b0a5e; }
 .t-board .t-medal { top: 6px; right: 6px; scale: 0.7; transform-origin: 100% 0; }
 .t-board .t-prize, .t-board .t-map, .t-board .tiles, .t-board .note { position: relative; }
 .t-board .t-range { color: rgba(255, 255, 255, 0.8); }
@@ -282,8 +282,9 @@ section > .tiles .tile { background: var(--tile); }
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
 .rb-main { flex: 0 1 auto; min-width: 0; }
-.rb-name { position: relative; top: 0.12em; /* 字形比行框中心高約 0.12em，往下推一點跟國旗球中心對齊 */ font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', sans-serif; font-size: 54px; font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff;
-  -webkit-text-stroke: 6px #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
+.rb-name.wrap { white-space: normal; overflow-wrap: anywhere; } /* 縮到最小還是放不下（很長的英文、日文國名）才換行 */
+.rb-name { position: relative; top: 0.12em; /* 字形比行框中心高約 0.12em，往下推一點跟國旗球中心對齊 */ font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', sans-serif; font-size: calc(54px * var(--fit, 1)); font-weight: 900; line-height: 1.05; transform: skewX(-10deg); color: #ffffff; white-space: nowrap; /* 字太長就縮小（--fit），不換行 */
+  -webkit-text-stroke: calc(6px * var(--fit, 1)) #2b0a5e; paint-order: stroke fill; text-shadow: 4px 4px 0 #2b0a5e; }
 .rb-medal { position: absolute; z-index: 10; top: -86px; right: -70px; width: 128px; height: 128px; scale: 1.45; transform: rotate(14deg); }
 /* 獎牌輕輕地左右晃（用 rotate 屬性，跟原本的 transform 斜角疊在一起） */
 .rb-medal { animation: md-sway 2.6s ease-in-out infinite; }
@@ -368,3 +369,8 @@ section > .tiles .tile { background: var(--tile); }
   .draw { height: 64px; }
   .draw.busy .d-dome { animation: none; filter: brightness(1.15); } /* 搖獎中的閃光（filter 動畫）改成固定亮一點 */
 }
+
+/* ── RWD：介面照畫面寬度等比例縮放 ──
+   版面是照 390px 寬設計的；--u＝畫面寬 ÷ 390（App.vue 算），按鈕、選單、面板裡的字和東西一起放大縮小，
+   畫面再窄字也不會換行、被擋到；地圖、彩球盒的 3D 畫面不縮放（它們自己會照大小重畫） */
+.lang-switch, .modes, .dock, .sheet-head, .sheet .content { zoom: var(--u, 1); }

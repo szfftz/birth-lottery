@@ -8,7 +8,7 @@
     <ol v-if="history.length" class="rows">
       <li v-for="h in historyDesc" :key="h.n" :class="{ on: h.n === total }" @click="pick(h.iso)">
         <span class="r-n">{{ h.n }}</span><FlagBall class="fl" :iso="h.iso" />
-        <span class="r-name">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
+        <span class="r-name" :style="fit(nameOf(h.iso), R_CAP, 0.6)">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
         <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
       </li>
     </ol>
@@ -18,6 +18,8 @@
 
 <script setup>
 import FlagBall from '../FlagBall.vue'
+import { fit } from '../../lib/fit.js'
+const R_CAP = 10.5 // 清單的國名放得下幾個全形字（14px）
 import { L } from '../../i18n.js'
 import { C, nameOf, prizeOf, colorOf } from '../../lottery.js'
 import { history, historyDesc, total, spinning, pick, clearHistory } from '../../store.js'

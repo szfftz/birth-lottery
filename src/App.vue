@@ -3,7 +3,7 @@
        地圖、彩球盒、資訊（結果、歷史、獎項、說明）都是從下面拉上來的面板。
        舞台蓋滿整個畫面（含狀態列、搖一搖後面）；insets＝上面狀態列、下面搖一搖擋住的高度，傳給搖獎機把機器放在看得到的地方。
        手機、iPad 滿版；電腦上照直式手機比例置中 -->
-  <div ref="phoneEl" class="phone">
+  <div ref="phoneEl" class="phone" :style="{ '--u': ui }">
     <i ref="safeTopEl" class="safe-top" aria-hidden="true"></i>
     <div class="stage-wrap">
       <Transition name="fade"><LoadingScreen v-if="!atlas" /></Transition>
@@ -40,6 +40,7 @@ import ViewSheet from './components/ViewSheet.vue'
 import InfoSheet from './components/InfoSheet.vue'
 import { useShake } from './composables/useShake.js'
 import { dbg } from './lib/debug.js'
+import { LOW } from './lib/device.js'
 import { mode, balls, isoOfBall, colors, flagMeta, flagsUrl, ballTip, tierIdx, colorOf } from './lottery.js'
 import { last, lastBall, total, spinning, sheet, tab, openSheet, setMode, record } from './store.js'
 
@@ -48,14 +49,18 @@ const phoneEl = ref(null), dockEl = ref(null), safeTopEl = ref(null)
 const insets = reactive({ top: 0, bottom: 0 })
 const DOCK_PAD = 14 // 搖一搖外面多一圈可以按的範圍（跟 .dock 的 padding 一樣）
 const LANG_H = 44 // 最上面一排（頁面名稱、語言切換）佔的高度：搖獎機的招牌往下讓這麼多
-const topInset = computed(() => insets.top + LANG_H)
+const DESIGN_W = 390
+const ui = ref(1) // 介面縮放倍數（CSS 的 --u）
+const topInset = computed(() => insets.top + LANG_H * ui.value)
 // 手機最下面的安全區（Home 條）高度：地圖、彩球盒面板蓋住搖一搖，只要避開這一塊
 const safeBottom = ref(0)
 function measure() {
   if (!phoneEl.value || !dockEl.value) return
   const ph = phoneEl.value.getBoundingClientRect(), dk = dockEl.value.getBoundingClientRect()
+  // 介面縮放：版面照 390px 寬設計，照畫面寬度等比例放大縮小（手機、平板最多放大到 1.25 倍，電腦的手機框 1.7 倍）
+  ui.value = Math.min(LOW ? 1.25 : 1.7, Math.max(0.5, ph.width / DESIGN_W))
   insets.top = Math.round(safeTopEl.value?.offsetHeight ?? 0)
-  insets.bottom = Math.round(ph.bottom - dk.top - DOCK_PAD) // 扣掉按鈕外面那圈「也可以按」的範圍，只算按鈕本身
+  insets.bottom = Math.round(ph.bottom - dk.top - DOCK_PAD * ui.value) // 扣掉按鈕外面那圈「也可以按」的範圍，只算按鈕本身
 }
 let insetRo
 onMounted(() => {
