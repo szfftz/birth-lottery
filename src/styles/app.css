@@ -276,9 +276,7 @@ section > .tiles .tile { background: var(--tile); }
 .rb-body { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 18px; padding-right: 80px; } /* 國旗、國名靠左；右邊留給獎牌，國名不要被蓋到 */
 .rb-ball { flex: none; padding: 4px; border-radius: 50%; background: linear-gradient(145deg, #fff3c4, #c99a2e); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
 .rb-flag { position: relative; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; }
-.rb-roll { position: absolute; top: 0; left: 0; display: flex; width: 200%; height: 100%; animation: rb-roll 4s linear infinite; }
-.rb-roll i { flex: none; width: 50%; height: 100%; }
-@keyframes rb-roll { to { transform: translateX(-50%); } }
+.rb-face { position: absolute; inset: 0; } /* 國旗置中蓋滿整顆球（不捲動，國旗才會一直在正中間） */
 .rb-flag::after { content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.35) 100%); }
 .rb-main { flex: 0 1 auto; min-width: 0; }

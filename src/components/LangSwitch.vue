@@ -1,8 +1,8 @@
 <template>
-  <!-- 語言切換：四顆國旗球（不轉；台灣＝中文、英國＝英文、日本＝日文、韓國＝韓文）；選中的那顆金框、放大，其他的暗一點（預設中文，選過的記在瀏覽器） -->
+  <!-- 語言切換：四顆國旗球（台灣＝中文、英國＝英文、日本＝日文、韓國＝韓文）；選中的那顆金框、放大，其他的暗一點（預設中文，選過的記在瀏覽器） -->
   <div class="lang-switch glass" role="group" aria-label="Language / 語言 / 言語 / 언어">
     <button v-for="[k, flag, , name] in LANGS" :key="k" type="button" class="lang-ball" :class="{ on: lang === k }" :aria-pressed="lang === k" :aria-label="name" :title="name" @click="setLang(k)">
-      <FlagBall :iso="flag" still />
+      <FlagBall :iso="flag" />
     </button>
   </div>
 </template>

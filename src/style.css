@@ -1,3 +1,7 @@
+/* 韓文字型 NanumSquareRound（OFL）：只留 app 裡用到的韓文字（scripts/subset_ko_font.py 產生），一個粗細約 44KB；
+   font-display: swap：字型還沒下載好先用系統字顯示，不會整段字看不見 */
+@font-face { font-family: 'NanumSquareRoundB'; src: url('./assets/fonts/NanumSquareRoundB-sub.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'NanumSquareRoundEB'; src: url('./assets/fonts/NanumSquareRoundEB-sub.woff2') format('woff2'); font-display: swap; }
 /* 英文、數字一律 Overpass，中文落到 Noto Sans TC；黑色是 #161616 */
 :root {
   --font: 'Overpass', 'Huninn', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif;

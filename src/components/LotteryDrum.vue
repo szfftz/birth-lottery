@@ -293,7 +293,9 @@ function draw() {
       qa.toArray(quat, b * 4)
     }
     dummy.quaternion.copy(qa)
-    dummy.position.set(px[b], DRUM.y + py[b], pz[b])
+    // 滾筒裡的球跟著轉輪一起小小搖（wheelA，見 sway()）；掉出來的球不動
+    if (where[b] || !wheelA) dummy.position.set(px[b], DRUM.y + py[b], pz[b])
+    else dummy.position.set(px[b] * wheelCos - py[b] * wheelSin, DRUM.y + px[b] * wheelSin + py[b] * wheelCos, pz[b])
     dummy.updateMatrix()
     mesh.setMatrixAt(b, dummy.matrix)
   }
@@ -349,7 +351,7 @@ function update(dt) {
     }
   }
   sim.angle += sim.omega * dt
-  rot.rotation.z = sim.angle
+  rot.rotation.z = sim.angle + wheelA
   gate.visible = !sim.gateOpen
   if (sim.moving || phase !== 'idle') {
     let v = 0
@@ -453,11 +455,15 @@ function frame() {
 }
 // 靜止時：整台搖獎機（展示台、滾筒、彩球）像展示轉盤一樣慢慢左右轉一點點（±5°、約 7 秒來回）；搖獎時慢慢轉回正面
 // 只轉畫面、不動物理，手機不會多花力氣
-const SWAY = { amp: 0.09, period: 7 }
-let swayA = 0
+// 轉輪也小小來回搖（±3°、約 3.6 秒來回），裡面的球跟著一起搖（只改畫的位置，物理不動）
+const SWAY = { amp: 0.09, period: 7 }, WHEEL = { amp: 0.05, period: 3.6 }
+let swayA = 0, wheelA = 0, wheelCos = 1, wheelSin = 0
 function sway(t, dt) {
-  const target = phase === 'idle' && !reduceMotion ? Math.sin((t * 2 * Math.PI) / SWAY.period) * SWAY.amp : 0
-  swayA += (target - swayA) * Math.min(1, dt * 2.5)
+  const idle = phase === 'idle' && !reduceMotion, k = Math.min(1, dt * 2.5)
+  swayA += ((idle ? Math.sin((t * 2 * Math.PI) / SWAY.period) * SWAY.amp : 0) - swayA) * k
+  wheelA += ((idle ? Math.sin((t * 2 * Math.PI) / WHEEL.period) * WHEEL.amp : 0) - wheelA) * k
+  if (Math.abs(wheelA) < 1e-4 && !idle) wheelA = 0
+  wheelCos = Math.cos(wheelA); wheelSin = Math.sin(wheelA)
   turntable.rotation.y = swayA
 }
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
