@@ -8,10 +8,15 @@
   --muted: #a8a8a8;
   --dim: #7a7a7a;
   color-scheme: dark;
+  /* 主題色（每一頁共用）：金、霓虹粉紅燈管邊、國界淡金 */
+  --gold: #f5c451;
+  --neon-line: #ffd6ec;
+  --neon-pink: #ff2d95;
+  --border-gold: #ffe2a0;
 }
-/* 日文、韓文：換成同樣是圓體的日、韓字型 */
-html:lang(ja) { --font: 'Overpass', 'M PLUS Rounded 1c', 'Huninn', -apple-system, 'Hiragino Sans', sans-serif; }
-html:lang(ko) { --font: 'Overpass', 'Jua', -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+/* 日文跟中文同一套（粉圓有假名）；韓文：粉圓沒有韓文字，換成同樣是圓角的 NanumSquareRound（粗體） */
+html:lang(ja) { --font: 'Overpass', 'Huninn', -apple-system, 'Hiragino Sans', sans-serif; }
+html:lang(ko) { --font: 'Overpass', 'NanumSquareRoundB', -apple-system, 'Apple SD Gothic Neo', sans-serif; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: #05040f; color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
@@ -21,3 +26,9 @@ button { touch-action: manipulation; }
 .neon-tip { padding: 8px 11px; border-radius: 12px; background: rgba(10, 5, 24, 0.94); color: #ffffff; border: 2px solid #ffd6ec;
   box-shadow: 0 0 4px #ff2d95, 0 0 14px rgba(255, 45, 149, 0.7), 0 6px 16px rgba(0, 0, 0, 0.5); font-size: 12px; line-height: 1.5; }
 .neon-tip [style*="color"] { filter: brightness(1.4); } /* 獎項色在深底上調亮 */
+/* 舞台的牆（搖獎機、地圖、載入畫面共用）：深酒紅（中間亮、四周暗）＋金色細線菱格；--wall-y＝最亮的地方在多高 */
+.stage-wall {
+  background:
+    repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    radial-gradient(120% 70% at 50% var(--wall-y, 50%), #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }

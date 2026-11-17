@@ -272,7 +272,7 @@ onMounted(() => {
   sun.position.set(-8, 20, 12)
   // 影子：正交陰影相機蓋住整個盒子
   sun.castShadow = true
-  sun.shadow.mapSize.setScalar(matchMedia('(pointer: coarse)').matches ? 2048 : 4096) // 手機影子貼圖小一點
+  sun.shadow.mapSize.setScalar(LOW ? 2048 : 4096) // 手機影子貼圖小一點
   const sc = sun.shadow.camera, half = Math.max(W(), D()) * 0.8
   sc.left = sc.bottom = -half; sc.right = sc.top = half; sc.near = 1; sc.far = 80
   sun.shadow.bias = -0.0005; sun.shadow.radius = 3

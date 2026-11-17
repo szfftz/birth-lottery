@@ -1,10 +1,10 @@
 // 盒子、遊戲模式共用的 3D 彩球（three.js）：891 顆球一個 InstancedMesh，球面是獎項顏色或國旗
 // 國旗：flags.png 拼圖，每顆球的貼圖座標換成那一國的那一格；雙面：上半球、下半球各包一面國旗，包滿整個半球、不留白（球極投影：半球攤成圓盤，再放大一點蓋滿國旗的大部分）
 import * as THREE from 'three'
+import { LOW } from './device.js'
 
 export const BALL_R = 0.5
-// 手機（觸控螢幕）：球的面數少一點、不要清漆，畫面才不會卡
-export const LOW = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+export { LOW } // 手機（觸控螢幕）：球的面數少一點、不要清漆，畫面才不會卡
 
 /**
  * @param {{ n: number, isos: string[], start: Int32Array }} balls  loadBalls() 的結果

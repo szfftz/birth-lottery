@@ -6,7 +6,7 @@
   <div ref="wrap" class="lottery-drum">
     <div class="stage" :style="{ left: `${box.x}px`, top: `${box.y}px`, width: `${box.w}px`, height: `${box.h}px`, '--itp': `${insetTop}px`, '--ibp': `${insetBottom}px` }">
       <!-- 舞台背景：賭場——深酒紅牆（菱格壁紙）、中間一圈暖光、兩道聚光燈、飄著的光點（散景）、地上一圈反光 -->
-      <div class="stage-bg">
+      <div class="stage-bg stage-wall">
         <div class="glow"></div>
         <div class="beam l"></div><div class="beam r"></div>
         <div class="bokeh"><i v-for="b in BOKEH" :key="b.k" :style="b.style"></i></div>
@@ -43,6 +43,7 @@ import NeonSign from './NeonSign.vue'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BALL_R as R, LOW, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
+import { DRUM, BASE, SUB, SPIN, FINS, HOLE, CHUTE, TRAY, wrapA, createDrumSim } from '../lib/drumPhysics.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -60,25 +61,8 @@ const props = defineProps({
   spinning: { type: Boolean, default: false }, // 搖獎中（跑馬燈轉快）
   paused: { type: Boolean, default: false }, // 被地圖／彩球盒面板蓋住：先不算、不畫（手機才不會卡）
 })
-// 搖獎機（場景單位：球的直徑＝1）：滾筒的軸是前後方向（z），內半徑 DRUM.r、深 DRUM.d，軸心高 DRUM.y
-const DRUM = { r: 11, d: 7, y: 14.5 }
-const BASE = { h: 0.8 } // 展示台上層的頂面高（球掉出來的地面）
 const ACRYLIC = '#e8f4ff'
-// 重力（場景單位／秒²）：一顆球直徑當 4 公分，真的重力 9.8 m/s² ≈ 245 單位／秒²；用 200，速度跟真的搖獎機差不多
-const G = 200
 const CAM = { az: 28, el: 22, dist: 100 } // 預設鏡頭：方位（往右幾度）、仰角、距離
-const SUB = 4 // 每一格畫面分幾小步算（重力大，步子要小才穩）
-// 轉速：ω²r 要比 g 小，球才不會被甩在筒壁上（ω < √(g/r) ≈ 4.3 弧度／秒）
-const SPIN = { w: 3.4, sec: 6, ramp: 0.8, alignW: 3 } // 轉的角速度、轉幾秒（每次再乘 0.85～1.15 的亂數＝搖的力道不一樣）、加減速秒數、對準出球口時的角速度
-const WALL_FRICTION = 0.35 // 球碰到筒壁時，切線速度往筒壁速度靠多少（摩擦）
-// 擋板：從筒壁往裡伸的三片板子，跟著滾筒轉，把球帶上去
-// a0：第一片擋板的角度；出球口朝下時三片在 −30°、−150°、90°（都是斜的或朝上），不會有一片剛好水平、讓球停在上面
-const FINS = { n: 3, len: 1.6, t: 0.15, a0: Math.PI / 2 }
-// 出球口：筒壁上靠前面的一個方洞（寬 HOLE.w、在 z 方向從前面的圓板往後 HOLE.d），角度 HOLE.a 是滾筒沒轉時的位置
-const HOLE = { a: Math.PI / 6, w: 1.5, d: 1.5 }
-// 滑道：球從出球口掉下來，球心沿著 A → B 這條斜線滾到盤子；盤子是透明淺盒
-const CHUTE = { z0: DRUM.d / 2 - HOLE.d / 2, y0: DRUM.y - DRUM.r - 0.4, z1: DRUM.d / 2 + 4.2, y1: BASE.h + 1.1 + R + 0.15, w: 1.4 }
-const TRAY = { z: DRUM.d / 2 + 6, w: 5, d: 3.6, h: 0.7 }
 
 const wrap = ref(null), glBox = ref(null)
 const box = reactive({ x: 0, y: 0, w: 0, h: 0 }) // 舞台的範圍（整個元件）
@@ -116,152 +100,12 @@ const tipPos = computed(() => {
   return { [right ? 'right' : 'left']: `${right ? box.w - t.x + 12 : t.x + 12}px`, [below ? 'top' : 'bottom']: `${below ? t.y + 12 : box.h - t.y + 12}px` }
 })
 let renderer, scene, camera, controls, mesh, rot, gate, ro, raf = 0
+let turntable // 搖獎機＋彩球整組（靜止時小小左右轉）
 
-// ── 球的模擬（位置式 Verlet，座標以滾筒中心為原點）──
+// ── 球的模擬：lib/drumPhysics.js ──
 const n = props.balls.n
-const px = new Float32Array(n), py = new Float32Array(n), pz = new Float32Array(n)
-const ox = new Float32Array(n), oy = new Float32Array(n), oz = new Float32Array(n)
-// 每顆球在哪：0＝滾筒裡、1＝掉出來（滑道、盤子）
-const where = new Uint8Array(n)
-let omega = 0 // 滾筒角速度（弧度／秒）
-let angle = 0 // 滾筒轉了多少
-let gateOpen = false
-let moving = true // 有沒有球還在動（都停了就不用算）
-let seed = 25
-const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
-
-// 鄰居格子：一格 1（球直徑），counting sort 排好
-const NX = 2 * DRUM.r + 4, NY = NX, NZ = DRUM.d + 4
-const OFF = DRUM.r + 2
-const cellStart = new Int32Array(NX * NY * NZ + 1), cellItem = new Int32Array(n), cellOfBall = new Int32Array(n)
-const clampI = (v, m) => Math.min(m - 1, Math.max(0, v))
-const cellIdx = (x, y, z) => (clampI(Math.floor(z + DRUM.d / 2 + 2), NZ) * NY + clampI(Math.floor(y + OFF), NY)) * NX + clampI(Math.floor(x + OFF), NX)
-function buildGrid() {
-  cellStart.fill(0)
-  for (let b = 0; b < n; b++) { const c = cellIdx(px[b], py[b], pz[b]); cellOfBall[b] = c; cellStart[c + 1]++ }
-  for (let c = 0; c < cellStart.length - 1; c++) cellStart[c + 1] += cellStart[c]
-  const fill = cellStart.slice()
-  for (let b = 0; b < n; b++) cellItem[fill[cellOfBall[b]]++] = b
-}
-function collideBalls() {
-  buildGrid()
-  for (let b = 0; b < n; b++) {
-    const c = cellOfBall[b], ci = c % NX, cj = Math.floor(c / NX) % NY, ck = Math.floor(c / (NX * NY))
-    for (let dk = -1; dk <= 1; dk++) for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
-      const i = ci + di, j = cj + dj, k = ck + dk
-      if (i < 0 || j < 0 || k < 0 || i >= NX || j >= NY || k >= NZ) continue
-      const cc = (k * NY + j) * NX + i
-      for (let q = cellStart[cc]; q < cellStart[cc + 1]; q++) {
-        const o = cellItem[q]
-        if (o <= b || where[o] !== where[b]) continue // 滾筒裡、外的球隔著筒壁，不會互撞（掉出來的球不會被筒裡的球卡住）
-        const ex = px[o] - px[b], ey = py[o] - py[b], ez = pz[o] - pz[b]
-        const d2 = ex * ex + ey * ey + ez * ez
-        if (d2 >= 1 || d2 === 0) continue
-        const d = Math.sqrt(d2), push = (1 - d) / 2 / d
-        px[b] -= ex * push; py[b] -= ey * push; pz[b] -= ez * push
-        px[o] += ex * push; py[o] += ey * push; pz[o] += ez * push
-      }
-    }
-  }
-}
-// 角度差（−π～π）
-const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a))
-// 滾筒裡的球：筒壁（摩擦）、前後圓板、擋板；出球口打開時，球心對準洞口的球可以穿過筒壁
-let escaped = -1 // 這次掉出去的球
-function drumConstraints(h, first) {
-  const rMax = DRUM.r - R, zMax = DRUM.d / 2 - R
-  const holeA = HOLE.a + angle
-  for (let b = 0; b < n; b++) {
-    if (where[b]) continue
-    let d = Math.hypot(px[b], py[b])
-    // 擋板：從筒壁往中心伸 FINS.len 的線段，球碰到就推開，並帶著板子的速度
-    for (let f = 0; f < FINS.n; f++) {
-      const a = angle + FINS.a0 + (f / FINS.n) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a)
-      const along = px[b] * ca + py[b] * sa // 沿著板子方向的距離（離中心）
-      if (along < DRUM.r - FINS.len || along > DRUM.r) continue
-      const perp = -px[b] * sa + py[b] * ca // 離板子多遠（正負＝在哪一邊）
-      const need = R + FINS.t / 2
-      if (Math.abs(perp) >= need) continue
-      const push = (need - Math.abs(perp)) * Math.sign(perp || 1)
-      px[b] += -sa * push; py[b] += ca * push
-      // 板子在動：球垂直板子方向的速度變成跟板子一樣（板子推著球走），沿著板子的速度不變
-      if (first && omega) {
-        const vFin = omega * along * h
-        const vCur = (px[b] - ox[b]) * -sa + (py[b] - oy[b]) * ca
-        if ((push > 0 && vFin > vCur) || (push < 0 && vFin < vCur)) { ox[b] -= -sa * (vFin - vCur); oy[b] -= ca * (vFin - vCur) }
-      }
-    }
-    d = Math.hypot(px[b], py[b])
-    if (d > rMax) {
-      const inHole = gateOpen && Math.abs(wrapA(Math.atan2(py[b], px[b]) - holeA)) * DRUM.r < (HOLE.w / 2 - R) + 0.25 && pz[b] > DRUM.d / 2 - HOLE.d + R - 0.1
-      if (inHole && escaped < 0) {
-        // 穿過洞口：球心超過筒壁就算掉出去了（之後在滑道上算）
-        if (d > DRUM.r + R) { where[b] = 1; escaped = b; gateOpen = false }
-        continue
-      }
-      px[b] *= rMax / d; py[b] *= rMax / d
-      // 筒壁摩擦：切線方向的速度往筒壁的速度靠
-      if (first) {
-        const tx = -py[b] / rMax, ty = px[b] / rMax
-        const vx = px[b] - ox[b], vy = py[b] - oy[b]
-        const vt = vx * tx + vy * ty, wall = omega * DRUM.r * h
-        const dv = (wall - vt) * WALL_FRICTION
-        ox[b] -= tx * dv; oy[b] -= ty * dv
-      }
-    }
-    pz[b] = Math.max(-zMax, Math.min(zMax, pz[b]))
-  }
-}
-// 掉出來的球：滑道（斜線，左右有邊）、盤子（淺盒）、地面；座標一樣以滾筒中心為原點
-const CHUTE_PUSH = 14 // 滑道上往前的額外加速度（場景單位／秒²）
-const toW = (y) => y + DRUM.y // 滾筒座標 → 世界座標的 y
-function outsideConstraints(b) {
-  const wy = toW(py[b])
-  // 滑道：球心不能低於 A → B 這條線（z 在滑道範圍內）
-  if (pz[b] >= CHUTE.z0 - 1 && pz[b] <= CHUTE.z1) {
-    const t = Math.max(0, (pz[b] - CHUTE.z0) / (CHUTE.z1 - CHUTE.z0))
-    const yLine = CHUTE.y0 + (CHUTE.y1 - CHUTE.y0) * t
-    if (wy < yLine) py[b] += yLine - wy
-    px[b] = Math.max(-CHUTE.w / 2 + R, Math.min(CHUTE.w / 2 - R, px[b]))
-  }
-  // 盤子：底、四邊
-  const floor = BASE.h + 0.14 + R
-  if (toW(py[b]) < floor) py[b] = floor - DRUM.y
-  if (pz[b] > CHUTE.z1) {
-    px[b] = Math.max(-TRAY.w / 2 + R, Math.min(TRAY.w / 2 - R, px[b]))
-    pz[b] = Math.min(TRAY.z + TRAY.d / 2 - R, pz[b])
-    // 盤子底有摩擦：慢慢停下來
-    if (toW(py[b]) < floor + 0.01) { ox[b] += (px[b] - ox[b]) * 0.05; oz[b] += (pz[b] - oz[b]) * 0.05 }
-  }
-}
-function step(h) {
-  const damp = 0.9995, gh = G * h * h // 空氣阻力很小
-  let maxV = 0
-  for (let b = 0; b < n; b++) {
-    const vx = (px[b] - ox[b]) * damp, vy = (py[b] - oy[b]) * damp, vz = (pz[b] - oz[b]) * damp
-    maxV = Math.max(maxV, Math.abs(vx), Math.abs(vy), Math.abs(vz))
-    ox[b] = px[b]; oy[b] = py[b]; oz[b] = pz[b]
-    px[b] += vx; py[b] += vy - gh; pz[b] += vz
-    // 滑道上多推一把（像滑道有點陡又很滑），球滾出來快一點
-    if (where[b] && pz[b] >= CHUTE.z0 - 1 && pz[b] <= CHUTE.z1) pz[b] += CHUTE_PUSH * h * h
-  }
-  for (let it = 0; it < 4; it++) {
-    collideBalls()
-    drumConstraints(h, it === 0)
-    for (let b = 0; b < n; b++) if (where[b]) outsideConstraints(b)
-  }
-  return maxV / h // 最快的球多快（場景單位／秒）
-}
-// 一開始：球亂放在滾筒裡，掉下來堆在底部
-function initBalls() {
-  for (let b = 0; b < n; b++) {
-    const a = rand() * Math.PI * 2, r = Math.sqrt(rand()) * (DRUM.r - 1)
-    px[b] = ox[b] = Math.cos(a) * r
-    py[b] = oy[b] = -Math.abs(Math.sin(a) * r) * 0.6
-    pz[b] = oz[b] = (rand() - 0.5) * (DRUM.d - 1)
-  }
-  for (let s = 0; s < 600; s++) step(1 / 240)
-}
+const sim = createDrumSim(n)
+const { px, py, pz, ox, oy, oz, where, rand, step, initBalls, putBack, placeInTray } = sim
 
 // ── 3D 場景：開獎節目的舞台 ──
 // 圓形兩層的展示台（深紅＋金，邊上一圈跑馬燈）、後面鍍鉻的 A 字支架、鍍鉻的滾筒框、滾筒外面一圈燈泡、會反光的舞台地板
@@ -457,16 +301,6 @@ function draw() {
   mesh.computeBoundingSphere()
 }
 
-// 盤子上的球放回滾筒：從滾筒上面掉進去
-function putBack(b) {
-  where[b] = 0
-  px[b] = ox[b] = (rand() - 0.5) * 3; py[b] = oy[b] = DRUM.r * 0.5; pz[b] = oz[b] = (rand() - 0.5) * (DRUM.d - 2)
-}
-function placeInTray(b) {
-  where[b] = 1
-  px[b] = ox[b] = 0; py[b] = oy[b] = BASE.h + 0.14 + R - DRUM.y; pz[b] = oz[b] = TRAY.z
-}
-
 /** 抽一顆（全部照物理）：
  *  1. 滾筒加速、轉 SPIN.sec 秒（每次乘 0.85～1.15 的亂數）、減速
  *  2. 慢慢轉到出球口朝正下方，打開閘門
@@ -477,9 +311,9 @@ function play() {
   busy = new Promise((resolve) => {
     resolveFn = resolve
     if (inTray >= 0) { putBack(inTray); inTray = -1 }
-    escaped = -1
+    sim.escaped = -1
     spinSec = SPIN.sec * (0.85 + Math.random() * 0.3)
-    phase = 'spin'; t0 = performance.now(); moving = true
+    phase = 'spin'; t0 = performance.now(); sim.moving = true
   })
   return busy
 }
@@ -490,21 +324,21 @@ function update(dt) {
   const t = (performance.now() - t0) / 1000
   if (phase === 'spin') {
     const up = Math.min(1, t / SPIN.ramp), down = Math.min(1, Math.max(0, (spinSec - t) / SPIN.ramp))
-    omega = SPIN.w * Math.min(up, down)
+    sim.omega = SPIN.w * Math.min(up, down)
     if (t >= spinSec) { phase = 'align' }
   } else if (phase === 'align') {
     // 轉到出球口朝下（−90°）：往近的那邊轉，越接近越慢
-    const diff = wrapA(-Math.PI / 2 - (HOLE.a + angle))
-    omega = Math.sign(diff) * Math.min(SPIN.alignW, Math.abs(diff) * 4 + 0.1)
-    if (Math.abs(diff) < 0.01) { omega = 0; phase = 'open'; gateOpen = true; t0 = performance.now() }
+    const diff = wrapA(-Math.PI / 2 - (HOLE.a + sim.angle))
+    sim.omega = Math.sign(diff) * Math.min(SPIN.alignW, Math.abs(diff) * 4 + 0.1)
+    if (Math.abs(diff) < 0.01) { sim.omega = 0; phase = 'open'; sim.gateOpen = true; t0 = performance.now() }
   } else if (phase === 'open') {
-    omega = 0
-    if (escaped >= 0) { phase = 'roll'; t0 = performance.now(); rollT = 0 }
+    sim.omega = 0
+    if (sim.escaped >= 0) { phase = 'roll'; t0 = performance.now(); rollT = 0 }
     // 洞口上面剛好沒有球（很少見）：滾筒前後輕輕搖一下
-    else if (t > 1.5) omega = Math.sin(t * 8) * 0.6
+    else if (t > 1.5) sim.omega = Math.sin(t * 8) * 0.6
   } else if (phase === 'roll') {
-    omega = 0
-    const b = escaped
+    sim.omega = 0
+    const b = sim.escaped
     rollT += dt // 用模擬時間算（手機慢、一格畫面算比較少時，不會還沒滾到就逾時）
     const v = Math.hypot(px[b] - ox[b], py[b] - oy[b], pz[b] - oz[b]) / (dt / SUB)
     const inTrayNow = pz[b] > CHUTE.z1
@@ -514,13 +348,13 @@ function update(dt) {
       resolveFn?.(b); resolveFn = null
     }
   }
-  angle += omega * dt
-  rot.rotation.z = angle
-  gate.visible = !gateOpen
-  if (moving || phase !== 'idle') {
+  sim.angle += sim.omega * dt
+  rot.rotation.z = sim.angle
+  gate.visible = !sim.gateOpen
+  if (sim.moving || phase !== 'idle') {
     let v = 0
     for (let k = 0; k < SUB; k++) v = Math.max(v, step(dt / SUB))
-    moving = v > 0.1
+    sim.moving = v > 0.1
   }
 }
 
@@ -613,9 +447,20 @@ function frame() {
   update(dt)
   animateBulbs(now / 1000, phase !== 'idle')
   draw()
+  sway(now / 1000, dt)
   controls.update()
   renderer.render(scene, camera)
 }
+// 靜止時：整台搖獎機（展示台、滾筒、彩球）像展示轉盤一樣慢慢左右轉一點點（±5°、約 7 秒來回）；搖獎時慢慢轉回正面
+// 只轉畫面、不動物理，手機不會多花力氣
+const SWAY = { amp: 0.09, period: 7 }
+let swayA = 0
+function sway(t, dt) {
+  const target = phase === 'idle' && !reduceMotion ? Math.sin((t * 2 * Math.PI) / SWAY.period) * SWAY.amp : 0
+  swayA += (target - swayA) * Math.min(1, dt * 2.5)
+  turntable.rotation.y = swayA
+}
+const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 onMounted(() => {
   // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（891 顆球再畫一次影子很吃效能）
@@ -639,10 +484,12 @@ onMounted(() => {
   const left = new THREE.SpotLight('#ff4fa3', 1500, 0, Math.PI / 6, 0.6, 1.6); left.position.set(-40, 26, 18); left.target.position.set(0, DRUM.y, 0)
   const right = new THREE.SpotLight('#5ff2ff', 1500, 0, Math.PI / 6, 0.6, 1.6); right.position.set(40, 26, 18); right.target.position.set(0, DRUM.y, 0)
   scene.add(key, key.target, left, left.target, right, right.target)
-  scene.add(makeMachine())
+  turntable = new THREE.Group()
+  scene.add(turntable)
+  turntable.add(makeMachine())
   mesh = makeBallMesh({ balls: props.balls, colors: props.colors, atlas: props.atlas, grid: props.grid, face: props.face })
   mesh.castShadow = !LOW
-  scene.add(mesh)
+  turntable.add(mesh)
   initBalls()
   if (props.sel != null) placeInTray(props.sel)
   inTray = props.sel ?? -1
@@ -682,11 +529,7 @@ onBeforeUnmount(() => {
 .lottery-drum { position: absolute; inset: 0; z-index: 2; overflow: hidden; background: #08061a; }
 .stage { position: absolute; overflow: hidden; }
 /* 舞台背景：賭場——深酒紅牆面（中間亮、四周暗）、上面一層金色細線菱格壁紙、中間一圈暖光、兩道聚光燈、散景光點、地上綠色牌桌絨的反光、四周壓暗 */
-.stage-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; /* 自己一層 */
-  background:
-    repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
-    repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
-    radial-gradient(120% 70% at 50% 55%, #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }
+.stage-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; --wall-y: 55%; } /* 自己一層；牆面是共用的 .stage-wall */
 .stage-bg > div, .stage-bg > .bokeh { position: absolute; pointer-events: none; }
 .glow { left: 50%; top: 52%; width: 150%; aspect-ratio: 1; transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(255, 196, 110, 0.34) 0%, rgba(255, 70, 90, 0.16) 28%, transparent 58%); }
@@ -745,7 +588,7 @@ onBeforeUnmount(() => {
 .stage-gl :deep(canvas) { display: block; }
 /* 寬 1080 的設計稿，縮放到舞台（寬高由 uiStyle 給） */
 .stage-ui { position: absolute; left: 0; top: 0; width: 1080px; height: 1350px; transform-origin: 0 0; pointer-events: none;
-  font-family: 'Overpass', 'Huninn', 'Noto Sans TC', sans-serif; }
+  font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', 'Noto Sans TC', sans-serif; }
 /* 節目標題：賭場霓虹招牌——黑底板、外圈粉紅霓虹燈管、內圈青色燈管；字是霓虹燈管字（白芯＋一層層同色光暈），會微微呼吸、偶爾閃一下 */
 .show-title { position: absolute; left: 50%; top: calc(64px + var(--it, 0px)); transform: translateX(-50%) scale(var(--ss, 1)); transform-origin: 50% 0; width: 880px; text-align: center; animation: st-float 4.5s ease-in-out infinite; }
 @keyframes st-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }

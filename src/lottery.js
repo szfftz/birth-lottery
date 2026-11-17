@@ -1,7 +1,7 @@
 // 出生搖搖樂的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
 // 機率＝球數比例（遊戲是真的從 891 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
 import { L, lang } from './i18n.js'
-import { ref, shallowRef } from 'vue'
+import { ref } from 'vue'
 import data from './data/lottery.json'
 import cellMeta from './data/cells.json'
 import ballMeta from './data/balls.json'
@@ -74,14 +74,10 @@ export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[
 // 照人口比例算的 HDI 期望值（沒有 HDI 的不算；跟 Day 25 一樣）
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)
 
-// 模式：地圖、彩球、排列、格子、盒子・地圖、盒子・照獎、遊戲（預設遊戲）
+// 頁面：地圖、世界彩球盒、獎項彩球盒（都是從下面拉上來的面板）、遊戲（預設，搖獎機）
 export const MODES = [['map', 'Map', '地圖', '地図', '지도'], ['box', 'World Box', '世界彩球盒', '世界ボール箱', '세계 공 상자'], ['boxp', 'Prize Box', '獎項彩球盒', '賞別ボール箱', '상별 공 상자'], ['game', 'Game', '遊戲', 'ゲーム', '게임']]
   .map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 export const mode = ref('game')
-// 排列、格子模式：球排在框裡，不畫地圖
-export const onBoard = () => mode.value === 'grid' || mode.value === 'cells'
-// 用 MapLibre 畫的模式（其他是 3D）
-export const MAP_MODES = ['map', 'balls', 'grid', 'cells']
 
 // 兩個機率：抽到這一獎、抽到這一國；地圖模式照人口，其他模式照球數
 // 抽到重抽（沒有 HDI）會再抽，所以分母扣掉重抽的部分
@@ -89,26 +85,11 @@ const ballMode = () => mode.value !== 'map'
 export const pTier = (t) => (ballMode() ? t.balls / (BALL_TOTAL - noHdi.balls) : t.p / (1 - noHdi.p))
 export const pIso = (iso) => (tierIdx(iso) < 0 ? 0 : ballMode() ? BALLS[iso] / (BALL_TOTAL - noHdi.balls) : C[iso].p / (1 - noHdi.p))
 
-// 抽籤（遊戲模式以外）：地圖模式照人口（累積機率上二分搜尋），彩球類模式從全部球裡抽一顆
-const cum = []
-ISOS.reduce((s, iso) => (cum.push(s + C[iso].p), s + C[iso].p), 0)
-export function drawOne() {
-  const r = Math.random() * cum.at(-1)
-  let lo = 0, hi = cum.length - 1
-  while (lo < hi) { const m = (lo + hi) >> 1; cum[m] < r ? (lo = m + 1) : (hi = m) }
-  return ISOS[lo]
-}
-export function drawBall() {
-  const b = Math.floor(Math.random() * BALL_TOTAL)
-  return [isoOfBall(b), b]
-}
-
-// 格子排法（盒子・地圖模式用）：cellOf[b]＝第 b 顆球在第幾格
+// 世界彩球盒的排法（build_cells.py 算好）：worldCells[b]＝第 b 顆球放在第幾格（照各國在世界上的相對位置）
 export { cellMeta }
-export const cellOf = Int32Array.from(cellMeta.cell)
-export const cellsSnap = shallowRef(Int32Array.from(cellOf))
+export const worldCells = Int32Array.from(cellMeta.cell)
 
-// 排列模式、盒子・照獎的順序：獎項（特獎→哈哈獎→重抽）→ 同一級 HDI 高到低 → 人口多到少；同一國的球排在一起
+// 獎項彩球盒的順序：獎項（特獎→哈哈獎→重抽）→ 同一級 HDI 高到低 → 人口多到少；同一國的球排在一起
 // gridOrder[k]＝排第 k 的是第幾顆球；gridRank[b]＝第 b 顆球排第幾
 export const gridOrder = balls.isos.map((iso, k) => k)
   .sort((a, b) => ((tierIdx(balls.isos[a]) + 99) % 99) - ((tierIdx(balls.isos[b]) + 99) % 99) || (C[balls.isos[b]].hdi ?? 0) - (C[balls.isos[a]].hdi ?? 0) || C[balls.isos[b]].pop - C[balls.isos[a]].pop)
@@ -168,7 +149,7 @@ export function ballTip(b) {
     ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)] : []),
     `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`, `（UNDP ${c.hdi_rank} 位）`, ` (UNDP ${c.hdi_rank}위)`) : ''}`,
     L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`, `ボール ${BALLS[iso]} 個中 ${b - balls.start[k] + 1} 個目`, `공 ${BALLS[iso]}개 중 ${b - balls.start[k] + 1}번째`),
-    mode.value === 'grid' || mode.value === 'boxp' ? L(`#${gridRank[b] + 1} of ${BALL_TOTAL} in prize order`, `照獎項排第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆）`, `賞の順で ${gridRank[b] + 1} 番目（全 ${BALL_TOTAL} 個）`, `상 순서로 ${gridRank[b] + 1}번째 (총 ${BALL_TOTAL}개)`)
+    mode.value === 'boxp' ? L(`#${gridRank[b] + 1} of ${BALL_TOTAL} in prize order`, `照獎項排第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆）`, `賞の順で ${gridRank[b] + 1} 番目（全 ${BALL_TOTAL} 個）`, `상 순서로 ${gridRank[b] + 1}번째 (총 ${BALL_TOTAL}개)`)
       : L(`Ball #${b + 1} of ${BALL_TOTAL}`, `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`, `全体の ${b + 1} 番目（全 ${BALL_TOTAL} 個）`, `전체 ${b + 1}번째 (총 ${BALL_TOTAL}개)`),
   ].join('<br>')
 }
