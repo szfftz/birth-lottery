@@ -102,6 +102,9 @@ const tipPos = computed(() => {
 })
 let renderer, scene, camera, controls, mesh, rot, gate, ro, raf = 0
 let turntable // 搖獎機＋彩球整組（靜止時小小左右轉）
+// 材質：電腦用 MeshPhysicalMaterial（清漆、折射、絨面）；手機改用比較省的 MeshStandardMaterial（拿掉那些參數），透明壓克力最吃效能
+const PHYS_ONLY = ['ior', 'specularIntensity', 'clearcoat', 'clearcoatRoughness', 'sheen', 'sheenColor', 'sheenRoughness']
+const pbr = (o) => (LOW ? new THREE.MeshStandardMaterial(Object.fromEntries(Object.entries(o).filter(([k]) => !PHYS_ONLY.includes(k)))) : new THREE.MeshPhysicalMaterial(o))
 
 // ── 球的模擬：lib/drumPhysics.js ──
 const n = props.balls.n
@@ -172,14 +175,14 @@ function makeMachine() {
   //  壓克力：折射率 1.49、很亮的反光、幾乎透明；鍍鉻：髮絲紋（一圈一圈的細刮痕）、很亮；
   //  金：真金的顏色（偏橘的黃）、拉絲、有一點霧；展示台：汽車烤漆——底下金屬亮片、上面一層很亮的透明漆
   const brushed = noiseTexture('brushed'), flake = noiseTexture('flake')
-  const acrylic = new THREE.MeshPhysicalMaterial({ color: ACRYLIC, roughness: 0.03, metalness: 0, ior: 1.49, specularIntensity: 1, clearcoat: 1, clearcoatRoughness: 0.02,
+  const acrylic = pbr({ color: ACRYLIC, roughness: 0.03, metalness: 0, ior: 1.49, specularIntensity: 1, clearcoat: 1, clearcoatRoughness: 0.02,
     transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 2.2 })
-  const chrome = new THREE.MeshPhysicalMaterial({ color: '#f3f5f8', metalness: 1, roughness: 0.14, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.2, envMapIntensity: 1.4 })
-  const gold = new THREE.MeshPhysicalMaterial({ color: '#f2b84a', metalness: 1, roughness: 0.3, roughnessMap: brushed, envMapIntensity: 1.3 })
-  const redLac = new THREE.MeshPhysicalMaterial({ color: '#8e0f1f', metalness: 0.6, roughness: 0.5, roughnessMap: flake, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.2 })
+  const chrome = pbr({ color: '#f3f5f8', metalness: 1, roughness: 0.14, roughnessMap: brushed, bumpMap: brushed, bumpScale: 0.2, envMapIntensity: 1.4 })
+  const gold = pbr({ color: '#f2b84a', metalness: 1, roughness: 0.3, roughnessMap: brushed, envMapIntensity: 1.3 })
+  const redLac = pbr({ color: '#8e0f1f', metalness: 0.6, roughness: 0.5, roughnessMap: flake, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.2 })
   const add = (parent, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = !mat.transparent && !mat.isMeshBasicMaterial; parent.add(m); return m }
   // 地板
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(24, 96), new THREE.MeshPhysicalMaterial({ color: '#0e4a2c', roughness: 0.9, metalness: 0, sheen: 0.8, sheenColor: '#3fae6e', sheenRoughness: 0.6, transparent: true, alphaMap: fadeTexture() }))
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(24, 96), pbr({ color: '#0e4a2c', roughness: 0.9, metalness: 0, sheen: 0.8, sheenColor: '#3fae6e', sheenRoughness: 0.6, transparent: true, alphaMap: fadeTexture() }))
   floor.rotation.x = -Math.PI / 2; floor.position.y = PED.floor; floor.receiveShadow = true
   g.add(floor)
   // 展示台：下層賭場紅烤漆（邊上一圈燈泡）、上層金色（頂面＝BASE.h）、中間一條金邊
@@ -244,7 +247,7 @@ function makeMachine() {
   add(g, new THREE.CylinderGeometry(0.15, 0.15, CHUTE.y0 - R - BASE.h, 12), chrome, 0, (CHUTE.y0 - R + BASE.h) / 2, CHUTE.z0 - 1)
   // 接球盒：跟滾筒一樣是透明壓克力（厚一點、比較看得到），四邊的稜角是鍍鉻細框、上緣一圈會亮的燈條，跟金色台面分得開
   const T = 0.22, Hh = 1.1, y0 = BASE.h
-  const box = new THREE.MeshPhysicalMaterial({ color: '#dff1ff', roughness: 0.04, metalness: 0, ior: 1.49, clearcoat: 1, clearcoatRoughness: 0.02,
+  const box = pbr({ color: '#dff1ff', roughness: 0.04, metalness: 0, ior: 1.49, clearcoat: 1, clearcoatRoughness: 0.02,
     transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 2.4 })
   const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffd76a').multiplyScalar(1.6), toneMapped: false })
   const ow = TRAY.w + T * 2, od = TRAY.d + T * 2
@@ -301,7 +304,6 @@ function draw() {
     mesh.setMatrixAt(b, dummy.matrix)
   }
   mesh.instanceMatrix.needsUpdate = true
-  mesh.computeBoundingSphere()
 }
 
 /** 抽一顆（全部照物理）：
@@ -368,6 +370,7 @@ function pickAt(e) {
   const r = glBox.value.getBoundingClientRect()
   ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
   ray.setFromCamera(ndc, camera)
+  mesh.computeBoundingSphere() // 球一直在動：點的時候再算一次範圍（不用每一格都算）
   const hit = ray.intersectObject(mesh)[0]
   tip.value = hit ? { x: e.clientX - r.left, y: e.clientY - r.top, html: props.tipOf(hit.instanceId) } : null
 }
@@ -482,7 +485,7 @@ onMounted(() => {
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
   pmrem.dispose()
   // 燈光：前上方一盞暖白主燈（打影子）、左右兩盞彩色側光（洋紅、青），像攝影棚
-  renderer.shadowMap.enabled = true
+  renderer.shadowMap.enabled = !LOW // 手機不畫影子：每一格少畫一次整台機器
   renderer.shadowMap.type = LOW ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap
   const key = new THREE.SpotLight('#fff4e0', 2600, 0, Math.PI / 7, 0.5, 1.6)
   key.position.set(8, 60, 46); key.target.position.set(0, DRUM.y * 0.6, 0)
@@ -496,6 +499,7 @@ onMounted(() => {
   turntable.add(makeMachine())
   mesh = makeBallMesh({ balls: props.balls, colors: props.colors, atlas: props.atlas, grid: props.grid, face: props.face })
   mesh.castShadow = !LOW
+  mesh.frustumCulled = false // 一定在畫面裡；不用每一格重算範圍
   turntable.add(mesh)
   initBalls(settled) // 預先算好的位置，打開網頁不用等
   if (props.sel != null) placeInTray(props.sel)

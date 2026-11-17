@@ -77,5 +77,12 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7);
   font-size: 32px; font-weight: 800; letter-spacing: 0.1em; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .st-sub i { font-style: normal; font-size: 18px; color: #ff6fc1; text-shadow: 0 0 8px #ff2d95; }
+/* 手機：整塊招牌的亮度動畫（filter）、橫條燈的 screen 混色都很吃效能 → 招牌不跟著呼吸、字只用透明度閃、橫條燈一般疊上去 */
+@media (pointer: coarse) {
+  .st-sign { animation: none; }
+  .st-sign::before { mix-blend-mode: normal; opacity: 0.8; animation: n-bars 3.2s linear infinite; }
+  .n-pink, .n-cyan { animation-name: n-flash-lite; }
+}
+@keyframes n-flash-lite { 0%, 30%, 38%, 100% { opacity: 1; } 31%, 34% { opacity: 0.22; } }
 @media (prefers-reduced-motion: reduce) { .st-sign::before, .st-tube, .st-sub, .st-sub span, .st-sub i, .n-pink, .n-cyan, .n-cyan b, .st-stars i { animation: none; } }
 </style>

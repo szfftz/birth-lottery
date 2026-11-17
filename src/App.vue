@@ -21,7 +21,7 @@
 
     <LangSwitch :style="{ top: `${insets.top + 8}px` }" />
     <ModeMenu :top="insets.top + 8" />
-    <div ref="dockEl" class="dock"><SpinButton :disabled="!atlas" :shake="shake.ready.value" @spin="draw" /></div>
+    <div ref="dockEl" class="dock" @click.self="!spinning && atlas && draw()"><SpinButton :disabled="!atlas" :shake="shake.ready.value" @spin="draw" /></div>
 
     <ViewSheet :open="!!atlas && mode !== 'game'" :atlas="atlas" :inset-bottom="safeBottom" />
     <InfoSheet />
@@ -45,6 +45,7 @@ import { last, lastBall, total, spinning, sheet, tab, openSheet, setMode, record
 // ── 版面：舞台蓋滿整個畫面；上面狀態列、下面「搖一搖」擋住的高度（px） ──
 const phoneEl = ref(null), dockEl = ref(null), safeTopEl = ref(null)
 const insets = reactive({ top: 0, bottom: 0 })
+const DOCK_PAD = 14 // 搖一搖外面多一圈可以按的範圍（跟 .dock 的 padding 一樣）
 const LANG_H = 44 // 最上面一排（頁面名稱、語言切換）佔的高度：搖獎機的招牌往下讓這麼多
 const topInset = computed(() => insets.top + LANG_H)
 // 手機最下面的安全區（Home 條）高度：地圖、彩球盒面板蓋住搖一搖，只要避開這一塊
@@ -53,7 +54,7 @@ function measure() {
   if (!phoneEl.value || !dockEl.value) return
   const ph = phoneEl.value.getBoundingClientRect(), dk = dockEl.value.getBoundingClientRect()
   insets.top = Math.round(safeTopEl.value?.offsetHeight ?? 0)
-  insets.bottom = Math.round(ph.bottom - dk.top)
+  insets.bottom = Math.round(ph.bottom - dk.top - DOCK_PAD) // 扣掉按鈕外面那圈「也可以按」的範圍，只算按鈕本身
 }
 let insetRo
 onMounted(() => {

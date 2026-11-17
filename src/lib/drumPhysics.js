@@ -40,22 +40,26 @@ export function createDrumSim(n) {
   const cellStart = new Int32Array(NX * NY * NZ + 1), cellItem = new Int32Array(n), cellOfBall = new Int32Array(n)
   const clampI = (v, m) => Math.min(m - 1, Math.max(0, v))
   const cellIdx = (x, y, z) => (clampI(Math.floor(z + DRUM.d / 2 + 2), NZ) * NY + clampI(Math.floor(y + OFF), NY)) * NX + clampI(Math.floor(x + OFF), NX)
+  const cellFill = new Int32Array(cellStart.length) // 排序用的暫存（重複用，不要每次 new：手機上會一直回收記憶體、卡一下）
   function buildGrid() {
     cellStart.fill(0)
     for (let b = 0; b < n; b++) { const c = cellIdx(px[b], py[b], pz[b]); cellOfBall[b] = c; cellStart[c + 1]++ }
     for (let c = 0; c < cellStart.length - 1; c++) cellStart[c + 1] += cellStart[c]
-    const fill = cellStart.slice()
-    for (let b = 0; b < n; b++) cellItem[fill[cellOfBall[b]]++] = b
+    cellFill.set(cellStart)
+    for (let b = 0; b < n; b++) cellItem[cellFill[cellOfBall[b]]++] = b
   }
-  function collideBalls() {
-    buildGrid()
+  // 球跟球互撞：看自己那一格和旁邊 26 格裡的球。同一列左右三格在 cellItem 裡是連在一起的，所以一次掃一段（9 段，不用 27 段）
+  // 格子每一步只排一次（rebuild），同一步裡後面幾輪沿用：一輪裡球移動遠小於一格，旁邊 26 格一定涵蓋得到
+  function collideBalls(rebuild) {
+    if (rebuild) buildGrid()
     for (let b = 0; b < n; b++) {
       const c = cellOfBall[b], ci = c % NX, cj = Math.floor(c / NX) % NY, ck = Math.floor(c / (NX * NY))
-      for (let dk = -1; dk <= 1; dk++) for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
-        const i = ci + di, j = cj + dj, k = ck + dk
-        if (i < 0 || j < 0 || k < 0 || i >= NX || j >= NY || k >= NZ) continue
-        const cc = (k * NY + j) * NX + i
-        for (let q = cellStart[cc]; q < cellStart[cc + 1]; q++) {
+      const i0 = ci > 0 ? ci - 1 : 0, i1 = ci < NX - 1 ? ci + 1 : NX - 1
+      for (let dk = -1; dk <= 1; dk++) for (let dj = -1; dj <= 1; dj++) {
+        const j = cj + dj, k = ck + dk
+        if (j < 0 || k < 0 || j >= NY || k >= NZ) continue
+        const row = (k * NY + j) * NX
+        for (let q = cellStart[row + i0], qEnd = cellStart[row + i1 + 1]; q < qEnd; q++) {
           const o = cellItem[q]
           if (o <= b || where[o] !== where[b]) continue // 滾筒裡、外的球隔著筒壁，不會互撞（掉出來的球不會被筒裡的球卡住）
           const ex = px[o] - px[b], ey = py[o] - py[b], ez = pz[o] - pz[b]
@@ -69,16 +73,17 @@ export function createDrumSim(n) {
     }
   }
   // 滾筒裡的球：筒壁（摩擦）、前後圓板、擋板；出球口打開時，球心對準洞口的球可以穿過筒壁
-   // 這次掉出去的球
+  const finCos = new Float64Array(FINS.n), finSin = new Float64Array(FINS.n)
   function drumConstraints(h, first) {
     const rMax = DRUM.r - R, zMax = DRUM.d / 2 - R
     const holeA = HOLE.a + sim.angle
+    for (let f = 0; f < FINS.n; f++) { const a = sim.angle + FINS.a0 + (f / FINS.n) * Math.PI * 2; finCos[f] = Math.cos(a); finSin[f] = Math.sin(a) } // 擋板方向：每一輪算一次
     for (let b = 0; b < n; b++) {
       if (where[b]) continue
       let d = Math.hypot(px[b], py[b])
       // 擋板：從筒壁往中心伸 FINS.len 的線段，球碰到就推開，並帶著板子的速度
       for (let f = 0; f < FINS.n; f++) {
-        const a = sim.angle + FINS.a0 + (f / FINS.n) * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a)
+        const ca = finCos[f], sa = finSin[f]
         const along = px[b] * ca + py[b] * sa // 沿著板子方向的距離（離中心）
         if (along < DRUM.r - FINS.len || along > DRUM.r) continue
         const perp = -px[b] * sa + py[b] * ca // 離板子多遠（正負＝在哪一邊）
@@ -148,7 +153,7 @@ export function createDrumSim(n) {
       if (where[b] && pz[b] >= CHUTE.z0 - 1 && pz[b] <= CHUTE.z1) pz[b] += CHUTE_PUSH * h * h
     }
     for (let it = 0; it < 4; it++) {
-      collideBalls()
+      collideBalls(it === 0)
       drumConstraints(h, it === 0)
       for (let b = 0; b < n; b++) if (where[b]) outsideConstraints(b)
     }

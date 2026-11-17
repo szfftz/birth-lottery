@@ -47,7 +47,8 @@
 .lang-switch button { min-width: 34px; height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .lang-switch button.on { background: linear-gradient(180deg, #ffe08a, var(--gold)); color: #2a1a05; }
 /* ── 操作列：只有搖一搖按鈕，沒有外框 ── */
-.dock { position: absolute; z-index: 12; left: 20px; right: 20px; bottom: max(14px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; }
+.dock { position: absolute; z-index: 12; left: 6px; right: 6px; bottom: max(0px, calc(env(safe-area-inset-bottom) - 14px)); display: flex; gap: 8px; align-items: center;
+  padding: 14px; /* 可以按的範圍比按鈕大一圈（四周多 14px，點到也算按），手機上比較好按；按鈕看起來的位置不變 */ cursor: pointer; }
 /* DRAW：街機按鈕（金框上一圈會跑的燈泡、紅色圓頂、兩邊閃星星，按下去會陷下去） */
 .draw { position: relative; flex: 1; height: 56px; padding: 7px; border: 0; border-radius: 18px; cursor: pointer; font: inherit;
   background: linear-gradient(160deg, #fff3c4, #d9a72e 45%, #8a6414); box-shadow: 0 4px 0 #5a420b, 0 8px 18px rgba(0, 0, 0, 0.35); transition: transform 0.08s, box-shadow 0.08s; }
@@ -71,6 +72,7 @@
 .d-dome b { font-size: clamp(17px, 5.4vw, 22px); font-weight: 900; letter-spacing: 0.12em; white-space: nowrap; text-shadow: 0 2px 0 rgba(90, 0, 10, 0.5); }
 .draw:active:not(:disabled), .draw.busy { transform: translateY(3px); box-shadow: 0 1px 0 #5a420b, 0 4px 10px rgba(0, 0, 0, 0.35); }
 .draw:disabled { cursor: default; }
+
 .draw:disabled:not(.busy) { filter: grayscale(0.6) brightness(0.8); }
 .draw.busy .d-dome { animation: d-glow 0.5s ease-in-out infinite alternate; }
 .draw.busy .d-bulbs { animation-duration: 0.2s; }
@@ -354,4 +356,15 @@ section > .tiles .tile { background: var(--tile); }
   .lang-switch button.on:hover, .tabs button.on:hover, .seg button.on:hover, .pill:hover:not(:disabled), .draw:hover:not(:disabled) { filter: brightness(1.12); }
   .close:hover { filter: brightness(1.15); box-shadow: 0 3px 0 #5a0a12, 0 0 14px rgba(255, 196, 90, 0.6); }
   .rows li:hover, .tile.pick:hover { background: rgba(255, 45, 149, 0.1); box-shadow: inset 0 0 0 1.5px rgba(255, 214, 236, 0.6); }
+}
+
+/* ── 手機、平板（觸控）：省效能、好按 ──
+   毛玻璃模糊（backdrop-filter）疊在一直在動的 3D 畫面上，每一格都要重新模糊，手機很吃力 → 改成比較不透明的底、不模糊
+   搖一搖：按鈕本身高一點（64px） */
+@media (pointer: coarse) {
+  .glass, .lang-switch, .mode-title, .scrim { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass { background: rgba(16, 11, 40, 0.88); }
+  .lang-switch, .mode-title { background: rgba(10, 5, 24, 0.92); }
+  .draw { height: 64px; }
+  .draw.busy .d-dome { animation: none; filter: brightness(1.15); } /* 搖獎中的閃光（filter 動畫）改成固定亮一點 */
 }
