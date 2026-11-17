@@ -79,6 +79,14 @@ export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[
 // 照人口比例算的 HDI 期望值（沒有 HDI 的不算；跟 Day 25 一樣）
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)
 
+// 聯合國（UNDP）的人類發展指數排名：寫成「第幾／總共幾國」
+export const RANK_TOTAL = Math.max(...ISOS.map((iso) => C[iso].hdi_rank ?? 0))
+export const rankText = (iso) => (C[iso].hdi_rank
+  ? L(`UNDP rank ${C[iso].hdi_rank}/${RANK_TOTAL}`, `聯合國排名 ${C[iso].hdi_rank}/${RANK_TOTAL}`, `UNDP 順位 ${C[iso].hdi_rank}/${RANK_TOTAL}`, `UNDP 순위 ${C[iso].hdi_rank}/${RANK_TOTAL}`)
+  : L('Not ranked by UNDP', '不在聯合國排名', 'UNDP 順位なし', 'UNDP 순위 없음'))
+// 「HDI」這個詞：中文寫全名「人類發展指數」，英、日、韓照各國習慣寫 HDI
+export const hdiWord = () => L('HDI', '人類發展指數', 'HDI', 'HDI')
+
 // 頁面：地圖、世界彩球盒、獎項彩球盒（都是從下面拉上來的面板）、遊戲（預設，搖獎機）
 export const MODES = [['map', 'Map', '地圖', '地図', '지도'], ['box', 'World Box', '世界彩球盒', '世界ボール箱', '세계 공 상자'], ['boxp', 'Prize Box', '獎項彩球盒', '賞別ボール箱', '상별 공 상자'], ['game', 'Game', '遊戲', 'ゲーム', '게임']]
   .map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
@@ -150,9 +158,9 @@ export function ballTip(b) {
   const k = balls.isos.indexOf(iso)
   return [
     `<b>${nameOf(iso)}</b>`,
-    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>HDI ${t.range}` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）', '（HDI なし・引き直し）', ' (HDI 없음 — 다시 뽑기)')}`,
-    ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)] : []),
-    `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`, `（UNDP ${c.hdi_rank} 位）`, ` (UNDP ${c.hdi_rank}위)`) : ''}`,
+    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>${hdiWord()} ${t.range}` : L(' (no HDI — drawn again)', '（沒有人類發展指數，抽到再抽一次）', '（HDI なし・引き直し）', ' (HDI 없음 — 다시 뽑기)')}`,
+    ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到此國機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)] : []),
+    `${hdiWord()} ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (${rankText(iso)})`, `（${rankText(iso)}）`, `（${rankText(iso)}）`, ` (${rankText(iso)})`) : ''}`,
     L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`, `ボール ${BALLS[iso]} 個中 ${b - balls.start[k] + 1} 個目`, `공 ${BALLS[iso]}개 중 ${b - balls.start[k] + 1}번째`),
     mode.value === 'boxp' ? L(`#${gridRank[b] + 1} of ${BALL_TOTAL} in prize order`, `照獎項排第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆）`, `賞の順で ${gridRank[b] + 1} 番目（全 ${BALL_TOTAL} 個）`, `상 순서로 ${gridRank[b] + 1}번째 (총 ${BALL_TOTAL}개)`)
       : L(`Ball #${b + 1} of ${BALL_TOTAL}`, `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`, `全体の ${b + 1} 番目（全 ${BALL_TOTAL} 個）`, `전체 ${b + 1}번째 (총 ${BALL_TOTAL}개)`),

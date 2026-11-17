@@ -13,7 +13,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import '../lib/maplibre-worker.js'
 import { addTooltip } from '../lib/tooltip.js'
 import worldUrl from '../data/countries-50m.geojson?url'
-import { C, BALLS, tierIdx, nameOf, mapNameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, fmtBig } from '../lottery.js'
+import { C, BALLS, hdiWord, rankText, tierIdx, nameOf, mapNameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, fmtBig } from '../lottery.js'
 
 const props = defineProps({
   insetBottom: { type: Number, default: 0 }, // 下面被擋住的高度（px，iPhone 的 Home 條）
@@ -77,7 +77,7 @@ function paintTag() {
   const iso = props.last
   if (!iso || !at[iso]) { tag?.remove(); return }
   const box = tag?.getElement() ?? Object.assign(document.createElement('div'), { className: 'lottery-tag' })
-  box.innerHTML = `<b>${nameOf(iso)}</b> <span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>HDI ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>${L('Prize odds', '這一獎機率', 'この賞の確率', '이 상의 확률')} ${fmtP(pTier(TIERS[tierIdx(iso)]))} · ${L('Country odds', '這一國機率', 'この国の確率', '이 나라의 확률')} ${fmtP(pIso(iso))}`}`
+  box.innerHTML = `<b>${nameOf(iso)}</b> <span style="color:${colorOf(iso)}">${prizeOf(iso)}</span><br>${hdiWord()} ${C[iso].hdi?.toFixed(3) ?? '—'}${tierIdx(iso) < 0 ? '' : `<br>${L('Odds of this prize', '抽到此獎機率', 'この賞が当たる確率', '이 상에 당첨될 확률')} ${fmtP(pTier(TIERS[tierIdx(iso)]))} · ${L('Odds of this country', '抽到此國機率', 'この国が当たる確率', '이 나라가 뽑힐 확률')} ${fmtP(pIso(iso))}`}`
   tag ??= new maplibregl.Marker({ element: box, anchor: 'bottom', offset: [0, -8] })
   tag.setLngLat(at[iso]).addTo(map)
 }
@@ -89,11 +89,11 @@ function countryTip(f) {
   return [
     `<b>${nameOf(iso)}</b>`,
     ...(!t ? [] : [
-      L(`Odds of this prize <b>${fmtP(pTier(t))}</b> (about 1 in ${oneIn(pTier(t))})`, `抽到這一獎的機率 <b>${fmtP(pTier(t))}</b>（約 1/${oneIn(pTier(t))}）`, `この賞が当たる確率 <b>${fmtP(pTier(t))}</b>（約 ${oneIn(pTier(t))} 分の 1）`, `이 상에 당첨될 확률 <b>${fmtP(pTier(t))}</b> (약 ${oneIn(pTier(t))}분의 1)`),
-      L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)]),
+      L(`Odds of this prize <b>${fmtP(pTier(t))}</b> (about 1 in ${oneIn(pTier(t))})`, `抽到此獎機率 <b>${fmtP(pTier(t))}</b>（約 1/${oneIn(pTier(t))}）`, `この賞が当たる確率 <b>${fmtP(pTier(t))}</b>（約 ${oneIn(pTier(t))} 分の 1）`, `이 상에 당첨될 확률 <b>${fmtP(pTier(t))}</b> (약 ${oneIn(pTier(t))}분의 1)`),
+      L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到此國機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)]),
     ...(BALLS[iso] ? [L(`${BALLS[iso]} ${BALLS[iso] > 1 ? 'balls' : 'ball'}`, `彩球 ${BALLS[iso]} 顆`, `ボール ${BALLS[iso]} 個`, `공 ${BALLS[iso]}개`)] : []),
     L(`Population ${fmtBig(c.pop)} (${c.pop_date})`, `人口 ${fmtBig(c.pop)}（${c.pop_date}）`, `人口 ${fmtBig(c.pop)}（${c.pop_date}）`, `인구 ${fmtBig(c.pop)} (${c.pop_date})`),
-    c.hdi == null ? L('No HDI data', '沒有 HDI 資料', 'HDI データなし', 'HDI 자료 없음') : `HDI <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`, `（UNDP ${c.hdi_rank} 位）`, ` (UNDP ${c.hdi_rank}위)`) : ''} → ${prizeOf(iso)}`,
+    c.hdi == null ? L('No HDI data', '沒有人類發展指數資料', 'HDI データなし', 'HDI 자료 없음') : `${hdiWord()} <b>${c.hdi.toFixed(3)}</b>${c.hdi_rank ? L(` (${rankText(iso)})`, `（${rankText(iso)}）`, `（${rankText(iso)}）`, ` (${rankText(iso)})`) : ''} → ${prizeOf(iso)}`,
     ...(props.counts[iso] ? [L(`Drawn ${props.counts[iso]} ${props.counts[iso] > 1 ? 'times' : 'time'}`, `抽中 ${props.counts[iso]} 次`, `${props.counts[iso]} 回当選`, `${props.counts[iso]}번 뽑힘`)] : []),
   ].join('<br>')
 }

@@ -10,16 +10,17 @@
       <div v-else-if="lang === 'ja'" class="st-main zh"><span class="n-pink">国</span><span class="n-cyan">ガチ<b>ャ</b></span></div>
       <div v-else-if="lang === 'ko'" class="st-main zh ko"><span class="n-pink">출생</span> <span class="n-cyan">로<b>또</b></span></div>
       <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
-      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span></div>
-      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span></div>
-      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span></div>
-      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
+      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span><i>◆</i><span>1 球 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span><i>◆</i><span>1 個 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span><i>◆</i><span>1개 ≈ {{ fmtBig(POP_UNIT) }} 명</span></div>
+      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 BALL ≈ {{ (POP_UNIT / 1e6).toFixed(1) }}M</span></div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { lang } from '../i18n.js'
+import { fmtBig, POP_UNIT } from '../lottery.js' // 1 顆球大約代表幾個人
 defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, default: 0 } })
 </script>
 
@@ -75,7 +76,7 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 .st-sub { display: inline-flex; align-items: center; gap: 16px; margin-top: 22px; padding: 8px 28px; border-radius: 999px;
   background: rgba(8, 4, 18, 0.7); border: 3px solid #f1dcff; color: #ffffff;
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7);
-  font-size: 32px; font-weight: 800; letter-spacing: 0.1em; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
+  font-size: 27px; /* 三段字（幾顆球、幾國、1 球幾人）一行寫完 */ font-weight: 800; letter-spacing: 0.06em; white-space: nowrap; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .st-sub i { font-style: normal; font-size: 18px; color: #ff6fc1; text-shadow: 0 0 8px #ff2d95; }
 /* 手機：整塊招牌的亮度動畫（filter）、橫條燈的 screen 混色都很吃效能 → 招牌不跟著呼吸、字只用透明度閃、橫條燈一般疊上去 */
 @media (pointer: coarse) {

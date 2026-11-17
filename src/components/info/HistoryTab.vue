@@ -7,8 +7,11 @@
     </div>
     <ol v-if="history.length" class="rows">
       <li v-for="h in historyDesc" :key="h.n" :class="{ on: h.n === lastN }" @click="pickDraw(h)">
-        <span class="r-n">{{ h.n }}</span><FlagBall class="fl" :iso="h.iso" />
-        <span class="r-name" :style="fit(nameOf(h.iso), R_CAP, 0.6)">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
+        <span class="r-n">{{ h.n }}</span>
+        <!-- 獎章：金邊小圓牌，底色是獎項色，寫獎項短名 -->
+        <i class="r-medal" :style="{ '--tier': colorOf(h.iso), ...fit(tierShort(tierIdx(h.iso)), 2.2, 0.55) }">{{ tierShort(tierIdx(h.iso)) }}</i>
+        <FlagBall class="fl" :iso="h.iso" />
+        <span class="r-name solo" :style="fit(nameOf(h.iso), R_CAP, 0.6)">{{ nameOf(h.iso) }}</span>
         <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
       </li>
     </ol>
@@ -19,8 +22,8 @@
 <script setup>
 import FlagBall from '../FlagBall.vue'
 import { fit } from '../../lib/fit.js'
-const R_CAP = 10.5 // 清單的國名放得下幾個全形字（14px）
+const R_CAP = 8 // 國名放得下幾個全形字（前面多了獎章，比其他清單窄一點）
 import { L } from '../../i18n.js'
-import { C, nameOf, prizeOf, colorOf } from '../../lottery.js'
+import { nameOf, colorOf, tierIdx, tierShort } from '../../lottery.js'
 import { history, historyDesc, total, lastN, spinning, pickDraw, clearHistory } from '../../store.js'
 </script>

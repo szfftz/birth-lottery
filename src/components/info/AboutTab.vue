@@ -6,7 +6,7 @@
     <ol v-if="lang === 'zh'" class="steps">
       <li><b>把全世界的人換成彩球</b>每 {{ fmtBig(POP_UNIT) }} 個人做成 1 顆球；人很少的國家也至少給 1 顆，所以總共 {{ BALL_TOTAL }} 顆。例如印度人最多，有 {{ BALLS.IND }} 顆；臺灣有 {{ BALLS.TWN }} 顆。</li>
       <li><b>隨便抽一顆球</b>抽到某一國的機率＝那一國的球數 ÷ 全部的球數。例如臺灣：{{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}，大約每 {{ oneIn(pIso('TWN')) }} 次才會抽到一次。</li>
-      <li><b>看那一國的 HDI，決定中幾獎</b>HDI（人類發展指數）是 0 到 1 的分數，把平均壽命、受教育的年數、收入加在一起算，越接近 1 代表生活條件越好。HDI 越高獎越大，但這種國家人口少，所以越難抽到。</li>
+      <li><b>看那一國的人類發展指數，決定中幾獎</b>人類發展指數（HDI）是 0 到 1 的分數，把平均壽命、受教育的年數、收入加在一起算，越接近 1 代表生活條件越好。人類發展指數越高獎越大，但這種國家人口少，所以越難抽到。</li>
     </ol>
     <ol v-else-if="lang === 'ja'" class="steps">
       <li><b>世界中の人をボールにする</b>{{ fmtBig(POP_UNIT) }} 人ごとにボールを 1 個作ります。人口がとても少ない国にも最低 1 個あげるので、全部で {{ BALL_TOTAL }} 個。いちばん人口が多いインドは {{ BALLS.IND }} 個、台湾は {{ BALLS.TWN }} 個です。</li>
@@ -57,8 +57,8 @@
     <ol v-else class="how">
       <li><b>想法</b>出生在哪裡自己選不了，就像抽樂透。全世界每個人當成一張彩券，人越多的國家彩券越多，所以抽到印度、中國的機會最大；抽到後拿到的「獎品」是那個國家的人類發展指數——壽命、教育、所得綜合起來的生活條件。</li>
       <li><b>人口</b>英文維基百科〈<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>〉，只看正式國家：聯合國 193 個會員國、梵蒂岡和巴勒斯坦兩個觀察員國，加上臺灣，共 {{ meta.count }} 國。</li>
-      <li><b>HDI</b>英文維基百科〈<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>〉，數字是 UNDP《2025 人類發展報告》的 {{ meta.hdi.year }} 年 HDI。臺灣不在 UNDP 資料裡，用英文維基 <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用<a :href="SOURCES[3].url" target="_blank" rel="noopener">中文維基</a>資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有 HDI，抽到算「重抽」。</li>
-      <li><b>獎項</b>把國家照 HDI 由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個 HDI 不拆開，所以只能接近，不會剛好。</li>
+      <li><b>人類發展指數</b>英文維基百科〈<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>〉，數字是聯合國開發計畫署（UNDP）《2025 人類發展報告》的 {{ meta.hdi.year }} 年人類發展指數。臺灣不在聯合國的資料裡，用英文維基 <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> 條目資訊框的 {{ C.TWN.hdi }}（2023 年）。北韓用<a :href="SOURCES[3].url" target="_blank" rel="noopener">中文維基</a>資訊框的 {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。摩納哥、梵蒂岡沒有人類發展指數，抽到算「重抽」。</li>
+      <li><b>獎項</b>把國家照人類發展指數由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個人類發展指數不拆開，所以只能接近，不會剛好。</li>
       <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ fmtBig(POP_UNIT) }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
       <li><b>地圖模式</b>國家照獎項填色；打開「抽過的」會在抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界。</li>
       <li><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起；「獎項彩球盒」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。抽到的那顆浮起來放大。</li>
@@ -80,10 +80,10 @@ import { L, lang } from '../../i18n.js'
 import { meta, C, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, TIERS, pIso, fmtP, oneIn, fmtBig } from '../../lottery.js'
 
 const SOURCES = [
-  { label: ['Human Development Index (UNDP Human Development Report 2025, 2023 data)', '人類發展指數 HDI（UNDP《2025 人類發展報告》，2023 年）', '人間開発指数 HDI（UNDP『人間開発報告書 2025』、2023 年）', '인간개발지수 HDI (UNDP 「인간개발보고서 2025」, 2023년)'], org: ['English Wikipedia: List of countries by Human Development Index', '英文維基百科 List of countries by Human Development Index', '英語版ウィキペディア List of countries by Human Development Index', '영어 위키백과 List of countries by Human Development Index'], url: 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index' },
+  { label: ['Human Development Index (UNDP Human Development Report 2025, 2023 data)', '人類發展指數 HDI（聯合國開發計畫署 UNDP《2025 人類發展報告》，2023 年）', '人間開発指数 HDI（UNDP『人間開発報告書 2025』、2023 年）', '인간개발지수 HDI (UNDP 「인간개발보고서 2025」, 2023년)'], org: ['English Wikipedia: List of countries by Human Development Index', '英文維基百科 List of countries by Human Development Index', '英語版ウィキペディア List of countries by Human Development Index', '영어 위키백과 List of countries by Human Development Index'], url: 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index' },
   { label: ['Population', '各國人口', '各国の人口', '나라별 인구'], org: ['English Wikipedia: List of countries and dependencies by population', '英文維基百科 List of countries and dependencies by population', '英語版ウィキペディア List of countries and dependencies by population', '영어 위키백과 List of countries and dependencies by population'], url: 'https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population' },
-  { label: ['Taiwan HDI (not covered by UNDP)', '臺灣 HDI（UNDP 不含臺灣）', '台湾の HDI（UNDP に含まれない）', '대만 HDI (UNDP 미포함)'], org: ['English Wikipedia: Taiwan article infobox', '英文維基百科 Taiwan 條目資訊框', '英語版ウィキペディア Taiwan 記事の情報ボックス', '영어 위키백과 Taiwan 문서 정보 상자'], url: 'https://en.wikipedia.org/wiki/Taiwan' },
-  { label: ['North Korea HDI (not covered by UNDP, 2016)', '北韓 HDI（UNDP 沒算，2016 年）', '北朝鮮の HDI（UNDP 対象外、2016 年）', '북한 HDI (UNDP 미산출, 2016년)'], org: ['Chinese Wikipedia: North Korea article infobox', '中文維基百科「朝鲜民主主义人民共和国」條目資訊框', '中国語版ウィキペディア「朝鲜民主主义人民共和国」の情報ボックス', '중국어 위키백과 「朝鲜民主主义人民共和国」 문서 정보 상자'], url: 'https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国' },
+  { label: ['Taiwan HDI (not covered by UNDP)', '臺灣的人類發展指數（聯合國的資料不含臺灣）', '台湾の HDI（UNDP に含まれない）', '대만 HDI (UNDP 미포함)'], org: ['English Wikipedia: Taiwan article infobox', '英文維基百科 Taiwan 條目資訊框', '英語版ウィキペディア Taiwan 記事の情報ボックス', '영어 위키백과 Taiwan 문서 정보 상자'], url: 'https://en.wikipedia.org/wiki/Taiwan' },
+  { label: ['North Korea HDI (not covered by UNDP, 2016)', '北韓的人類發展指數（聯合國沒算，2016 年）', '北朝鮮の HDI（UNDP 対象外、2016 年）', '북한 HDI (UNDP 미산출, 2016년)'], org: ['Chinese Wikipedia: North Korea article infobox', '中文維基百科「朝鲜民主主义人民共和国」條目資訊框', '中国語版ウィキペディア「朝鲜民主主义人民共和国」の情報ボックス', '중국어 위키백과 「朝鲜民主主义人民共和国」 문서 정보 상자'], url: 'https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国' },
   { label: ['Flags (1:1 square SVG, 7.6.0)', '國旗（1:1 正方形 SVG，7.6.0）', '国旗（1:1 正方形 SVG、7.6.0）', '국기 (1:1 정사각형 SVG, 7.6.0)'], org: ['flag-icons (MIT)', 'flag-icons（MIT）', 'flag-icons（MIT）', 'flag-icons (MIT)'], url: 'https://github.com/lipis/flag-icons' },
   { label: ['Borders (1:50m Admin 0 – Countries)', '國界（1:50m Admin 0 – Countries）', '国境（1:50m Admin 0 – Countries）', '국경 (1:50m Admin 0 – Countries)'], org: ['Natural Earth (public domain)', 'Natural Earth（公有領域）', 'Natural Earth（パブリックドメイン）', 'Natural Earth (퍼블릭 도메인)'], url: 'https://www.naturalearthdata.com/' },
 ]
