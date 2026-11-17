@@ -6,6 +6,7 @@ import data from './data/lottery.json'
 import cellMeta from './data/cells.json'
 import ballMeta from './data/balls.json'
 import tierMeta from './data/tiers.json'
+import namesJaKo from './data/names_jako.json' // 日文、韓文國名（Natural Earth，少數改成常用簡稱）
 import flagMeta from './data/flags.json'
 import flagsUrl from './data/flags.png?url'
 
@@ -35,10 +36,16 @@ export const isoOfBall = (b) => {
 const TIER_COLORS = ['#3b6e8f', '#3f93a6', '#5fae8e', '#a9c75b', '#ffd000', '#ff9f3a', '#ff6b55', '#ff3f74']
 export const NODATA = '#3a3440' // 沒資料的國家（格陵蘭、南極…）：深灰紫，不要搶眼
 
-// 中／英切換（預設中文）
+// 獎項名稱：中、英、日、韓
 export const TIER_ZH = ['特獎', '頭獎', '二獎', '三獎', '四獎', '五獎', '六獎', '哈哈獎']
 export const TIER_EN = ['GRAND', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', 'BOOBY']
 export const TIER_EN_FULL = ['Grand Prize', '1st Prize', '2nd Prize', '3rd Prize', '4th Prize', '5th Prize', '6th Prize', 'Booby Prize']
+export const TIER_JA = ['特賞', '1等', '2等', '3等', '4等', '5等', '6等', '残念賞']
+export const TIER_KO = ['특등', '1등', '2등', '3등', '4등', '5등', '6등', '꽝']
+const TIER_JA_FULL = ['特賞', '1等賞', '2等賞', '3等賞', '4等賞', '5等賞', '6等賞', '残念賞']
+const TIER_KO_FULL = ['특등상', '1등상', '2등상', '3등상', '4등상', '5등상', '6등상', '꽝']
+// 獎牌上的短名（照目前語言）
+export const tierShort = (i) => L(TIER_EN[i], TIER_ZH[i], TIER_JA[i], TIER_KO[i])
 const TIER_NAMES = TIER_EN_FULL
 const LAST = TIER_NAMES.length - 1
 const CUTS = tierMeta.cuts // 每一級最低的 HDI 千分位（整數，避免浮點誤差）
@@ -47,7 +54,7 @@ export const tierOfHdi = (v) => { const h = Math.round(v * 1000); return CUTS.fi
 const f3 = (h) => (h / 1000).toFixed(3)
 export const tierIdx = (iso) => (C[iso].hdi == null ? -1 : tierOfHdi(C[iso].hdi))
 export const TIERS = TIER_NAMES.map((_, i) => ({
-  get name() { return L(TIER_EN_FULL[i], TIER_ZH[i]) }, en: TIER_EN_FULL[i], color: TIER_COLORS[LAST - i],
+  get name() { return L(TIER_EN_FULL[i], TIER_ZH[i], TIER_JA_FULL[i], TIER_KO_FULL[i]) }, en: TIER_EN_FULL[i], color: TIER_COLORS[LAST - i],
   range: i === 0 ? `≥ ${f3(CUTS[0])}` : i === LAST ? `≤ ${f3(CUTS[LAST - 1] - 1)}` : CUTS[i] === CUTS[i - 1] - 1 ? f3(CUTS[i]) : `${f3(CUTS[i])}–${f3(CUTS[i - 1] - 1)}`,
   p: 0, n: 0, balls: 0,
 }))
@@ -57,17 +64,19 @@ for (const iso of ISOS) { const t = TIERS[tierIdx(iso)] ?? noHdi; t.p += C[iso].
 const ZH_SHORT = { CHN: '中國', TWN: '臺灣', KOR: '南韓', PRK: '北韓', IDN: '印尼', COD: '民主剛果', COG: '剛果', SAU: '沙烏地', ARE: '阿聯', CZE: '捷克',
   MLI: '馬利', CAF: '中非', PNG: '巴紐', PSX: '巴勒斯坦', BIH: '波赫', TTO: '千里達', STP: '聖多美', VCT: '聖文森', ATG: '安地卡', KNA: '聖克里斯多福',
   FSM: '密克羅尼西亞', MNG: '蒙古' }
-export const nameOf = (iso) => L(C[iso].name_en, ZH_SHORT[iso] ?? C[iso].name_zh ?? C[iso].name_en)
-export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、'))
-export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? L('Redraw', '重抽')
+export const nameOf = (iso) => L(C[iso].name_en, ZH_SHORT[iso] ?? C[iso].name_zh ?? C[iso].name_en, namesJaKo[iso]?.[0], namesJaKo[iso]?.[1])
+// 地圖上的國家（含不在人口表裡的地區）：日韓用 Natural Earth 的名字
+export const mapNameOf = (iso, en, zh) => L(en, zh ?? en, namesJaKo[iso]?.[0], namesJaKo[iso]?.[1])
+export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、', '、', ', '))
+export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? L('Redraw', '重抽', '引き直し', '다시 뽑기')
 export const colorOf = (iso) => TIERS[tierIdx(iso)]?.color ?? NODATA
 export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[b].hdi - C[a].hdi)
 // 照人口比例算的 HDI 期望值（沒有 HDI 的不算；跟 Day 25 一樣）
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)
 
 // 模式：地圖、彩球、排列、格子、盒子・地圖、盒子・照獎、遊戲（預設遊戲）
-export const MODES = [['map', 'Map', '地圖'], ['box', 'World Box', '世界彩球盒'], ['boxp', 'Prize Box', '獎項彩球盒'], ['game', 'Game', '遊戲']]
-  .map(([key, en, zh]) => ({ key, get label() { return L(en, zh) } }))
+export const MODES = [['map', 'Map', '地圖', '地図', '지도'], ['box', 'World Box', '世界彩球盒', '世界ボール箱', '세계 공 상자'], ['boxp', 'Prize Box', '獎項彩球盒', '賞別ボール箱', '상별 공 상자'], ['game', 'Game', '遊戲', 'ゲーム', '게임']]
+  .map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 export const mode = ref('game')
 // 排列、格子模式：球排在框裡，不畫地圖
 export const onBoard = () => mode.value === 'grid' || mode.value === 'cells'
@@ -123,13 +132,15 @@ export const boxRank = (() => {
   return { cells: gridRank, walls, frames }
 })()
 export const fmtP = (p) => (p >= 0.001 || p === 0 ? `${(p * 100).toFixed(1)}%` : `${(p * 100).toPrecision(2)}%`)
-// 大數字：中文用「萬／億」，英文用 million / billion（一萬以下照原樣）
+// 大數字：中日韓用「萬（万、만）／億（억）」，英文用 million / billion（一萬以下照原樣）
 const trim = (x, d) => String(+x.toFixed(d))
+const BIG = { zh: ['萬', '億'], ja: ['万', '億'], ko: ['만', '억'] }
 export const fmtBig = (n) => {
   if (n == null) return '—'
-  if (lang.value === 'zh') {
-    if (n >= 1e8) return `${trim(n / 1e8, n >= 1e9 ? 1 : 2)} 億`
-    if (n >= 1e4) return `${n >= 1e6 ? Math.round(n / 1e4).toLocaleString('en-US') : trim(n / 1e4, 1)} 萬`
+  const u = BIG[lang.value]
+  if (u) {
+    if (n >= 1e8) return `${trim(n / 1e8, n >= 1e9 ? 1 : 2)} ${u[1]}`
+    if (n >= 1e4) return `${n >= 1e6 ? Math.round(n / 1e4).toLocaleString('en-US') : trim(n / 1e4, 1)} ${u[0]}`
   } else {
     if (n >= 1e9) return `${trim(n / 1e9, 2)} billion`
     if (n >= 1e6) return `${trim(n / 1e6, n >= 1e8 ? 0 : 1)} million`
@@ -153,11 +164,11 @@ export function ballTip(b) {
   const k = balls.isos.indexOf(iso)
   return [
     `<b>${nameOf(iso)}</b>`,
-    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>HDI ${t.range}` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）')}`,
-    ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`)] : []),
-    `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`) : ''}`,
-    L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`),
-    mode.value === 'grid' || mode.value === 'boxp' ? L(`#${gridRank[b] + 1} of ${BALL_TOTAL} in prize order`, `照獎項排第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆）`)
-      : L(`Ball #${b + 1} of ${BALL_TOTAL}`, `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`),
+    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>HDI ${t.range}` : L(' (no HDI — drawn again)', '（沒有 HDI，抽到再抽一次）', '（HDI なし・引き直し）', ' (HDI 없음 — 다시 뽑기)')}`,
+    ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到這一國的機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)] : []),
+    `HDI ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (UNDP rank #${c.hdi_rank})`, `（UNDP 第 ${c.hdi_rank} 名）`, `（UNDP ${c.hdi_rank} 位）`, ` (UNDP ${c.hdi_rank}위)`) : ''}`,
+    L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`, `ボール ${BALLS[iso]} 個中 ${b - balls.start[k] + 1} 個目`, `공 ${BALLS[iso]}개 중 ${b - balls.start[k] + 1}번째`),
+    mode.value === 'grid' || mode.value === 'boxp' ? L(`#${gridRank[b] + 1} of ${BALL_TOTAL} in prize order`, `照獎項排第 ${gridRank[b] + 1} 顆（共 ${BALL_TOTAL} 顆）`, `賞の順で ${gridRank[b] + 1} 番目（全 ${BALL_TOTAL} 個）`, `상 순서로 ${gridRank[b] + 1}번째 (총 ${BALL_TOTAL}개)`)
+      : L(`Ball #${b + 1} of ${BALL_TOTAL}`, `全部第 ${b + 1} 顆（共 ${BALL_TOTAL} 顆）`, `全体の ${b + 1} 番目（全 ${BALL_TOTAL} 個）`, `전체 ${b + 1}번째 (총 ${BALL_TOTAL}개)`),
   ].join('<br>')
 }

@@ -6,18 +6,20 @@
     <div class="st-sign">
       <i class="st-tube"></i>
       <div class="st-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
-      <div v-if="zh" class="st-main zh"><span class="n-pink">出生</span><span class="n-cyan">搖搖<b>樂</b></span></div>
+      <div v-if="lang === 'zh'" class="st-main zh"><span class="n-pink">出生</span><span class="n-cyan">搖搖<b>樂</b></span></div>
+      <div v-else-if="lang === 'ja'" class="st-main zh ja"><span class="n-pink">出生</span><span class="n-cyan">ガチ<b>ャ</b></span></div>
+      <div v-else-if="lang === 'ko'" class="st-main zh ko"><span class="n-pink">출생</span> <span class="n-cyan">복<b>권</b></span></div>
       <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
-      <div v-if="zh" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span></div>
+      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span></div>
+      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span></div>
+      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span></div>
       <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 LIFE</span></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { lang } from '../i18n.js'
-const zh = computed(() => lang.value === 'zh')
 defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, default: 0 } })
 </script>
 
@@ -49,6 +51,8 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 .st-main { position: relative; margin-top: 0; font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 108px; line-height: 1.05; letter-spacing: 0.02em; white-space: nowrap; }
 .st-main span { display: inline-block; }
 .st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: 0.08em; text-indent: 0.08em; }
+.st-main.ja { font-family: 'M PLUS Rounded 1c', 'Huninn', sans-serif; font-weight: 800; }
+.st-main.ko { font-family: 'Jua', sans-serif; font-weight: 400; letter-spacing: 0.04em; }
 .n-pink { color: #ffe3f1; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fae, 0 0 18px #ff2d95, 0 0 40px #ff2d95, 0 0 80px #ff2d95; }
 .n-cyan { color: #e2feff; text-shadow: 0 0 2px #fff, 0 0 8px #3defff, 0 0 18px #19e6ff, 0 0 40px #19e6ff, 0 0 80px #19e6ff; }
 .n-cyan b { font-weight: inherit; animation: n-flicker 5s linear infinite; } /* 一個字母像接觸不良，偶爾閃掉 */

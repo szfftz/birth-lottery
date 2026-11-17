@@ -9,6 +9,9 @@
   --dim: #7a7a7a;
   color-scheme: dark;
 }
+/* 日文、韓文：換成同樣是圓體的日、韓字型 */
+html:lang(ja) { --font: 'Overpass', 'M PLUS Rounded 1c', 'Huninn', -apple-system, 'Hiragino Sans', sans-serif; }
+html:lang(ko) { --font: 'Overpass', 'Jua', -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: #05040f; color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }

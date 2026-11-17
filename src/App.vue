@@ -2,15 +2,22 @@
   <!-- 出生搖搖樂（手機版）：整個畫面就是舞台（預設 3D 樂透搖獎機），下面浮著一條玻璃操作列：模式選單（漢堡）、DRAW、資訊；
        結果、歷史、獎項（含統計）、說明收在從下面拉上來的面板（按資訊或點結果卡打開）
        舞台蓋滿整個畫面（含狀態列、操作列後面）；insets＝上面狀態列、下面操作列擋住的高度，傳給各模式把內容放在看得到的地方
-       電腦上也是手機寬度（.phone 最寬 430px，置中） -->
+       手機、iPad 滿版；電腦上照直式手機比例置中 -->
   <div ref="phoneEl" class="phone">
     <i ref="safeTopEl" class="safe-top" aria-hidden="true"></i>
     <div class="stage-wrap">
     <Transition name="fade">
       <div v-if="!atlas" class="loading">
+        <!-- 載入畫面：中、日、韓、英四種語言都寫（還不知道使用者看哪一種）；跟主畫面同一套霓虹招牌 -->
         <div class="ld-ball"><i></i></div>
-        <div class="ld-title">{{ L('BIRTH LOTTERY', '出生搖搖樂') }}</div>
-        <div class="ld-sub">{{ L('Loading…', '載入中…') }}</div>
+        <div class="ld-sign">
+          <div class="ld-row"><span class="n-pink">出生</span><span class="n-cyan">搖搖樂</span></div>
+          <div class="ld-row ja"><span class="n-pink">出生</span><span class="n-cyan">ガチャ</span></div>
+          <div class="ld-row ko"><span class="n-pink">출생</span> <span class="n-cyan">복권</span></div>
+          <div class="ld-row en"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTTERY</span></div>
+        </div>
+        <div class="ld-sub"><span>載入中</span><i>◆</i><span>読み込み中</span><i>◆</i><span>로딩 중</span><i>◆</i><span>Loading</span></div>
+        <div class="ld-dots"><i></i><i></i><i></i></div>
       </div>
     </Transition>
     <LotteryDrum ref="drum" :balls="balls" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]" v-if="atlas" :paused="mode !== 'game'"
@@ -29,8 +36,8 @@
               <div class="rb-medal">
                 <i class="md-tail l"></i><i class="md-tail r"></i>
                 <div class="md-coin">
-                  <div class="md-face" :class="{ long: isZh ? TIER_ZH[tierIdx(last)].length > 2 : TIER_EN[tierIdx(last)].length > 3 }">
-                    <b>{{ isZh ? TIER_ZH[tierIdx(last)] : TIER_EN[tierIdx(last)] }}</b><small v-if="!isZh">PRIZE</small>
+                  <div class="md-face" :class="{ long: tierShort(tierIdx(last)).length > (isCJK() ? 2 : 3) }">
+                    <b>{{ tierShort(tierIdx(last)) }}</b><small v-if="!isCJK()">PRIZE</small>
                   </div>
                 </div>
               </div>
@@ -45,13 +52,12 @@
 
     <!-- 中／英切換：畫面最上面右邊（預設中文，選過的記在瀏覽器） -->
     <div class="lang-switch glass" role="group" aria-label="Language / 語言" :style="{ top: `${insets.top + 8}px` }">
-      <button type="button" :class="{ on: isZh }" :aria-pressed="isZh" @click="setLang('zh')">中</button>
-      <button type="button" :class="{ on: !isZh }" :aria-pressed="!isZh" @click="setLang('en')">EN</button>
+      <button v-for="[k, label] in LANGS" :key="k" type="button" :class="{ on: lang === k }" :aria-pressed="lang === k" @click="setLang(k)">{{ label }}</button>
     </div>
     <!-- 頁面名稱＋模式選單（漢堡合在一起）：最上面左邊寫這是哪一頁，按下去往下展開選單 -->
     <div v-if="menu" class="menu-scrim" @click="menu = false"></div>
-    <nav class="modes" :style="{ top: `${insets.top + 8}px` }" :aria-label="L('Modes', '模式')">
-      <button type="button" class="mode-title" :class="{ on: menu }" :aria-expanded="menu" :aria-label="L('Switch mode', '切換模式')" :disabled="spinning" @click="menu = !menu">
+    <nav class="modes" :style="{ top: `${insets.top + 8}px` }" :aria-label="L('Modes', '模式', 'モード', '모드')">
+      <button type="button" class="mode-title" :class="{ on: menu }" :aria-expanded="menu" :aria-label="L('Switch mode', '切換模式', 'モード切替', '모드 전환')" :disabled="spinning" @click="menu = !menu">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path :d="menu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16'" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
         <span>{{ modeLabel }}</span>
       </button>
@@ -65,7 +71,7 @@
           <li class="m-sep" role="separator"></li>
           <li>
             <button type="button" role="menuitem" @click="menu = false; openSheet()">
-              <svg class="m-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>{{ L('Results & info', '結果與說明') }}
+              <svg class="m-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>{{ L('Results & info', '結果與說明', '結果と説明', '결과와 설명') }}
               <span v-if="total" class="m-badge">{{ total > 99 ? '99+' : total }}</span>
             </button>
           </li>
@@ -73,10 +79,10 @@
       </Transition>
     </nav>
     <!-- 操作列：浮在舞台上的玻璃條；只有 DRAW（所有模式共用，唯一的抽獎按鈕）；資訊在左上的選單裡 -->
-    <div ref="dockEl" class="dock glass">
+    <div ref="dockEl" class="dock">
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
         <i class="d-bulbs" aria-hidden="true"></i>
-        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b :aria-label="spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖')"><span v-for="(ch, i) in [...(spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖'))]" :key="`${spinning}${i}`" class="d-ch" :style="{ '--i': i }" aria-hidden="true">{{ ch }}</span></b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
+        <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b :aria-label="spinning ? L('SPINNING', '搖獎中', '抽選中', '추첨 중') : L('SPIN', '搖一搖', '回す', '돌리기')"><span v-for="(ch, i) in [...(spinning ? L('SPINNING', '搖獎中', '抽選中', '추첨 중') : L('SPIN', '搖一搖', '回す', '돌리기'))]" :key="`${spinning}${i}`" class="d-ch" :style="{ '--i': i }" aria-hidden="true">{{ ch }}</span></b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
     </div>
 
@@ -89,12 +95,12 @@
         <div class="sh-row">
           <h2 class="vs-title">{{ modeLabel }}</h2>
           <button v-if="mode === 'map'" type="button" class="pill vs-reset vs-tog" :class="{ off: !showTally }" :aria-pressed="showTally" @click="showTally = !showTally">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2.2" fill="none" /><circle cx="12" cy="12" r="2.4" fill="currentColor" /></svg>{{ L('Draws', '抽過的') }}
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2.2" fill="none" /><circle cx="12" cy="12" r="2.4" fill="currentColor" /></svg>{{ L('Draws', '抽過的', '当選済み', '뽑힌 곳') }}
           </button>
           <button type="button" class="pill vs-reset" @click="(mode === 'map' ? mapEl : boxEl)?.resetView()">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>{{ L('RESET', '重設') }}
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>{{ L('RESET', '重設', 'リセット', '초기화') }}
           </button>
-          <button type="button" class="close" :aria-label="L('Close', '關閉')" @click="setMode('game')">
+          <button type="button" class="close" :aria-label="L('Close', '關閉', '閉じる', '닫기')" @click="setMode('game')">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
           </button>
         </div>
@@ -111,14 +117,14 @@
     <!-- 資訊面板：從下面拉上來，蓋在舞台上；點外面、按 ✕、往下滑都會收起來 -->
     <Transition name="fade"><div v-if="sheet" class="scrim" @click="sheet = false"></div></Transition>
     <Transition name="sheet">
-    <aside v-if="sheet" class="sheet" role="dialog" :aria-label="L('Info', '資訊')" :style="dragFor === 'info' && dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : null">
+    <aside v-if="sheet" class="sheet" role="dialog" :aria-label="L('Info', '資訊', '情報', '정보')" :style="dragFor === 'info' && dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : null">
     <div class="sheet-head" data-s="info" @pointerdown="dragStart" @pointermove="dragMove" @pointerup="dragEnd" @pointercancel="dragEnd">
       <i class="grip"></i>
       <div class="sh-row">
         <nav class="tabs" role="tablist">
           <button v-for="t in TABS" :key="t.key" type="button" role="tab" :aria-selected="tab === t.key" :class="{ on: tab === t.key }" @click="tab = t.key">{{ t.label }}</button>
         </nav>
-        <button type="button" class="close" :aria-label="L('Close', '關閉')" @click="sheet = false">
+        <button type="button" class="close" :aria-label="L('Close', '關閉', '閉じる', '닫기')" @click="sheet = false">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
         </button>
       </div>
@@ -135,35 +141,35 @@
             <div class="rb-medal t-medal">
               <i class="md-tail l"></i><i class="md-tail r"></i>
               <div class="md-coin">
-                <div class="md-face" :class="{ long: isZh ? TIER_ZH[tierIdx(last)].length > 2 : TIER_EN[tierIdx(last)].length > 3 }">
-                  <b>{{ isZh ? TIER_ZH[tierIdx(last)] : TIER_EN[tierIdx(last)] }}</b><small v-if="!isZh">PRIZE</small>
+                <div class="md-face" :class="{ long: tierShort(tierIdx(last)).length > (isCJK() ? 2 : 3) }">
+                  <b>{{ tierShort(tierIdx(last)) }}</b><small v-if="!isCJK()">PRIZE</small>
                 </div>
               </div>
             </div>
             <div class="rb-body t-body">
               <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(last)"></i><i :style="flagStyle(last)"></i></div></div></div>
-              <div class="rb-main"><div class="t-title">{{ L(`DRAW #${total.toLocaleString('en-US')} · YOU WERE BORN IN`, `第 ${total.toLocaleString('en-US')} 次投胎・你出生在`) }}</div><div class="rb-name">{{ nameOf(last) }}</div></div>
+              <div class="rb-main"><div class="t-title">{{ L(`DRAW #${total.toLocaleString('en-US')} · YOU WERE BORN IN`, `第 ${total.toLocaleString('en-US')} 次投胎・你出生在`, `${total.toLocaleString('en-US')} 回目の転生・あなたが生まれたのは`, `${total.toLocaleString('en-US')}번째 환생 · 당신이 태어난 곳은`) }}</div><div class="rb-name">{{ nameOf(last) }}</div></div>
             </div>
             <WorldLocator compact class="t-map" :iso="last" :color="colorOf(last)" />
             <div class="tiles">
-              <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? L(`UNDP rank #${C[last].hdi_rank}`, `UNDP 第 ${C[last].hdi_rank} 名`) : L('Not ranked by UNDP', '不在 UNDP 排名') }}</small></div>
-              <div class="tile"><span>{{ L('HDI of this prize', '這一獎的 HDI') }}</span><b>{{ TIERS[tierIdx(last)].range }}</b><small>{{ TIERS[tierIdx(last)].name }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this prize', '這一獎的機率') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L(`About 1 in ${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 1/${oneIn(pTier(TIERS[tierIdx(last)]))}`) }}</small></div>
-              <div class="tile"><span>{{ L('Odds of this country', '這一國的機率') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L(`About 1 in ${oneIn(pIso(last))}`, `約 1/${oneIn(pIso(last))}`) }}</small></div>
-              <div v-if="lastBall != null" class="tile"><span>{{ L('Ball', '球號') }}</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`) }}</small></div>
-              <div class="tile" :class="{ wide: lastBall == null }"><span>{{ L('Population', '人口') }}</span><b>{{ fmtBig(C[last].pop) }}</b><small>{{ C[last].pop_date }}</small></div>
+              <div class="tile"><span>HDI</span><b>{{ C[last].hdi.toFixed(3) }}</b><small>{{ C[last].hdi_rank ? L(`UNDP rank #${C[last].hdi_rank}`, `UNDP 第 ${C[last].hdi_rank} 名`, `UNDP ${C[last].hdi_rank} 位`, `UNDP ${C[last].hdi_rank}위`) : L('Not ranked by UNDP', '不在 UNDP 排名', 'UNDP 順位なし', 'UNDP 순위 없음') }}</small></div>
+              <div class="tile"><span>{{ L('HDI of this prize', '這一獎的 HDI', 'この賞の HDI', '이 상의 HDI') }}</span><b>{{ TIERS[tierIdx(last)].range }}</b><small>{{ TIERS[tierIdx(last)].name }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this prize', '這一獎的機率', 'この賞の確率', '이 상의 확률') }}</span><b>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small>{{ L(`About 1 in ${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 1/${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 ${oneIn(pTier(TIERS[tierIdx(last)]))} 分の 1`, `약 ${oneIn(pTier(TIERS[tierIdx(last)]))}분의 1`) }}</small></div>
+              <div class="tile"><span>{{ L('Odds of this country', '這一國的機率', 'この国の確率', '이 나라의 확률') }}</span><b>{{ fmtP(pIso(last)) }}</b><small>{{ L(`About 1 in ${oneIn(pIso(last))}`, `約 1/${oneIn(pIso(last))}`, `約 ${oneIn(pIso(last))} 分の 1`, `약 ${oneIn(pIso(last))}분의 1`) }}</small></div>
+              <div v-if="lastBall != null" class="tile"><span>{{ L('Ball', '球號', 'ボール番号', '공 번호') }}</span><b>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`, `この国 ${BALLS[last]} 個／全 ${BALL_TOTAL} 個`, `이 나라 ${BALLS[last]}개 / 총 ${BALL_TOTAL}개`) }}</small></div>
+              <div class="tile" :class="{ wide: lastBall == null }"><span>{{ L('Population', '人口', '人口', '인구') }}</span><b>{{ fmtBig(C[last].pop) }}</b><small>{{ C[last].pop_date }}</small></div>
             </div>
-            <p v-if="lastRerolls" class="note">{{ L(`${lastRerolls} redraw ${lastRerolls > 1 ? 'balls' : 'ball'} (${noHdiNames()}) dropped first, so it was drawn again automatically.`, `先掉出 ${lastRerolls} 次重抽球（${noHdiNames()}），自動再搖`) }}</p>
+            <p v-if="lastRerolls" class="note">{{ L(`${lastRerolls} redraw ${lastRerolls > 1 ? 'balls' : 'ball'} (${noHdiNames()}) dropped first, so it was drawn again automatically.`, `先掉出 ${lastRerolls} 次重抽球（${noHdiNames()}），自動再搖`, `先に引き直しボール（${noHdiNames()}）が ${lastRerolls} 回出たので、自動でもう一度回しました。`, `다시 뽑기 공(${noHdiNames()})이 먼저 ${lastRerolls}번 나와서 자동으로 다시 돌렸어요.`) }}</p>
           </article>
         </template>
         <div v-else class="empty">
           <div class="e-ball" :class="{ spin: spinning }"></div>
-          <p v-if="spinning" class="e-main">{{ L('Drawing… waiting for a ball to drop', '搖獎中…等球掉進盤子') }}</p>
+          <p v-if="spinning" class="e-main">{{ L('Drawing… waiting for a ball to drop', '搖獎中…等球掉進盤子', '抽選中…ボールがトレーに落ちるのを待っています', '추첨 중… 공이 쟁반에 떨어지길 기다리는 중') }}</p>
           <template v-else>
-            <p class="e-main">{{ L('Press', '按') }} <b class="kbd">{{ L('SPIN', '搖一搖') }}</b> {{ L('to be born', '開始投胎') }}</p>
-            <p v-if="mode === 'game'" class="e-sub">{{ L(`Which of the ${BALL_TOTAL} balls drops out is decided entirely by the physics simulation. Odds = that country's balls ÷ all balls.`, `${BALL_TOTAL} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
-            <p v-else-if="mode === 'map'" class="e-sub">{{ L(`Odds = that country's population ÷ world population. Countries already drawn get a white circle sized by their share of draws.`, '抽中的機率＝那一國的人口 ÷ 全世界人口。抽過的國家畫白色圓，面積＝抽中次數佔幾成。') }}</p>
-            <p v-else class="e-sub">{{ L(`One ball is drawn from ${BALL_TOTAL}. Odds = that country's balls ÷ all balls.`, `從 ${BALL_TOTAL} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。`) }}</p>
+            <p class="e-main">{{ L('Press', '按', '', '') }} <b class="kbd">{{ L('SPIN', '搖一搖', '回す', '돌리기') }}</b> {{ L('to be born', '開始投胎', 'を押して生まれよう', '를 눌러 태어나기') }}</p>
+            <p v-if="mode === 'game'" class="e-sub">{{ L(`Which of the ${BALL_TOTAL} balls drops out is decided entirely by the physics simulation. Odds = that country's balls ÷ all balls.`, `${BALL_TOTAL} 顆球裡掉出哪一顆，全部照物理模擬決定；抽中的機率＝那一國的球數 ÷ 全部球數。`, `${BALL_TOTAL} 個のボールのどれが出るかは、すべて物理シミュレーションで決まります。当たる確率＝その国のボール数 ÷ 全ボール数。`, `${BALL_TOTAL}개 공 중 어느 공이 나올지는 전부 물리 시뮬레이션으로 정해져요. 뽑힐 확률 = 그 나라의 공 수 ÷ 전체 공 수.`) }}</p>
+            <p v-else-if="mode === 'map'" class="e-sub">{{ L(`Odds = that country's population ÷ world population. Turn on “Draws” to circle the countries you've drawn; each circle's area is its share of your draws.`, '抽中的機率＝那一國的人口 ÷ 全世界人口。打開「抽過的」會在抽過的國家畫金色圓，面積＝抽中次數佔幾成。', '当たる確率＝その国の人口 ÷ 世界の人口。「当選済み」をオンにすると、当たった国に金色の円を描きます（面積＝当選回数の割合）。', '뽑힐 확률 = 그 나라 인구 ÷ 세계 인구. 「뽑힌 곳」을 켜면 뽑힌 나라에 금색 원을 그려요 (면적 = 뽑힌 횟수의 비율).') }}</p>
+            <p v-else class="e-sub">{{ L(`One ball is drawn from ${BALL_TOTAL}. Odds = that country's balls ÷ all balls.`, `從 ${BALL_TOTAL} 顆球裡抽一顆：抽中的機率＝那一國的球數 ÷ 全部球數。`, `${BALL_TOTAL} 個のボールから 1 個を引きます。当たる確率＝その国のボール数 ÷ 全ボール数。`, `${BALL_TOTAL}개 공 중 하나를 뽑아요. 뽑힐 확률 = 그 나라의 공 수 ÷ 전체 공 수.`) }}</p>
           </template>
         </div>
         <p class="hint"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>{{ L(...HINTS[mode]) }}</p>
@@ -172,90 +178,100 @@
       <!-- 歷史：抽過的結果，新的在上面 -->
       <section v-else-if="tab === 'history'">
         <div class="h-row">
-          <h3>{{ L('Draw history', '抽過的結果') }}<small>{{ L(`${total.toLocaleString('en-US')} ${total === 1 ? 'draw' : 'draws'} · newest first`, `共 ${total.toLocaleString('en-US')} 次・新的在上面`) }}</small></h3>
-          <button v-if="history.length" type="button" class="pill clear" :disabled="spinning" @click="clearHistory">{{ L('Clear', '清空') }}</button>
+          <h3>{{ L('Draw history', '抽過的結果', '抽選の履歴', '뽑기 기록') }}<small>{{ L(`${total.toLocaleString('en-US')} ${total === 1 ? 'draw' : 'draws'} · newest first`, `共 ${total.toLocaleString('en-US')} 次・新的在上面`, `全 ${total.toLocaleString('en-US')} 回・新しい順`, `총 ${total.toLocaleString('en-US')}번 · 최신순`) }}</small></h3>
+          <button v-if="history.length" type="button" class="pill clear" :disabled="spinning" @click="clearHistory">{{ L('Clear', '清空', 'クリア', '지우기') }}</button>
         </div>
         <ol v-if="history.length" class="rows">
           <li v-for="h in historyDesc" :key="h.n" :class="{ on: h.n === total }" @click="pick(h.iso)">
             <span class="r-n">{{ h.n }}</span><FlagBall class="fl" :iso="h.iso" />
-            <span class="r-name">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
+            <span class="r-name">{{ nameOf(h.iso) }}<small><i class="sw" :style="{ background: colorOf(h.iso) }"></i>{{ prizeOf(h.iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</small></span>
             <b class="r-v">{{ h.time }}<small v-if="h.ball != null">#{{ h.ball + 1 }}</small></b>
           </li>
         </ol>
-        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過') }}</p><p class="e-sub">{{ L('Press SPIN and every result will be listed here.', '按「搖一搖」抽一次，結果會一筆一筆記在這裡。') }}</p></div>
+        <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過', 'まだ抽選していません', '아직 뽑지 않았어요') }}</p><p class="e-sub">{{ L('Press SPIN and every result will be listed here.', '按「搖一搖」抽一次，結果會一筆一筆記在這裡。', '「回す」を押すと、結果がここに記録されます。', '「돌리기」를 누르면 결과가 여기에 기록돼요.') }}</p></div>
       </section>
 
       <!-- 獎項＋統計：上面是你抽的成績，中間每一獎的「應該中幾成 vs 你中幾成」，下面全部國家 -->
       <section v-else-if="tab === 'prize'">
-        <h3>{{ L('Your results', '你的成績') }}</h3>
+        <h3>{{ L('Your results', '你的成績', 'あなたの成績', '나의 성적') }}</h3>
         <div class="tiles">
-          <div class="tile"><span>{{ L('Draws', '已抽') }}</span><b>{{ total.toLocaleString('en-US') }}<em v-if="isZh">次</em></b><small>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`) }}</small></div>
-          <div class="tile"><span>{{ L('Average HDI', '平均 HDI') }}</span><b>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small>{{ L('World expectation', '全世界期望') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
+          <div class="tile"><span>{{ L('Draws', '已抽', '抽選回数', '뽑은 횟수') }}</span><b>{{ total.toLocaleString('en-US') }}<em v-if="isCJK()">{{ L('', '次', '回', '번') }}</em></b><small>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`, `${Object.keys(counts).length} か国${rerolls ? `・引き直し ${rerolls}` : ''}`, `${Object.keys(counts).length}개국${rerolls ? ` · 다시 뽑기 ${rerolls}` : ''}`) }}</small></div>
+          <div class="tile"><span>{{ L('Average HDI', '平均 HDI', '平均 HDI', '평균 HDI') }}</span><b>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small>{{ L('World expectation', '全世界期望', '世界の期待値', '세계 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
           <template v-if="total">
-            <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好') }}</span><b class="sm"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
-            <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差') }}</span><b class="sm"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
+            <div class="tile pick" @click="pick(best)"><span>{{ L('Best', '最好', '最高', '최고') }}</span><b class="sm"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small></div>
+            <div class="tile pick" @click="pick(worst)"><span>{{ L('Worst', '最差', '最低', '최저') }}</span><b class="sm"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small></div>
           </template>
         </div>
 
-        <h3>{{ L('Prizes', '獎項') }}<small>{{ L(`HDI ${meta.hdi.year} · odds vs your draws`, `HDI ${meta.hdi.year} 年・機率 vs 你抽到的`) }}</small></h3>
+        <h3>{{ L('Prizes', '獎項', '賞', '상') }}<small>{{ L(`HDI ${meta.hdi.year} · odds vs your draws`, `HDI ${meta.hdi.year} 年・機率 vs 你抽到的`, `HDI ${meta.hdi.year} 年・確率 vs あなたの結果`, `HDI ${meta.hdi.year}년 · 확률 vs 나의 결과`) }}</small></h3>
         <ol class="prizes">
           <li v-for="(t, i) in TIERS" :key="t.name" :class="{ on: last && tierIdx(last) === i }" :style="{ '--tier': t.color }">
             <div class="p-top">
               <span class="p-name"><i class="sw"></i>{{ t.name }}</span>
               <span class="p-hdi">HDI {{ t.range }}</span>
-              <span class="p-meta">{{ L(`${t.n} countries · ${t.balls} balls`, `${t.n} 國・${t.balls} 球`) }}</span>
+              <span class="p-meta">{{ L(`${t.n} countries · ${t.balls} balls`, `${t.n} 國・${t.balls} 球`, `${t.n} か国・${t.balls} 個`, `${t.n}개국 · 공 ${t.balls}개`) }}</span>
             </div>
             <div class="p-bars">
-              <div class="p-bar"><i :style="{ width: `${(pTier(t) / maxTierP) * 100}%` }"></i><b>{{ fmtP(pTier(t)) }}</b><small>{{ L('Odds', '機率') }}</small></div>
-              <div class="p-bar mine"><i :style="{ width: `${total ? ((drawnByTier[i] || 0) / total / maxTierP) * 100 : 0}%` }"></i><b>{{ total ? fmtP((drawnByTier[i] || 0) / total) : '—' }}</b><small>{{ L(`You: ${drawnByTier[i] || 0}`, `你 ${drawnByTier[i] || 0} 次`) }}</small></div>
+              <div class="p-bar"><i :style="{ width: `${(pTier(t) / maxTierP) * 100}%` }"></i><b>{{ fmtP(pTier(t)) }}</b><small>{{ L('Odds', '機率', '確率', '확률') }}</small></div>
+              <div class="p-bar mine"><i :style="{ width: `${total ? ((drawnByTier[i] || 0) / total / maxTierP) * 100 : 0}%` }"></i><b>{{ total ? fmtP((drawnByTier[i] || 0) / total) : '—' }}</b><small>{{ L(`You: ${drawnByTier[i] || 0}`, `你 ${drawnByTier[i] || 0} 次`, `あなた ${drawnByTier[i] || 0} 回`, `나 ${drawnByTier[i] || 0}번`) }}</small></div>
             </div>
           </li>
         </ol>
-        <p class="note">{{ L(`The bigger the prize, the harder it is to win: each tier's odds are kept as close as possible to ${TIER_R}× the tier above (1:2:4:…:128). Countries with no HDI (${noHdi.n} countries, ${noHdi.balls} balls) are redrawn automatically${rerolls ? ` — ${rerolls} redraws so far` : ''}.`, `獎越大越難中：每一級的機率盡量接近上一級的 ${TIER_R} 倍（1:2:4:…:128）。沒有 HDI 的國家（${noHdi.n} 國、${noHdi.balls} 球）抽到就重抽${rerolls ? `，到目前重抽 ${rerolls} 次` : ''}。`) }}</p>
+        <p class="note">{{ L(`The bigger the prize, the harder it is to win: each tier's odds are kept as close as possible to ${TIER_R}× the tier above (1:2:4:…:128). Countries with no HDI (${noHdi.n} countries, ${noHdi.balls} balls) are redrawn automatically${rerolls ? ` — ${rerolls} redraws so far` : ''}.`, `獎越大越難中：每一級的機率盡量接近上一級的 ${TIER_R} 倍（1:2:4:…:128）。沒有 HDI 的國家（${noHdi.n} 國、${noHdi.balls} 球）抽到就重抽${rerolls ? `，到目前重抽 ${rerolls} 次` : ''}。`, `大きい賞ほど当たりにくく、各賞の確率はひとつ上の賞のなるべく ${TIER_R} 倍（1:2:4:…:128）。HDI のない国（${noHdi.n} か国・${noHdi.balls} 個）は引き直し${rerolls ? `（これまで ${rerolls} 回）` : ''}。`, `큰 상일수록 당첨되기 어려워요. 각 상의 확률은 바로 위 상의 ${TIER_R}배에 최대한 가깝게 (1:2:4:…:128). HDI가 없는 나라(${noHdi.n}개국, 공 ${noHdi.balls}개)는 다시 뽑아요${rerolls ? ` (지금까지 ${rerolls}번)` : ''}.`) }}</p>
 
         <template v-if="total">
-          <h3>{{ L('Most drawn', '最常投胎到') }}</h3>
+          <h3>{{ L('Most drawn', '最常投胎到', 'よく生まれた国', '가장 많이 태어난 곳') }}</h3>
           <ol class="rows">
             <li v-for="(c, k) in topDrawn" :key="c.iso" :class="{ on: c.iso === last }" @click="pick(c.iso)">
               <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="c.iso" />
               <span class="r-name">{{ nameOf(c.iso) }}<small><i class="sw" :style="{ background: colorOf(c.iso) }"></i>{{ prizeOf(c.iso) }}</small></span>
-              <b class="r-v">{{ c.n.toLocaleString('en-US') }}{{ L('×', ' 次') }}<small>{{ fmtP(c.n / total) }}</small></b>
+              <b class="r-v">{{ c.n.toLocaleString('en-US') }}{{ L('×', ' 次', ' 回', '번') }}<small>{{ fmtP(c.n / total) }}</small></b>
             </li>
           </ol>
         </template>
 
         <div class="h-row">
-          <h3>{{ L('All countries', '全部國家') }}<small>{{ L(`${meta.count} countries · ${BALL_TOTAL} balls`, `${meta.count} 國・${BALL_TOTAL} 球`) }}</small></h3>
-          <div class="seg" role="group" :aria-label="L('Sort', '排序')">
+          <h3>{{ L('All countries', '全部國家', 'すべての国', '모든 나라') }}<small>{{ L(`${meta.count} countries · ${BALL_TOTAL} balls`, `${meta.count} 國・${BALL_TOTAL} 球`, `${meta.count} か国・${BALL_TOTAL} 個`, `${meta.count}개국 · 공 ${BALL_TOTAL}개`) }}</small></h3>
+          <div class="seg" role="group" :aria-label="L('Sort', '排序', '並べ替え', '정렬')">
             <button v-for="s in SORTS" :key="s.key" type="button" :class="{ on: sort === s.key }" @click="sort = s.key">{{ s.label }}</button>
           </div>
         </div>
         <ol class="rows">
           <li v-for="(iso, k) in sorted" :key="iso" :class="{ on: iso === last }" @click="pick(iso)">
             <span class="r-n">{{ k + 1 }}</span><FlagBall class="fl" :iso="iso" />
-            <span class="r-name">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
-            <b class="r-v"><em class="r-lbl">{{ L('odds', '機率') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`) }}</small></b>
+            <span class="r-name">{{ nameOf(iso) }}<small><i class="sw" :style="{ background: colorOf(iso) }"></i>{{ prizeOf(iso) }}{{ L(' · ', '・', '・', ' · ') }}HDI {{ C[iso].hdi?.toFixed(3) ?? '—' }}</small></span>
+            <b class="r-v"><em class="r-lbl">{{ L('odds', '機率', '確率', '확률') }}</em>{{ fmtP(mode === 'map' ? C[iso].p : pIso(iso)) }}<small>{{ L(`${BALLS[iso]} ${BALLS[iso] === 1 ? 'ball' : 'balls'}${counts[iso] ? ` · drawn ${counts[iso]}` : ''}`, `${BALLS[iso]} 球${counts[iso] ? `・中 ${counts[iso]}` : ''}`, `${BALLS[iso]} 個${counts[iso] ? `・当選 ${counts[iso]}` : ''}`, `공 ${BALLS[iso]}개${counts[iso] ? ` · 당첨 ${counts[iso]}` : ''}`) }}</small></b>
           </li>
         </ol>
-        <p class="note">{{ L(`Taiwan: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), ${BALLS.TWN} balls, odds ${fmtP(pIso('TWN'))} — about 1 birth in ${oneIn(pIso('TWN'))} lands in Taiwan. One ball ≈ ${fmtBig(POP_UNIT)} people.`, `臺灣：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}），${BALLS.TWN} 顆球，機率 ${fmtP(pIso('TWN'))}，大約 ${oneIn(pIso('TWN'))} 次投胎才會出生在臺灣一次。1 顆球約 ${fmtBig(POP_UNIT)} 人。`) }}</p>
+        <p class="note">{{ L(`Taiwan: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), ${BALLS.TWN} balls, odds ${fmtP(pIso('TWN'))} — about 1 birth in ${oneIn(pIso('TWN'))} lands in Taiwan. One ball ≈ ${fmtBig(POP_UNIT)} people.`, `臺灣：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}），${BALLS.TWN} 顆球，機率 ${fmtP(pIso('TWN'))}，大約 ${oneIn(pIso('TWN'))} 次投胎才會出生在臺灣一次。1 顆球約 ${fmtBig(POP_UNIT)} 人。`, `台湾：${prizeOf('TWN')}（HDI ${C.TWN.hdi.toFixed(3)}）、ボール ${BALLS.TWN} 個、確率 ${fmtP(pIso('TWN'))}。約 ${oneIn(pIso('TWN'))} 回の転生で 1 回だけ台湾に生まれます。ボール 1 個 ≈ ${fmtBig(POP_UNIT)} 人。`, `대만: ${prizeOf('TWN')} (HDI ${C.TWN.hdi.toFixed(3)}), 공 ${BALLS.TWN}개, 확률 ${fmtP(pIso('TWN'))}. 약 ${oneIn(pIso('TWN'))}번 환생해야 한 번 대만에서 태어나요. 공 1개 ≈ ${fmtBig(POP_UNIT)}명.`) }}</p>
       </section>
 
       <!-- 說明 -->
       <section v-else>
-        <h3>{{ L('How it works', '計算方法') }}</h3>
+        <h3>{{ L('How it works', '計算方法', 'しくみ', '계산 방법') }}</h3>
         <!-- 三個步驟，寫給國高中生看得懂 -->
-        <ol v-if="isZh" class="steps">
+        <ol v-if="lang === 'zh'" class="steps">
           <li><b>把全世界的人換成彩球</b>每 {{ fmtBig(POP_UNIT) }} 個人做成 1 顆球；人很少的國家也至少給 1 顆，所以總共 {{ BALL_TOTAL }} 顆。例如印度人最多，有 {{ BALLS.IND }} 顆；臺灣有 {{ BALLS.TWN }} 顆。</li>
           <li><b>隨便抽一顆球</b>抽到某一國的機率＝那一國的球數 ÷ 全部的球數。例如臺灣：{{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}，大約每 {{ oneIn(pIso('TWN')) }} 次才會抽到一次。</li>
           <li><b>看那一國的 HDI，決定中幾獎</b>HDI（人類發展指數）是 0 到 1 的分數，把平均壽命、受教育的年數、收入加在一起算，越接近 1 代表生活條件越好。HDI 越高獎越大，但這種國家人口少，所以越難抽到。</li>
+        </ol>
+        <ol v-else-if="lang === 'ja'" class="steps">
+          <li><b>世界中の人をボールにする</b>{{ fmtBig(POP_UNIT) }} 人ごとにボールを 1 個作ります。人口がとても少ない国にも最低 1 個あげるので、全部で {{ BALL_TOTAL }} 個。いちばん人口が多いインドは {{ BALLS.IND }} 個、台湾は {{ BALLS.TWN }} 個です。</li>
+          <li><b>ボールを 1 個引く</b>ある国が当たる確率＝その国のボール数 ÷ 全部のボール数。たとえば台湾は {{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}、だいたい {{ oneIn(pIso('TWN')) }} 回に 1 回です。</li>
+          <li><b>その国の HDI で賞が決まる</b>HDI（人間開発指数）は 0〜1 の点数で、平均寿命・教育を受けた年数・収入をまとめて計算します。1 に近いほど暮らしやすい国。HDI が高いほど大きな賞ですが、そういう国は人口が少ないので当たりにくいのです。</li>
+        </ol>
+        <ol v-else-if="lang === 'ko'" class="steps">
+          <li><b>세계 사람들을 공으로 바꾸기</b>{{ fmtBig(POP_UNIT) }}명마다 공 1개를 만들어요. 인구가 아주 적은 나라도 최소 1개를 주니까 모두 {{ BALL_TOTAL }}개예요. 인구가 가장 많은 인도는 {{ BALLS.IND }}개, 대만은 {{ BALLS.TWN }}개예요.</li>
+          <li><b>공 하나 뽑기</b>어떤 나라가 뽑힐 확률 = 그 나라의 공 수 ÷ 전체 공 수. 예를 들어 대만은 {{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}, 대략 {{ oneIn(pIso('TWN')) }}번에 한 번이에요.</li>
+          <li><b>그 나라의 HDI로 상이 정해져요</b>HDI(인간개발지수)는 0에서 1 사이의 점수로, 평균 수명·교육 기간·소득을 합쳐서 계산해요. 1에 가까울수록 살기 좋은 나라예요. HDI가 높을수록 큰 상이지만, 그런 나라는 인구가 적어서 뽑기 어려워요.</li>
         </ol>
         <ol v-else class="steps">
           <li><b>Turn people into balls</b>We make 1 ball for every {{ fmtBig(POP_UNIT) }} people. Even the smallest country gets 1 ball. That makes {{ BALL_TOTAL }} balls in total. India has the most people, so it gets {{ BALLS.IND }} balls. Taiwan gets {{ BALLS.TWN }}.</li>
           <li><b>Pick one ball</b>Your chance of getting a country is its number of balls divided by all the balls. For Taiwan, that's {{ BALLS.TWN }} ÷ {{ BALL_TOTAL }} ≈ {{ fmtP(pIso('TWN')) }}. That's about 1 in {{ oneIn(pIso('TWN')) }}.</li>
           <li><b>The country's HDI is your prize</b>HDI is a score from 0 to 1. It shows how long people live, how many years they go to school, and how much money they make. A higher score means a better life and a bigger prize. But high-score countries have fewer people, so they are harder to get.</li>
         </ol>
-        <h3>{{ L('More details', '更多說明') }}</h3>
-        <ol v-if="!isZh" class="how">
+        <h3>{{ L('More details', '更多說明', 'くわしい説明', '자세한 설명') }}</h3>
+        <ol v-if="lang === 'en'" class="how">
           <li><b>Idea</b>You can't choose where you're born — it's a lottery. Treat every person on Earth as one ticket: countries with more people hold more tickets, so India and China are the most likely draws. Your "prize" is that country's Human Development Index — life expectancy, education and income combined.</li>
           <li><b>Population</b>English Wikipedia, "<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>", sovereign states only: the 193 UN members, the two observer states (Vatican City and Palestine), plus Taiwan — {{ meta.count }} countries in all.</li>
           <li><b>HDI</b>English Wikipedia, "<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>", using UNDP's {{ meta.hdi.year }} HDI from the 2025 Human Development Report. Taiwan isn't in the UNDP data, so its {{ C.TWN.hdi }} (2023) comes from the <a :href="SOURCES[2].url" target="_blank" rel="noopener">English Wikipedia Taiwan</a> infobox. North Korea uses {{ C.PRK.hdi }} ({{ meta.prk.year }}) from the <a :href="SOURCES[3].url" target="_blank" rel="noopener">Chinese Wikipedia</a> infobox. Monaco and Vatican City have no HDI, so drawing them means a redraw.</li>
@@ -264,6 +280,26 @@
           <li><b>Map</b>Countries are colored by prize. Draws follow population share; each drawn country gets a circle whose area is its share of all your draws, which approaches the population share as you draw more. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m.</li>
           <li><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world; Prize Box lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize. The drawn ball floats up and grows.</li>
           <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
+        </ol>
+        <ol v-else-if="lang === 'ja'" class="how">
+          <li><b>アイデア</b>どこに生まれるかは自分で選べない——まるで宝くじ。地球上の一人ひとりを 1 枚のくじと考えると、人口の多い国ほどくじが多いので、インドや中国がいちばん当たりやすくなります。当たった「賞品」はその国の人間開発指数（寿命・教育・所得をまとめた暮らしの指標）です。</li>
+          <li><b>人口</b>英語版ウィキペディア「<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>」から主権国家のみ：国連加盟 193 か国、オブザーバー国家の 2 か国（バチカン・パレスチナ）、そして台湾、計 {{ meta.count }} か国。</li>
+          <li><b>HDI</b>英語版ウィキペディア「<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>」、UNDP『人間開発報告書 2025』の {{ meta.hdi.year }} 年の値。台湾は UNDP のデータにないので、英語版ウィキペディア <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> の情報ボックスの {{ C.TWN.hdi }}（2023 年）。北朝鮮は<a :href="SOURCES[3].url" target="_blank" rel="noopener">中国語版ウィキペディア</a>の {{ C.PRK.hdi }}（{{ meta.prk.year }} 年）。モナコとバチカンは HDI がないので、当たったら引き直しです。</li>
+          <li><b>賞</b>国を HDI の高い順に並べて {{ TIERS.length }} 段に分け、下の賞ほど当たりやすく、なるべく 1:2:4:8:16:32:64:128 に近づけています。同じ HDI の国は分けないので、ぴったりにはなりません。</li>
+          <li><b>ボール</b>全部で {{ BALL_TOTAL }} 個、どの国も最低 1 個（{{ ONE_BALL }} か国は 1 個だけ）。それ以外はボール 1 個 ≈ {{ fmtBig(POP_UNIT) }} 人で、いちばん多いのはインド（{{ BALLS.IND }} 個）。人口がとても少ない国も 1 個あるので、人口の割合より少し当たりやすくなります。</li>
+          <li><b>地図</b>国を賞の色で塗り分けています。抽選は人口の割合どおり。「当選済み」をオンにすると当たった国に円を描き、円の面積＝その国の当選回数の割合。たくさん引くほど人口の割合に近づきます。国境は <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> の 1:5,000 万。</li>
+          <li><b>ボール箱</b>ボールを 3D の透明アクリルケースに入れ、ふたを開けています。「世界ボール箱」は各国の世界での位置どおりに並べ、「賞別ボール箱」は特賞から残念賞まで賞の順に並べて、賞ごとに仕切りと色を変えています。当たったボールは浮き上がって大きくなります。</li>
+          <li><b>抽選機（ゲーム）</b>{{ BALL_TOTAL }} 個のボールを 3D の透明ドラムに入れ、どれが出るかはすべて物理シミュレーションで決まります。ドラムが回り（毎回の回転時間に 0.85〜1.15 の乱数を掛けます）、中の 3 枚の羽根がボールを持ち上げてかき混ぜます。止まると出口が真下に来てゲートが開き、最初に重力で穴を通ったボールが当たり。シュートを転がって前のトレーに入ります。引き直しボールならもう一度回します。</li>
+        </ol>
+        <ol v-else-if="lang === 'ko'" class="how">
+          <li><b>아이디어</b>어디서 태어날지는 스스로 고를 수 없어요 — 마치 복권처럼요. 지구의 모든 사람을 복권 한 장으로 생각하면, 인구가 많은 나라일수록 복권이 많아서 인도와 중국이 가장 잘 뽑혀요. 받는 「상품」은 그 나라의 인간개발지수(수명·교육·소득을 합친 생활 수준)예요.</li>
+          <li><b>인구</b>영어 위키백과 「<a :href="SOURCES[1].url" target="_blank" rel="noopener">List of countries and dependencies by population</a>」에서 주권 국가만: 유엔 회원국 193개국, 옵서버 국가 2개국(바티칸·팔레스타인), 그리고 대만, 모두 {{ meta.count }}개국.</li>
+          <li><b>HDI</b>영어 위키백과 「<a :href="SOURCES[0].url" target="_blank" rel="noopener">List of countries by Human Development Index</a>」, UNDP 「인간개발보고서 2025」의 {{ meta.hdi.year }}년 수치. 대만은 UNDP 자료에 없어서 영어 위키백과 <a :href="SOURCES[2].url" target="_blank" rel="noopener">Taiwan</a> 정보 상자의 {{ C.TWN.hdi }}(2023년)을 써요. 북한은 <a :href="SOURCES[3].url" target="_blank" rel="noopener">중국어 위키백과</a>의 {{ C.PRK.hdi }}({{ meta.prk.year }}년). 모나코와 바티칸은 HDI가 없어서 뽑히면 다시 뽑아요.</li>
+          <li><b>상</b>나라를 HDI 높은 순으로 줄 세워 {{ TIERS.length }}단계로 나눴어요. 아래 상일수록 뽑힐 확률이 커서 1:2:4:8:16:32:64:128에 최대한 가깝게 맞췄어요. 같은 HDI는 나누지 않아서 딱 맞지는 않아요.</li>
+          <li><b>공</b>모두 {{ BALL_TOTAL }}개, 모든 나라가 최소 1개({{ ONE_BALL }}개국은 1개뿐). 나머지는 공 1개 ≈ {{ fmtBig(POP_UNIT) }}명이고, 가장 많은 나라는 인도({{ BALLS.IND }}개). 인구가 아주 적은 나라도 1개가 있어서 인구 비율보다 조금 더 잘 뽑혀요.</li>
+          <li><b>지도</b>나라를 상 색깔로 칠했어요. 뽑기는 인구 비율대로예요. 「뽑힌 곳」을 켜면 뽑힌 나라에 원을 그리고, 원의 면적 = 그 나라가 뽑힌 횟수의 비율. 많이 뽑을수록 인구 비율에 가까워져요. 국경은 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000만.</li>
+          <li><b>공 상자</b>공을 3D 투명 아크릴 상자에 담고 뚜껑을 열어 두었어요. 「세계 공 상자」는 나라들의 세계 속 위치대로, 「상별 공 상자」는 특등부터 꽝까지 상 순서로 늘어놓고 상마다 칸막이와 색을 달리했어요. 뽑힌 공은 떠올라서 커져요.</li>
+          <li><b>추첨기 (게임)</b>공 {{ BALL_TOTAL }}개를 3D 투명 드럼에 넣고, 어느 공이 나올지는 전부 물리 시뮬레이션으로 정해져요. 드럼이 돌고(돌리는 시간에 매번 0.85~1.15의 난수를 곱해요), 안의 날개 3개가 공을 들어 올려 섞어요. 멈추면 출구가 바로 아래로 오고 문이 열려, 중력으로 가장 먼저 구멍을 통과한 공이 당첨! 미끄럼틀을 굴러 앞의 쟁반에 들어가요. 다시 뽑기 공이면 한 번 더 돌려요.</li>
         </ol>
         <ol v-else class="how">
           <li><b>想法</b>出生在哪裡自己選不了，就像抽樂透。全世界每個人當成一張彩券，人越多的國家彩券越多，所以抽到印度、中國的機會最大；抽到後拿到的「獎品」是那個國家的人類發展指數——壽命、教育、所得綜合起來的生活條件。</li>
@@ -276,10 +312,10 @@
           <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
         </ol>
 
-        <h3>{{ L('Website', '網址') }}</h3>
+        <h3>{{ L('Website', '網址', 'URL', '주소') }}</h3>
         <p class="card"><a class="url" :href="SITE" target="_blank" rel="noopener">{{ SITE }}</a></p>
 
-        <h3>{{ L('Data sources', '資料來源') }}</h3>
+        <h3>{{ L('Data sources', '資料來源', 'データ出典', '자료 출처') }}</h3>
         <ul class="src">
           <li v-for="s in SOURCES" :key="s.url"><b>{{ L(...s.label) }}</b>{{ L(...s.org) }}<a :href="s.url" target="_blank" rel="noopener">{{ s.url }}</a></li>
         </ul>
@@ -297,30 +333,30 @@ import LotteryBox from './components/LotteryBox.vue'
 import MapModes from './components/MapModes.vue'
 import WorldLocator from './components/WorldLocator.vue'
 import FlagBall from './components/FlagBall.vue'
-import { L, lang } from './i18n.js'
+import { L, lang, LANGS, isCJK } from './i18n.js'
 import {
   MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
   meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, balls, isoOfBall, colors, flagMeta, flagsUrl, flagStyle, ballTip,
-  TIERS, TIER_EN, TIER_ZH, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
+  TIERS, TIER_EN_FULL, tierShort, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
   HDI_EXPECT, pTier, pIso, fmtP, oneIn, fmtBig,
 } from './lottery.js'
 
 const SOURCES = [
-  { label: ['Human Development Index (UNDP Human Development Report 2025, 2023 data)', '人類發展指數 HDI（UNDP《2025 人類發展報告》，2023 年）'], org: ['English Wikipedia: List of countries by Human Development Index', '英文維基百科 List of countries by Human Development Index'], url: 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index' },
-  { label: ['Population', '各國人口'], org: ['English Wikipedia: List of countries and dependencies by population', '英文維基百科 List of countries and dependencies by population'], url: 'https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population' },
-  { label: ['Taiwan HDI (not covered by UNDP)', '臺灣 HDI（UNDP 不含臺灣）'], org: ['English Wikipedia: Taiwan article infobox', '英文維基百科 Taiwan 條目資訊框'], url: 'https://en.wikipedia.org/wiki/Taiwan' },
-  { label: ['North Korea HDI (not covered by UNDP, 2016)', '北韓 HDI（UNDP 沒算，2016 年）'], org: ['Chinese Wikipedia: North Korea article infobox', '中文維基百科「朝鲜民主主义人民共和国」條目資訊框'], url: 'https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国' },
-  { label: ['Flags (1:1 square SVG, 7.6.0)', '國旗（1:1 正方形 SVG，7.6.0）'], org: ['flag-icons (MIT)', 'flag-icons（MIT）'], url: 'https://github.com/lipis/flag-icons' },
-  { label: ['Borders (1:50m Admin 0 – Countries)', '國界（1:50m Admin 0 – Countries）'], org: ['Natural Earth (public domain)', 'Natural Earth（公有領域）'], url: 'https://www.naturalearthdata.com/' },
+  { label: ['Human Development Index (UNDP Human Development Report 2025, 2023 data)', '人類發展指數 HDI（UNDP《2025 人類發展報告》，2023 年）', '人間開発指数 HDI（UNDP『人間開発報告書 2025』、2023 年）', '인간개발지수 HDI (UNDP 「인간개발보고서 2025」, 2023년)'], org: ['English Wikipedia: List of countries by Human Development Index', '英文維基百科 List of countries by Human Development Index', '英語版ウィキペディア List of countries by Human Development Index', '영어 위키백과 List of countries by Human Development Index'], url: 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index' },
+  { label: ['Population', '各國人口', '各国の人口', '나라별 인구'], org: ['English Wikipedia: List of countries and dependencies by population', '英文維基百科 List of countries and dependencies by population', '英語版ウィキペディア List of countries and dependencies by population', '영어 위키백과 List of countries and dependencies by population'], url: 'https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population' },
+  { label: ['Taiwan HDI (not covered by UNDP)', '臺灣 HDI（UNDP 不含臺灣）', '台湾の HDI（UNDP に含まれない）', '대만 HDI (UNDP 미포함)'], org: ['English Wikipedia: Taiwan article infobox', '英文維基百科 Taiwan 條目資訊框', '英語版ウィキペディア Taiwan 記事の情報ボックス', '영어 위키백과 Taiwan 문서 정보 상자'], url: 'https://en.wikipedia.org/wiki/Taiwan' },
+  { label: ['North Korea HDI (not covered by UNDP, 2016)', '北韓 HDI（UNDP 沒算，2016 年）', '北朝鮮の HDI（UNDP 対象外、2016 年）', '북한 HDI (UNDP 미산출, 2016년)'], org: ['Chinese Wikipedia: North Korea article infobox', '中文維基百科「朝鲜民主主义人民共和国」條目資訊框', '中国語版ウィキペディア「朝鲜民主主义人民共和国」の情報ボックス', '중국어 위키백과 「朝鲜民主主义人民共和国」 문서 정보 상자'], url: 'https://zh.wikipedia.org/wiki/朝鲜民主主义人民共和国' },
+  { label: ['Flags (1:1 square SVG, 7.6.0)', '國旗（1:1 正方形 SVG，7.6.0）', '国旗（1:1 正方形 SVG、7.6.0）', '국기 (1:1 정사각형 SVG, 7.6.0)'], org: ['flag-icons (MIT)', 'flag-icons（MIT）', 'flag-icons（MIT）', 'flag-icons (MIT)'], url: 'https://github.com/lipis/flag-icons' },
+  { label: ['Borders (1:50m Admin 0 – Countries)', '國界（1:50m Admin 0 – Countries）', '国境（1:50m Admin 0 – Countries）', '국경 (1:50m Admin 0 – Countries)'], org: ['Natural Earth (public domain)', 'Natural Earth（公有領域）', 'Natural Earth（パブリックドメイン）', 'Natural Earth (퍼블릭 도메인)'], url: 'https://www.naturalearthdata.com/' },
 ]
 // 實際網頁
 const SITE = 'https://szfftz.github.io/birth-lottery/'
-// 結果分頁底下的操作提示（[英文, 中文]）
+// 結果分頁底下的操作提示（[英文, 中文, 日文, 韓文]）
 const HINTS = {
-  game: ['Shake your phone to spin too. Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '搖一搖手機也能開始搖獎。左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
-  map: ['Drag and pinch to move the map; tap a country to see its odds and HDI.', '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。'],
-  box: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
-  boxp: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。'],
+  game: ['Shake your phone to spin too. Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '搖一搖手機也能開始搖獎。左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。', 'スマホを振っても回せます。左右にドラッグで回転、2 本指でズーム・移動、ボールをタップで国名を表示。', '휴대폰을 흔들어도 돌릴 수 있어요. 좌우로 드래그하면 회전, 두 손가락으로 확대·이동, 공을 탭하면 나라가 보여요.'],
+  map: ['Drag and pinch to move the map; tap a country to see its odds and HDI.', '拖曳、兩指縮放地圖；點一個國家看機率和 HDI。', 'ドラッグ・2 本指で地図を動かせます。国をタップすると確率と HDI を表示。', '드래그·두 손가락으로 지도를 움직여요. 나라를 탭하면 확률과 HDI가 보여요.'],
+  box: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。', '左右にドラッグで回転、2 本指でズーム・移動、ボールをタップで国名を表示。', '좌우로 드래그하면 회전, 두 손가락으로 확대·이동, 공을 탭하면 나라가 보여요.'],
+  boxp: ['Drag sideways to orbit; pinch to zoom and move; tap a ball to see its country.', '左右拖曳轉一圈；兩指縮放、移動；點一顆球看是哪一國。', '左右にドラッグで回転、2 本指でズーム・移動、ボールをタップで国名を表示。', '좌우로 드래그하면 회전, 두 손가락으로 확대·이동, 공을 탭하면 나라가 보여요.'],
 }
 
 const face = 'flag' // 球面一律國旗
@@ -336,7 +372,6 @@ const topInset = computed(() => insets.top + LANG_H)
 const safeBottom = ref(0)
 onMounted(() => { const t = document.createElement('i'); t.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom);visibility:hidden'; document.body.appendChild(t); safeBottom.value = t.offsetHeight; t.remove() })
 const modeLabel = computed(() => MODES.find((m) => m.key === mode.value)?.label ?? '')
-const isZh = computed(() => lang.value === 'zh')
 const setLang = (v) => (lang.value = v)
 function measure() {
   if (!phoneEl.value || !dockEl.value) return
@@ -352,7 +387,7 @@ onMounted(() => {
   measure()
 })
 onBeforeUnmount(() => insetRo?.disconnect())
-const TABS = [['result', 'Result', '結果'], ['history', 'History', '歷史'], ['prize', 'Prizes', '獎項'], ['about', 'About', '說明']].map(([key, en, zh]) => ({ key, get label() { return L(en, zh) } }))
+const TABS = [['result', 'Result', '結果', '結果', '결과'], ['history', 'History', '歷史', '履歴', '기록'], ['prize', 'Prizes', '獎項', '賞', '상'], ['about', 'About', '說明', '説明', '설명']].map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 const tab = ref('result')
 // 資訊面板：開關、往下拖的距離（拖超過 80px 就收起來）
 const sheet = ref(false)
@@ -376,7 +411,7 @@ function dragEnd() {
   drag0 = null
   dragY.value = 0
 }
-const SORTS = [['pop', 'By odds', '照機率'], ['hdi', 'By HDI', '照 HDI']].map(([key, en, zh]) => ({ key, get label() { return L(en, zh) } }))
+const SORTS = [['pop', 'By odds', '照機率', '確率順', '확률순'], ['hdi', 'By HDI', '照 HDI', 'HDI 順', 'HDI순']].map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 const sort = ref('pop')
 const sorted = computed(() => (sort.value === 'pop' ? ISOS : [...ISOS].sort((a, b) => (C[b].hdi ?? -1) - (C[a].hdi ?? -1))))
 const maxTierP = Math.max(...TIERS.map((t) => pTier(t)))
@@ -423,7 +458,7 @@ try {
 } catch { /* 讀不到就從空的開始 */ }
 watch(history, () => { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)) } catch { /* 存不了就算了 */ } })
 function clearHistory() {
-  if (spinning.value || !history.length || !confirm(L('Clear all draw history?', '確定要清空所有抽過的結果？'))) return
+  if (spinning.value || !history.length || !confirm(L('Clear all draw history?', '確定要清空所有抽過的結果？', '抽選の履歴をすべて消しますか？', '뽑기 기록을 모두 지울까요?'))) return
   history.splice(0)
   for (const k of Object.keys(counts)) delete counts[k]
   total.value = 0; rerolls.value = 0; lastRerolls.value = 0
@@ -529,10 +564,10 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 /* 主題：午夜靛藍＋金色（跟搖獎機舞台同一套） */
 .phone { --gold: #f5c451; --teal: #6fd6e0; --pink: #ff4f8b; --glass: rgba(16, 11, 40, 0.6); --glass-line: rgba(255, 226, 160, 0.16); --panel: #120d2b; --tile: #1e1840;
   --muted: #c9c3e3; --dim: #a59ec8;
-  position: relative; width: 100%; max-width: 430px; height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #08061a; }
-/* 電腦（夠寬也夠高）才框成一支手機；橫拿的手機（矮）就用整個畫面 */
-@media (min-width: 600px) and (min-height: 600px) {
-  .phone { height: min(932px, calc(100dvh - 48px)); margin: 24px auto; border-radius: 36px;
+  position: relative; width: 100%; height: 100vh; height: 100dvh; margin: 0 auto; overflow: hidden; background: #08061a; }
+/* 手機、iPad（觸控）：整個畫面滿版。電腦（滑鼠）：照手機的直式比例（430:932）框成一支手機，跟著視窗高度等比例放大縮小 */
+@media (hover: hover) and (pointer: fine) and (min-width: 600px) and (min-height: 500px) {
+  .phone { height: calc(100dvh - 48px); width: auto; aspect-ratio: 430 / 932; max-width: calc(100vw - 48px); margin: 24px auto; border-radius: 36px;
     box-shadow: 0 0 0 10px #0b0b0b, 0 0 0 11px #333, 0 30px 80px rgba(0, 0, 0, 0.6); }
 }
 .safe-top { position: absolute; top: 0; height: env(safe-area-inset-top); width: 0; visibility: hidden; }
@@ -542,23 +577,42 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
 
 /* 載入中：紫→粉→黃的舞台色，一顆彈跳的球 */
-.loading { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-  background: radial-gradient(120% 70% at 50% 45%, #4a2a96 0%, #23145a 40%, #08061a 100%); color: #fff; }
-.ld-ball { width: 56px; height: 56px; animation: ld-bounce 0.7s cubic-bezier(0.3, 0, 0.6, 1) infinite alternate; }
+.loading { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; text-align: center; color: #fff;
+  /* 跟舞台同一面牆：深酒紅＋金色細線菱格 */
+  background:
+    repeating-linear-gradient(60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    repeating-linear-gradient(-60deg, transparent 0 46px, rgba(255, 200, 100, 0.07) 46px 48px),
+    radial-gradient(120% 70% at 50% 45%, #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); }
+.ld-ball { width: 60px; height: 60px; margin-bottom: 6px; animation: ld-bounce 0.7s cubic-bezier(0.3, 0, 0.6, 1) infinite alternate; }
 .ld-ball i { display: block; width: 100%; height: 100%; border-radius: 50%; animation: ld-spin 1.4s linear infinite;
-  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9) 0 10%, transparent 34%), conic-gradient(#ff2e88 0 25%, #ffd23f 0 50%, #19d3c5 0 75%, #ff8a00 0); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); }
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9) 0 10%, transparent 34%), conic-gradient(#ff3f74 0 25%, #ffd000 0 50%, #5fae8e 0 75%, #3f93a6 0); box-shadow: 0 0 0 3px #f5c451, 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 196, 90, 0.5); }
 @keyframes ld-bounce { from { transform: translateY(-18px); } to { transform: translateY(6px) scaleY(0.94); } }
 @keyframes ld-spin { to { transform: rotate(360deg); } }
-.ld-title { margin-top: 14px; font-size: 26px; font-weight: 900; letter-spacing: 0.04em;
-  background: linear-gradient(180deg, #fffbe8, #f4c04a 55%, #b97d17 60%, #fff1b8); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 12px rgba(255, 200, 90, 0.5)); }
-.ld-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.1em; }
+/* 霓虹招牌：黑底、粉紅燈管框，四種語言的名字一行一行寫 */
+.ld-sign { display: flex; flex-direction: column; gap: 6px; min-width: min(300px, 84%); padding: 18px 26px 20px; border-radius: 24px; border: 3px solid #ffd6ec;
+  background: linear-gradient(180deg, #120a24, #07040f);
+  box-shadow: 0 0 4px #ff2d95, 0 0 14px #ff2d95, 0 0 36px rgba(255, 45, 149, 0.6), inset 0 0 5px #ff2d95, inset 0 0 18px rgba(255, 45, 149, 0.55); animation: ld-hum 1.6s ease-in-out infinite; }
+@keyframes ld-hum { 50% { box-shadow: 0 0 6px #ff2d95, 0 0 22px #ff2d95, 0 0 52px rgba(255, 45, 149, 0.75), inset 0 0 7px #ff2d95, inset 0 0 24px rgba(255, 45, 149, 0.7); } }
+.ld-row { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-size: 34px; font-weight: 500; line-height: 1.2; letter-spacing: 0.08em; white-space: nowrap; }
+.ld-row.ja { font-family: 'M PLUS Rounded 1c', 'Huninn', sans-serif; font-weight: 800; font-size: 26px; }
+.ld-row.ko { font-family: 'Jua', -apple-system, 'Apple SD Gothic Neo', sans-serif; font-size: 26px; }
+.ld-row.en { font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 24px; letter-spacing: 0.06em; }
+.ld-row .n-pink { color: #ffe3f1; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fae, 0 0 18px #ff2d95, 0 0 36px #ff2d95; }
+.ld-row .n-cyan { color: #e2feff; text-shadow: 0 0 2px #fff, 0 0 8px #3defff, 0 0 18px #19e6ff, 0 0 36px #19e6ff; }
+.ld-sub { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: #fff3b0; text-shadow: 0 0 8px rgba(255, 200, 90, 0.6); }
+.ld-sub i { font-style: normal; font-size: 8px; color: #ff6fc1; }
+.ld-dots { display: flex; gap: 8px; }
+.ld-dots i { width: 8px; height: 8px; border-radius: 50%; background: #ffe08a; box-shadow: 0 0 8px #ffb000; animation: d-dot 0.9s ease-in-out infinite; }
+.ld-dots i:nth-child(2) { animation-delay: 0.15s; }
+.ld-dots i:nth-child(3) { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) { .ld-ball, .ld-ball i, .ld-sign, .ld-dots i { animation: none; } }
 
 /* 中／英切換 */
 .lang-switch { position: absolute; z-index: 14; right: 12px; display: flex; gap: 2px; padding: 3px; border-radius: 999px; }
-.lang-switch button { min-width: 44px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.lang-switch button { min-width: 34px; height: 28px; padding: 0 8px; border: 0; border-radius: 999px; background: none; color: rgba(255, 255, 255, 0.75); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .lang-switch button.on { background: linear-gradient(180deg, #ffe08a, var(--gold)); color: #2a1a05; }
-/* ── 操作列（浮動玻璃條） ── */
-.dock { position: absolute; z-index: 12; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; padding: 8px; border-radius: 26px; }
+/* ── 操作列：只有搖一搖按鈕，沒有外框 ── */
+.dock { position: absolute; z-index: 12; left: 20px; right: 20px; bottom: max(14px, env(safe-area-inset-bottom)); display: flex; gap: 8px; align-items: center; }
 .ibtn { position: relative; flex: none; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 1px solid var(--glass-line); border-radius: 18px;
   background: rgba(255, 255, 255, 0.07); color: #fff; cursor: pointer; transition: background 0.15s, transform 0.1s; }
 .ibtn:active:not(:disabled) { transform: scale(0.94); }
@@ -566,9 +620,6 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .ibtn:disabled { opacity: 0.4; cursor: default; }
 .badge { position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #161616;
   font-size: 12px; font-weight: 800; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px rgba(20, 20, 24, 0.9); }
-/* 操作列：賭場霓虹框（粉紅燈管一明一暗） */
-.dock { border: 2px solid #ffd6ec; box-shadow: 0 0 4px #ff2d95, 0 0 14px rgba(255, 45, 149, 0.8), inset 0 0 8px rgba(255, 45, 149, 0.5); animation: dk-hum 1.6s ease-in-out infinite; }
-@keyframes dk-hum { 50% { box-shadow: 0 0 6px #ff2d95, 0 0 24px #ff2d95, inset 0 0 12px rgba(255, 45, 149, 0.7); } }
 /* 左右兩顆小按鈕：做成賭場籌碼（紅底、白色邊條、金邊） */
 .dock .ibtn { border-radius: 50%; border: 2px solid #f5c451;
   background: radial-gradient(circle, #a3121f 0 52%, #f5c451 53% 56%, transparent 57%), repeating-conic-gradient(#ffffff 0 14deg, #b3121f 14deg 45deg);
