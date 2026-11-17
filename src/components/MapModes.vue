@@ -30,23 +30,25 @@ const props = defineProps({
   counts: { type: Object, required: true },
   total: { type: Number, default: 0 },
   atlas: { type: Object, default: null },
+  showTally: { type: Boolean, default: false }, // 抽過的圓：開關（預設關）
 })
 
 // 地圖、圖例共用：國界、這次抽到的外框、投胎紀錄圓的顏色，不透明度，線寬（px）
 const FLAT_BG = '#0d0926' // 跟盒子、主畫面同一個深靛藍
 const BORDER = '#ffe2a0' // 國界：淡金色細線（跟舞台的金色菱格同一個金）
 const SEL = '#ffffff'
-const TALLY = { fill: '#ffffff', line: '#ffffff' }
-const OP = { fill: 1, line: 0.75, tally: 0.3, ballDim: 0.35 }
+const TALLY = { fill: '#2a0a14', line: '#ffe08a', glow: '#ffb340' } // 抽過的圓：深酒紅半透明面＋金邊＋暖金光暈
+const OP = { fill: 1, line: 0.75, tally: 0.45, ballDim: 0.35 }
 const BALL_SEL = 28 // 抽到的那顆放大成幾 px
 const GRID_FILL = 0.8 // 排列、格子模式：球的直徑＝格子的幾成
 const BALL_GAP = 1.15 // 彩球模式：球心距＝直徑的幾倍
-const W = { line: 0.4, sel: 2.5, tally: 1.2 }
-// 經緯線（每 30°）：淡金色細線，赤道亮一點
+const W = { line: 0.4, sel: 2.5, tally: 2 }
+// 緯線只畫特別的幾條：赤道（實線、最亮）、南北回歸線、南北極圈（虛線）；不畫經線
+const TROPIC = 23.4366, POLAR = 66.5634
 const GRATICULE = (() => {
   const f = [], pts = (a, b, k) => Array.from({ length: Math.round((b - a) / 2) + 1 }, (_, i) => k(a + i * 2))
-  for (let x = -180; x <= 180; x += 30) f.push({ type: 'Feature', properties: { eq: 0 }, geometry: { type: 'LineString', coordinates: pts(-84, 84, (y) => [x, y]) } })
-  for (let y = -60; y <= 60; y += 30) f.push({ type: 'Feature', properties: { eq: y === 0 ? 1 : 0 }, geometry: { type: 'LineString', coordinates: pts(-180, 180, (x) => [x, y]) } })
+  const par = (y, k) => f.push({ type: 'Feature', properties: { k }, geometry: { type: 'LineString', coordinates: pts(-180, 180, (x) => [x, y]) } })
+  par(0, 'eq'); par(TROPIC, 'tropic'); par(-TROPIC, 'tropic'); par(POLAR, 'polar'); par(-POLAR, 'polar');
   return { type: 'FeatureCollection', features: f }
 })()
 const R_FULL = 60 // 投胎紀錄圓：100% 時半徑幾 px
@@ -165,7 +167,7 @@ function paint() {
   ballLayer?.setSel(mode.value === 'map' ? null : props.lastBall)
   paintBallSel()
   const pts = Object.entries(props.counts).filter(([iso]) => at[iso]).map(([iso, n]) => ({
-    type: 'Feature', properties: { iso, r: rOf(n / props.total) }, geometry: { type: 'Point', coordinates: at[iso] },
+    type: 'Feature', properties: { iso, r: rOf(n / props.total), c: colorOf(iso) }, geometry: { type: 'Point', coordinates: at[iso] },
   }))
   map.getSource('tally').setData({ type: 'FeatureCollection', features: pts.sort((a, b) => b.properties.r - a.properties.r) })
 }
@@ -191,21 +193,39 @@ function applyMode() {
   vis('cell-bg', m === 'cells')
   vis('prize-sel', !onBoard())
   vis('prize', m === 'map')
-  vis('tally', m === 'map')
+  for (const id of ['tally-glow', 'tally', 'tally-dot']) vis(id, m === 'map' && props.showTally)
   ballLayer?.setFlags(props.face === 'flag')
   if (m !== 'map') layoutBalls()
   else { layLngLat = null; paintHit() }
   paint()
 }
 
+// 一開始放大到「上下剛好塞滿」：北極圈到南美洲最南端（再留一點邊）剛好是畫面的高；左右比畫面寬，可以拖曳看；縮小可以看到整個世界（含兩極）
+const SOUTH = -57
+const TW_LON = 121 // 預設以台灣的經度為中心
+let home = null
+// 重設：滑回一開始的位置、大小
+function resetView() { if (map && home) map.easeTo({ ...home, duration: 500 }) }
+defineExpose({ resetView })
+const mercY = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) // 墨卡托 y（弧度單位）
+function fitBand() {
+  const h = el.value.clientHeight - props.insetTop - props.insetBottom - 16
+  const span = mercY(POLAR) - mercY(SOUTH) // 一張世界地圖（512 px＠zoom 0）的高是 2π
+  const zoom = Math.log2((h / span) * (2 * Math.PI) / 512)
+  const lat = (Math.atan(Math.exp((mercY(POLAR) + mercY(SOUTH)) / 2)) * 360) / Math.PI - 90
+  const minZoom = Math.log2(Math.min(h, el.value.clientWidth) / 512) // 整個世界（正方形）塞得進畫面
+  return { zoom, lat, minZoom }
+}
+
 onMounted(() => {
-  const w = el.value.clientWidth
-  z0 = Math.log2((1.84 * w) / 512)
+  const fit = fitBand()
+  z0 = fit.zoom
+  home = { center: [TW_LON, fit.lat], zoom: z0 }
   map = new maplibregl.Map({
     container: el.value,
-    center: [15, 20],
+    center: home.center,
     zoom: z0,
-    minZoom: z0 - 1,
+    minZoom: Math.min(z0 - 1, fit.minZoom),
     attributionControl: false, // 不顯示資料來源（來源寫在「說明」裡）
     canvasContextAttributes: { antialias: true }, // 國界邊緣比較平滑
     // 沒有底圖：地圖是透明的，後面的賭場牆面（酒紅＋金色菱格，跟搖獎機舞台一樣）直接透出來
@@ -219,17 +239,18 @@ onMounted(() => {
   map.on('load', async () => {
     const world = await (await fetch(worldUrl)).json()
     at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, mainCenter(geoRings(f.geometry), [f.properties.label_x, f.properties.label_y])])) // 本土的中心
-    map.addSource('countries', {
-      type: 'geojson', data: world,
-    })
+    map.addSource('countries', { type: 'geojson', data: world })
     map.addSource('tally', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     map.addSource('ball-sel', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     const fillColor = ['match', ['get', 'adm0_a3'], ...Object.keys(C).filter((iso) => C[iso].on_map).flatMap((iso) => [iso, colorOf(iso)]), NODATA]
     // 精緻一點：經緯線 → 陸地底下的影子（往下偏，有浮起來的感覺）→ 陸地外圍一圈金色光暈 → 國家 → 國界（放大時變粗一點）
     const zw = (a, b) => ['interpolate', ['exponential', 1.6], ['zoom'], z0, a, z0 + 4, b]
     map.addSource('graticule', { type: 'geojson', data: GRATICULE })
-    map.addLayer({ id: 'graticule', type: 'line', source: 'graticule',
-      paint: { 'line-color': BORDER, 'line-width': ['case', ['==', ['get', 'eq'], 1], 1, 0.6], 'line-opacity': ['case', ['==', ['get', 'eq'], 1], 0.3, 0.14], 'line-dasharray': [3, 3] } })
+    const gl = (id, k, width, opacity, dash) => map.addLayer({ id, type: 'line', source: 'graticule', filter: ['==', ['get', 'k'], k],
+      paint: { 'line-color': BORDER, 'line-width': width, 'line-opacity': opacity, ...(dash ? { 'line-dasharray': dash } : {}) } })
+    gl('grat-polar', 'polar', 0.9, 0.35, [5, 3])
+    gl('grat-tropic', 'tropic', 0.9, 0.35, [2, 2.5])
+    gl('grat-eq', 'eq', 1.2, 0.5, null) // 赤道：實線
     map.addLayer({ id: 'land-shadow', type: 'line', source: 'countries',
       paint: { 'line-color': '#000000', 'line-width': zw(7, 18), 'line-blur': zw(7, 18), 'line-opacity': 0.55, 'line-translate': [0, 4] } })
     map.addLayer({ id: 'land-glow', type: 'line', source: 'countries',
@@ -237,8 +258,13 @@ onMounted(() => {
     map.addLayer({ id: 'prize', type: 'fill', source: 'countries', paint: { 'fill-color': fillColor, 'fill-opacity': OP.fill, 'fill-antialias': true } })
     map.addLayer({ id: 'prize-line', type: 'line', source: 'countries', layout: { 'line-join': 'round' }, paint: { 'line-color': BORDER, 'line-width': zw(0.45, 1.4), 'line-opacity': OP.line } })
     map.addLayer({ id: 'prize-sel', type: 'line', source: 'countries', filter: ['==', 'adm0_a3', ''], paint: { 'line-color': SEL, 'line-width': W.sel } })
+    // 抽過的圓：金色霓虹圈（外面一圈暖光、淡金色半透明面、亮金色細邊），中間一顆獎項色的小點（白邊）＝國家的位置
+    map.addLayer({ id: 'tally-glow', type: 'circle', source: 'tally',
+      paint: { 'circle-radius': ['+', ['get', 'r'], 5], 'circle-color': TALLY.glow, 'circle-blur': 0.45, 'circle-opacity': 0.45 } })
     map.addLayer({ id: 'tally', type: 'circle', source: 'tally',
       paint: { 'circle-radius': ['get', 'r'], 'circle-color': TALLY.fill, 'circle-opacity': OP.tally, 'circle-stroke-color': TALLY.line, 'circle-stroke-width': W.tally } })
+    map.addLayer({ id: 'tally-dot', type: 'circle', source: 'tally',
+      paint: { 'circle-radius': 3.5, 'circle-color': ['get', 'c'], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1.5 } })
     map.addLayer({ id: 'ball-sel', type: 'circle', source: 'ball-sel', paint: { 'circle-radius': BALL_SEL / 2 + 2, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': SEL, 'circle-stroke-width': W.sel } })
     map.addLayer({ id: 'grid-bg', type: 'background', layout: { visibility: 'none' }, paint: { 'background-color': FLAT_BG } }, 'prize-sel')
     map.addSource('cell-bg', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -272,6 +298,7 @@ onMounted(() => {
 watch(mode, applyMode)
 watch(() => [props.insetTop, props.insetBottom], () => { map?.setPadding({ top: props.insetTop, bottom: props.insetBottom, left: 0, right: 0 }); layoutBalls() })
 watch(() => [props.last, props.lastBall, props.total], paint)
+watch(() => props.showTally, applyMode)
 watch(() => props.face, (f) => { ballLayer?.setFlags(f === 'flag'); layoutBalls() })
 watch(cellsSnap, layoutBalls)
 watch(lang, () => paintTag()) // 換語言：結果標籤重寫

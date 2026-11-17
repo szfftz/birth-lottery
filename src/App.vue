@@ -88,7 +88,10 @@
         <i class="grip"></i>
         <div class="sh-row">
           <h2 class="vs-title">{{ modeLabel }}</h2>
-          <button v-if="mode === 'box' || mode === 'boxp'" type="button" class="pill vs-reset" @click="boxEl?.resetView()">
+          <button v-if="mode === 'map'" type="button" class="pill vs-reset vs-tog" :class="{ off: !showTally }" :aria-pressed="showTally" @click="showTally = !showTally">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2.2" fill="none" /><circle cx="12" cy="12" r="2.4" fill="currentColor" /></svg>{{ L('Draws', '抽過的') }}
+          </button>
+          <button type="button" class="pill vs-reset" @click="(mode === 'map' ? mapEl : boxEl)?.resetView()">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>{{ L('RESET', '重設') }}
           </button>
           <button type="button" class="close" :aria-label="L('Close', '關閉')" @click="setMode('game')">
@@ -97,7 +100,7 @@
         </div>
       </div>
       <div class="vs-body">
-        <MapModes v-if="mode === 'map'" :face="face" :last="last" :last-ball="lastBall" :counts="counts" :total="total" :atlas="atlas" :inset-top="0" :inset-bottom="safeBottom" />
+        <MapModes v-if="mode === 'map'" ref="mapEl" :show-tally="showTally" :face="face" :last="last" :last-ball="lastBall" :counts="counts" :total="total" :atlas="atlas" :inset-top="0" :inset-bottom="safeBottom" />
         <LotteryBox v-else ref="boxEl" :key="mode" :balls="balls" :cells="mode === 'boxp' ? boxRank.cells : cellsSnap" :cols="cellMeta.cols" :rows="cellMeta.rows"
           :walls="mode === 'boxp' ? boxRank.walls : []" :frames="mode === 'boxp' ? boxRank.frames : []" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]"
           :face="face" :sel="lastBall" :tip-of="ballTip" bg="#0d0926" :inset-top="0" :inset-bottom="safeBottom" />
@@ -427,7 +430,8 @@ function clearHistory() {
   last.value = null; lastBall.value = null
 }
 const drum = ref(null)
-const boxEl = ref(null) // 彩球盒（重設視角用）
+const boxEl = ref(null), mapEl = ref(null) // 彩球盒、地圖（重設視角用）
+const showTally = ref(false) // 地圖：抽過的圓開不開（預設關）
 const spinning = ref(false)
 
 // 搖手機也會搖獎：手機的加速度（扣掉重力）超過門檻算「甩一下」；同一下會連續好幾筆超過，所以兩下之間至少隔 150ms，
@@ -652,6 +656,7 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .view-sheet { z-index: 13; overflow: hidden; } /* 蓋住操作列（z 12，搖一搖只在遊戲頁）；左上選單、中英切換還在上面 */
 .vs-title { flex: 1; margin: 0; padding-left: 4px; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .vs-reset { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px 0 12px; font-size: 14px; letter-spacing: 0.08em; cursor: pointer; }
+.vs-tog.off { background: rgba(10, 5, 24, 0.82); border-color: rgba(245, 196, 81, 0.5); color: rgba(255, 255, 255, 0.6); box-shadow: none; text-shadow: none; }
 .vs-body { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .sheet-enter-active, .sheet-leave-active { transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1); }
 .sheet-enter-from, .sheet-leave-to { transform: translateY(100%); }
