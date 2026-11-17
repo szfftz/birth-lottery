@@ -21,7 +21,7 @@
 
     <LangSwitch :style="{ top: `${insets.top + 8}px` }" />
     <ModeMenu :top="insets.top + 8" />
-    <div ref="dockEl" class="dock"><SpinButton :disabled="!atlas" @spin="draw" /></div>
+    <div ref="dockEl" class="dock"><SpinButton :disabled="!atlas" :shake="shake.ready.value" @spin="draw" /></div>
 
     <ViewSheet :open="!!atlas && mode !== 'game'" :atlas="atlas" :inset-bottom="safeBottom" />
     <InfoSheet />
