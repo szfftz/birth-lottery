@@ -231,15 +231,27 @@ function resize() {
     _v.set(x, y, z).project(camera)
     x0 = Math.min(x0, _v.x); x1 = Math.max(x1, _v.x); y0 = Math.min(y0, _v.y); y1 = Math.max(y1, _v.y)
   }
-  const top = props.insetTop + 8, bottom = h - props.insetBottom - 76 // 下面留給結果卡
+  const top = props.insetTop + 8, bottom = h - props.insetBottom - 12
   const k = Math.min((bottom - top) / (((y1 - y0) / 2) * h), (w * 0.96) / (((x1 - x0) / 2) * w))
   camera.fov = (Math.atan(Math.tan(THREE.MathUtils.degToRad(11)) / k) * 360) / Math.PI
   const cy = h / 2 - (((y0 + y1) / 2) * k * h) / 2, cx = w / 2 + (((x0 + x1) / 2) * k * w) / 2
   camera.setViewOffset(w, h, cx - w / 2, cy - (top + bottom) / 2, w, h)
   camera.updateProjectionMatrix()
 }
+// 重設視角：0.45 秒滑回一開始的鏡頭位置（轉過、縮放、移動過都回來）
+let home = null, back = null
+function resetView() {
+  if (!controls || !home) return
+  back = { t0: performance.now(), p: camera.position.clone(), q: controls.target.clone() }
+}
+defineExpose({ resetView })
 function frame() {
   raf = requestAnimationFrame(frame)
+  if (back) {
+    const k = Math.min(1, (performance.now() - back.t0) / 450), e = 1 - (1 - k) ** 3
+    camera.position.lerpVectors(back.p, home.p, e); controls.target.lerpVectors(back.q, home.q, e)
+    if (k === 1) back = null
+  }
   controls.update()
   renderer.render(scene, camera)
 }
@@ -282,6 +294,7 @@ onMounted(() => {
   controls.enablePan = true
   controls.screenSpacePanning = true
   { const d = camera.position.distanceTo(controls.target); controls.minDistance = d * 0.25; controls.maxDistance = d * 1.6 }
+  home = { p: camera.position.clone(), q: controls.target.clone() }
   ro = new ResizeObserver(resize)
   ro.observe(wrap.value)
   resize()

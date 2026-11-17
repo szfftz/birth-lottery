@@ -30,16 +30,10 @@ export const isoOfBall = (b) => {
   return balls.isos[lo]
 }
 
-// 顏色：從 quake5 色票等距取 8 色，特獎珊瑚紅、哈哈獎藍
-const QUAKE5 = ['#3b6e8f', '#5fae8e', '#ffd000', '#ff8c42', '#ff4f6d']
-export const NODATA = '#4a4b48'
-const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
-function rampColor(colors, t) {
-  const x = Math.min(1, Math.max(0, t)) * (colors.length - 1)
-  const i = Math.min(colors.length - 2, Math.floor(x))
-  const a = hex(colors[i]), b = hex(colors[i + 1])
-  return '#' + a.map((v, j) => Math.round(v + (b[j] - v) * (x - i)).toString(16).padStart(2, '0')).join('')
-}
+// 8 個獎的顏色：跟 Day 1 地震 5 級同一套色（藍 #3b6e8f → 青綠 #5fae8e → 黃 #ffd000 → 橘 #ff8c42 → 粉紅 #ff4f6d），中間補 3 色。
+// 不用內插：內插出來的中間色會灰灰髒髒的，每一色都挑過、色相明度拉開（由低到高：哈哈獎 → 特獎）
+const TIER_COLORS = ['#3b6e8f', '#3f93a6', '#5fae8e', '#a9c75b', '#ffd000', '#ff9f3a', '#ff6b55', '#ff3f74']
+export const NODATA = '#3a3440' // 沒資料的國家（格陵蘭、南極…）：深灰紫，不要搶眼
 
 // 中／英切換（預設中文）
 export const TIER_ZH = ['特獎', '頭獎', '二獎', '三獎', '四獎', '五獎', '六獎', '哈哈獎']
@@ -53,7 +47,7 @@ export const tierOfHdi = (v) => { const h = Math.round(v * 1000); return CUTS.fi
 const f3 = (h) => (h / 1000).toFixed(3)
 export const tierIdx = (iso) => (C[iso].hdi == null ? -1 : tierOfHdi(C[iso].hdi))
 export const TIERS = TIER_NAMES.map((_, i) => ({
-  get name() { return L(TIER_EN_FULL[i], TIER_ZH[i]) }, en: TIER_EN_FULL[i], color: rampColor(QUAKE5, 1 - i / LAST),
+  get name() { return L(TIER_EN_FULL[i], TIER_ZH[i]) }, en: TIER_EN_FULL[i], color: TIER_COLORS[LAST - i],
   range: i === 0 ? `≥ ${f3(CUTS[0])}` : i === LAST ? `≤ ${f3(CUTS[LAST - 1] - 1)}` : CUTS[i] === CUTS[i - 1] - 1 ? f3(CUTS[i]) : `${f3(CUTS[i])}–${f3(CUTS[i - 1] - 1)}`,
   p: 0, n: 0, balls: 0,
 }))

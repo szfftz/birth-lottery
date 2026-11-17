@@ -37,16 +37,23 @@ const FLAT_BG = '#0d0926' // 跟盒子、主畫面同一個深靛藍
 const BORDER = '#ffe2a0' // 國界：淡金色細線（跟舞台的金色菱格同一個金）
 const SEL = '#ffffff'
 const TALLY = { fill: '#ffffff', line: '#ffffff' }
-const OP = { fill: 0.85, line: 0.75, tally: 0.3, ballDim: 0.35 }
+const OP = { fill: 1, line: 0.75, tally: 0.3, ballDim: 0.35 }
 const BALL_SEL = 28 // 抽到的那顆放大成幾 px
 const GRID_FILL = 0.8 // 排列、格子模式：球的直徑＝格子的幾成
 const BALL_GAP = 1.15 // 彩球模式：球心距＝直徑的幾倍
 const W = { line: 0.4, sel: 2.5, tally: 1.2 }
+// 經緯線（每 30°）：淡金色細線，赤道亮一點
+const GRATICULE = (() => {
+  const f = [], pts = (a, b, k) => Array.from({ length: Math.round((b - a) / 2) + 1 }, (_, i) => k(a + i * 2))
+  for (let x = -180; x <= 180; x += 30) f.push({ type: 'Feature', properties: { eq: 0 }, geometry: { type: 'LineString', coordinates: pts(-84, 84, (y) => [x, y]) } })
+  for (let y = -60; y <= 60; y += 30) f.push({ type: 'Feature', properties: { eq: y === 0 ? 1 : 0 }, geometry: { type: 'LineString', coordinates: pts(-180, 180, (x) => [x, y]) } })
+  return { type: 'FeatureCollection', features: f }
+})()
 const R_FULL = 60 // 投胎紀錄圓：100% 時半徑幾 px
 const rOf = (share) => R_FULL * Math.sqrt(share)
 const FLAG_SCALE = 1.5 // 球面畫國旗時，彩球模式的球放大幾倍
 // 框（1080×1350 的單位）四邊留白：上、左右 40，下 80（跟 Day 25 的 IG 框紅線一樣）
-const GUIDE = { head: 14, side: 12, foot: 84 } // px：上面、左右、下面（下面留給結果卡）
+const GUIDE = { head: 14, side: 12, foot: 14 } // px：上面、左右、下面
 
 // 一開始的縮放：手機寬度不一樣，讓世界寬度約是畫面寬的 1.84 倍（Day 25 在 IG 框裡 1.2 級的樣子）
 let z0 = 1.2
@@ -199,7 +206,8 @@ onMounted(() => {
     center: [15, 20],
     zoom: z0,
     minZoom: z0 - 1,
-    attributionControl: { compact: true },
+    attributionControl: false, // 不顯示資料來源（來源寫在「說明」裡）
+    canvasContextAttributes: { antialias: true }, // 國界邊緣比較平滑
     // 沒有底圖：地圖是透明的，後面的賭場牆面（酒紅＋金色菱格，跟搖獎機舞台一樣）直接透出來
     style: { version: 8, sources: {}, layers: [] },
   })
@@ -213,13 +221,21 @@ onMounted(() => {
     at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, mainCenter(geoRings(f.geometry), [f.properties.label_x, f.properties.label_y])])) // 本土的中心
     map.addSource('countries', {
       type: 'geojson', data: world,
-      attribution: 'HDI, population: <a href="https://en.wikipedia.org/" target="_blank">Wikipedia</a>; <a href="https://www.naturalearthdata.com/" target="_blank">Natural Earth</a>',
     })
     map.addSource('tally', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     map.addSource('ball-sel', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     const fillColor = ['match', ['get', 'adm0_a3'], ...Object.keys(C).filter((iso) => C[iso].on_map).flatMap((iso) => [iso, colorOf(iso)]), NODATA]
-    map.addLayer({ id: 'prize', type: 'fill', source: 'countries', paint: { 'fill-color': fillColor, 'fill-opacity': OP.fill } })
-    map.addLayer({ id: 'prize-line', type: 'line', source: 'countries', paint: { 'line-color': BORDER, 'line-width': W.line, 'line-opacity': OP.line } })
+    // 精緻一點：經緯線 → 陸地底下的影子（往下偏，有浮起來的感覺）→ 陸地外圍一圈金色光暈 → 國家 → 國界（放大時變粗一點）
+    const zw = (a, b) => ['interpolate', ['exponential', 1.6], ['zoom'], z0, a, z0 + 4, b]
+    map.addSource('graticule', { type: 'geojson', data: GRATICULE })
+    map.addLayer({ id: 'graticule', type: 'line', source: 'graticule',
+      paint: { 'line-color': BORDER, 'line-width': ['case', ['==', ['get', 'eq'], 1], 1, 0.6], 'line-opacity': ['case', ['==', ['get', 'eq'], 1], 0.3, 0.14], 'line-dasharray': [3, 3] } })
+    map.addLayer({ id: 'land-shadow', type: 'line', source: 'countries',
+      paint: { 'line-color': '#000000', 'line-width': zw(7, 18), 'line-blur': zw(7, 18), 'line-opacity': 0.55, 'line-translate': [0, 4] } })
+    map.addLayer({ id: 'land-glow', type: 'line', source: 'countries',
+      paint: { 'line-color': '#ffcf70', 'line-width': zw(3.5, 9), 'line-blur': zw(3, 8), 'line-opacity': 0.4 } })
+    map.addLayer({ id: 'prize', type: 'fill', source: 'countries', paint: { 'fill-color': fillColor, 'fill-opacity': OP.fill, 'fill-antialias': true } })
+    map.addLayer({ id: 'prize-line', type: 'line', source: 'countries', layout: { 'line-join': 'round' }, paint: { 'line-color': BORDER, 'line-width': zw(0.45, 1.4), 'line-opacity': OP.line } })
     map.addLayer({ id: 'prize-sel', type: 'line', source: 'countries', filter: ['==', 'adm0_a3', ''], paint: { 'line-color': SEL, 'line-width': W.sel } })
     map.addLayer({ id: 'tally', type: 'circle', source: 'tally',
       paint: { 'circle-radius': ['get', 'r'], 'circle-color': TALLY.fill, 'circle-opacity': OP.tally, 'circle-stroke-color': TALLY.line, 'circle-stroke-width': W.tally } })

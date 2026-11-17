@@ -13,11 +13,7 @@
         <div class="ld-sub">{{ L('Loading…', '載入中…') }}</div>
       </div>
     </Transition>
-    <MapModes v-if="atlas && mapUsed" :face="face" :last="last" :last-ball="lastBall" :counts="counts" :total="total" :atlas="atlas" :inset-top="topInset" :inset-bottom="insets.bottom" />
-    <LotteryBox v-if="atlas && (mode === 'box' || mode === 'boxp')" :key="mode" :balls="balls" :cells="mode === 'boxp' ? boxRank.cells : cellsSnap" :cols="cellMeta.cols" :rows="cellMeta.rows"
-      :walls="mode === 'boxp' ? boxRank.walls : []" :frames="mode === 'boxp' ? boxRank.frames : []" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]"
-      :face="face" :sel="lastBall" :tip-of="ballTip" bg="#0d0926" :inset-top="topInset" :inset-bottom="insets.bottom" />
-    <LotteryDrum ref="drum" :balls="balls" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]" v-if="atlas && mode === 'game'"
+    <LotteryDrum ref="drum" :balls="balls" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]" v-if="atlas" :paused="mode !== 'game'"
       :face="face" :sel="lastBall" :tip-of="ballTip" :party="spinning ? 0 : total" :spinning="spinning" :inset-top="topInset" :inset-bottom="insets.bottom">
       <!-- 抽完在搖獎機下面顯示結果看板（國旗、英文國名、獎牌）；點了打開結果面板 -->
       <Transition name="board">
@@ -45,17 +41,6 @@
       </Transition>
     </LotteryDrum>
 
-    <!-- 舞台下緣（操作列上面）浮著的東西：格子模式的換位置工具、遊戲以外的模式抽完的結果卡（點了打開面板） -->
-    <div class="stage-foot" :style="{ bottom: `${insets.bottom + 10}px` }">
-      <Transition name="chip">
-        <button v-if="mode !== 'game' && last && tierIdx(last) >= 0" :key="`${total}-${last}`" type="button" class="chip glass" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
-          <FlagBall class="c-flag" :iso="last" />
-          <span class="c-main"><b>{{ nameOf(last) }}</b></span>
-          <span class="c-prize"><b>{{ prizeOf(last) }}</b><small>HDI {{ C[last].hdi.toFixed(3) }}</small></span>
-          <svg class="c-go" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>
-        </button>
-      </Transition>
-    </div>
     </div>
 
     <!-- 中／英切換：畫面最上面右邊（預設中文，選過的記在瀏覽器） -->
@@ -63,40 +48,68 @@
       <button type="button" :class="{ on: isZh }" :aria-pressed="isZh" @click="setLang('zh')">中</button>
       <button type="button" :class="{ on: !isZh }" :aria-pressed="!isZh" @click="setLang('en')">EN</button>
     </div>
-    <!-- 頁面名稱：每一頁都在最上面左邊寫這是哪一頁（跟著中／英切換） -->
-    <div class="mode-title" :style="{ top: `${insets.top + 8}px` }">{{ modeLabel }}</div>
-    <!-- 操作列：浮在舞台上的玻璃條；模式選單（漢堡，往上展開）、DRAW（所有模式共用，唯一的抽獎按鈕）、資訊 -->
+    <!-- 頁面名稱＋模式選單（漢堡合在一起）：最上面左邊寫這是哪一頁，按下去往下展開選單 -->
     <div v-if="menu" class="menu-scrim" @click="menu = false"></div>
+    <nav class="modes" :style="{ top: `${insets.top + 8}px` }" :aria-label="L('Modes', '模式')">
+      <button type="button" class="mode-title" :class="{ on: menu }" :aria-expanded="menu" :aria-label="L('Switch mode', '切換模式')" :disabled="spinning" @click="menu = !menu">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path :d="menu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16'" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
+        <span>{{ modeLabel }}</span>
+      </button>
+      <Transition name="menu">
+        <ul v-if="menu" class="menu glass" role="menu">
+          <li v-for="m in MODES" :key="m.key">
+            <button type="button" role="menuitemradio" :aria-checked="mode === m.key" :class="{ on: mode === m.key }" @click="setMode(m.key); menu = false">
+              <i class="m-dot"></i>{{ m.label }}
+            </button>
+          </li>
+          <li class="m-sep" role="separator"></li>
+          <li>
+            <button type="button" role="menuitem" @click="menu = false; openSheet()">
+              <svg class="m-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>{{ L('Results & info', '結果與說明') }}
+              <span v-if="total" class="m-badge">{{ total > 99 ? '99+' : total }}</span>
+            </button>
+          </li>
+        </ul>
+      </Transition>
+    </nav>
+    <!-- 操作列：浮在舞台上的玻璃條；只有 DRAW（所有模式共用，唯一的抽獎按鈕）；資訊在左上的選單裡 -->
     <div ref="dockEl" class="dock glass">
-      <nav class="modes" :aria-label="L('Modes', '模式')">
-        <button type="button" class="ibtn" :class="{ on: menu }" :aria-expanded="menu" :aria-label="L('Switch mode', '切換模式')" :disabled="spinning" @click="menu = !menu">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path :d="menu ? 'M6 6l12 12M18 6L6 18' : 'M4 7h16M4 12h16M4 17h16'" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none" /></svg>
-        </button>
-        <Transition name="menu">
-          <ul v-if="menu" class="menu glass" role="menu">
-            <li v-for="m in MODES" :key="m.key">
-              <button type="button" role="menuitemradio" :aria-checked="mode === m.key" :class="{ on: mode === m.key }" @click="setMode(m.key); menu = false">
-                <i class="m-dot"></i>{{ m.label }}
-              </button>
-            </li>
-          </ul>
-        </Transition>
-      </nav>
       <button type="button" class="draw" :class="{ busy: spinning }" :disabled="spinning || !atlas" @click="draw">
         <i class="d-bulbs" aria-hidden="true"></i>
         <span class="d-dome"><i v-if="!spinning" class="d-star" aria-hidden="true">★</i><b :aria-label="spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖')"><span v-for="(ch, i) in [...(spinning ? L('SPINNING', '搖獎中') : L('SPIN', '搖一搖'))]" :key="`${spinning}${i}`" class="d-ch" :style="{ '--i': i }" aria-hidden="true">{{ ch }}</span></b><i v-if="!spinning" class="d-star r" aria-hidden="true">★</i><i v-if="spinning" class="d-dots"><i></i><i></i><i></i></i></span>
       </button>
-      <button type="button" class="ibtn" :aria-label="L('Info', '資訊')" @click="openSheet()">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="2" fill="none" /><path d="M12 11v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /><circle cx="12" cy="7.5" r="1.3" fill="currentColor" /></svg>
-        <span v-if="total" class="badge">{{ total > 99 ? '99+' : total }}</span>
-      </button>
     </div>
+
+    <!-- 遊戲以外的頁面（地圖、彩球盒）：跟資訊面板一樣從下面拉上來，蓋住搖獎機和操作列（搖一搖只在遊戲頁）；點外面、按 ✕、往下滑回到遊戲 -->
+    <Transition name="fade"><div v-if="atlas && mode !== 'game'" class="scrim view-scrim" @click="setMode('game')"></div></Transition>
+    <Transition name="sheet">
+    <aside v-if="atlas && mode !== 'game'" class="sheet view-sheet" role="dialog" :aria-label="modeLabel" :style="dragFor === 'view' && dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : null">
+      <div class="sheet-head" data-s="view" @pointerdown="dragStart" @pointermove="dragMove" @pointerup="dragEnd" @pointercancel="dragEnd">
+        <i class="grip"></i>
+        <div class="sh-row">
+          <h2 class="vs-title">{{ modeLabel }}</h2>
+          <button v-if="mode === 'box' || mode === 'boxp'" type="button" class="pill vs-reset" @click="boxEl?.resetView()">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4v4.5H9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" /></svg>{{ L('RESET', '重設') }}
+          </button>
+          <button type="button" class="close" :aria-label="L('Close', '關閉')" @click="setMode('game')">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
+          </button>
+        </div>
+      </div>
+      <div class="vs-body">
+        <MapModes v-if="mode === 'map'" :face="face" :last="last" :last-ball="lastBall" :counts="counts" :total="total" :atlas="atlas" :inset-top="0" :inset-bottom="safeBottom" />
+        <LotteryBox v-else ref="boxEl" :key="mode" :balls="balls" :cells="mode === 'boxp' ? boxRank.cells : cellsSnap" :cols="cellMeta.cols" :rows="cellMeta.rows"
+          :walls="mode === 'boxp' ? boxRank.walls : []" :frames="mode === 'boxp' ? boxRank.frames : []" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]"
+          :face="face" :sel="lastBall" :tip-of="ballTip" bg="#0d0926" :inset-top="0" :inset-bottom="safeBottom" />
+      </div>
+    </aside>
+    </Transition>
 
     <!-- 資訊面板：從下面拉上來，蓋在舞台上；點外面、按 ✕、往下滑都會收起來 -->
     <Transition name="fade"><div v-if="sheet" class="scrim" @click="sheet = false"></div></Transition>
     <Transition name="sheet">
-    <aside v-if="sheet" class="sheet" role="dialog" :aria-label="L('Info', '資訊')" :style="dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : null">
-    <div class="sheet-head" @pointerdown="dragStart" @pointermove="dragMove" @pointerup="dragEnd" @pointercancel="dragEnd">
+    <aside v-if="sheet" class="sheet" role="dialog" :aria-label="L('Info', '資訊')" :style="dragFor === 'info' && dragY ? { transform: `translateY(${dragY}px)`, transition: 'none' } : null">
+    <div class="sheet-head" data-s="info" @pointerdown="dragStart" @pointermove="dragMove" @pointerup="dragEnd" @pointercancel="dragEnd">
       <i class="grip"></i>
       <div class="sh-row">
         <nav class="tabs" role="tablist">
@@ -283,7 +296,7 @@ import WorldLocator from './components/WorldLocator.vue'
 import FlagBall from './components/FlagBall.vue'
 import { L, lang } from './i18n.js'
 import {
-  MODES, MAP_MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
+  MODES, mode, drawOne, drawBall, cellMeta, cellsSnap, boxRank,
   meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, balls, isoOfBall, colors, flagMeta, flagsUrl, flagStyle, ballTip,
   TIERS, TIER_EN, TIER_ZH, TIER_EN_FULL, TIER_R, NODATA, noHdi, noHdiNames, tierIdx, tierOfHdi, nameOf, prizeOf, colorOf,
   HDI_EXPECT, pTier, pIso, fmtP, oneIn, fmtBig,
@@ -316,6 +329,9 @@ const insets = reactive({ top: 0, bottom: 0 })
 const LANG_H = 44
 // 最上面一排：左邊頁面名稱、右邊中／英切換
 const topInset = computed(() => insets.top + LANG_H)
+// 手機最下面的安全區（Home 條）高度：地圖、彩球盒面板蓋住操作列，只要避開這一塊
+const safeBottom = ref(0)
+onMounted(() => { const t = document.createElement('i'); t.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom);visibility:hidden'; document.body.appendChild(t); safeBottom.value = t.offsetHeight; t.remove() })
 const modeLabel = computed(() => MODES.find((m) => m.key === mode.value)?.label ?? '')
 const isZh = computed(() => lang.value === 'zh')
 const setLang = (v) => (lang.value = v)
@@ -343,15 +359,17 @@ function openSheet(t) {
 }
 const dragY = ref(0)
 let drag0 = null
+const dragFor = ref(null) // 正在拉哪一個面板：info＝資訊、view＝地圖／彩球盒
 function dragStart(e) {
   if (e.target.closest('button')) return
   drag0 = e.clientY
+  dragFor.value = e.currentTarget.dataset.s
   e.currentTarget.setPointerCapture(e.pointerId)
 }
 function dragMove(e) { if (drag0 != null) dragY.value = Math.max(0, e.clientY - drag0) }
 function dragEnd() {
   if (drag0 == null) return
-  if (dragY.value > 80) sheet.value = false
+  if (dragY.value > 80) { if (dragFor.value === 'view') setMode('game'); else sheet.value = false }
   drag0 = null
   dragY.value = 0
 }
@@ -359,13 +377,10 @@ const SORTS = [['pop', 'By odds', '照機率'], ['hdi', 'By HDI', '照 HDI']].ma
 const sort = ref('pop')
 const sorted = computed(() => (sort.value === 'pop' ? ISOS : [...ISOS].sort((a, b) => (C[b].hdi ?? -1) - (C[a].hdi ?? -1))))
 const maxTierP = Math.max(...TIERS.map((t) => pTier(t)))
-// 地圖類模式第一次切過去才載入 MapLibre，之後一直留著
-const mapUsed = ref(false)
 const menu = ref(false) // 模式選單開著沒
 function setMode(m) {
   if (spinning.value) return
   mode.value = m
-  if (MAP_MODES.includes(m)) mapUsed.value = true
   // 抽到的那顆球留著（切模式也一樣），下一次抽才換
 }
 // 點清單：只把它標成「這次」，不算一次投胎
@@ -412,26 +427,32 @@ function clearHistory() {
   last.value = null; lastBall.value = null
 }
 const drum = ref(null)
+const boxEl = ref(null) // 彩球盒（重設視角用）
 const spinning = ref(false)
 
-// 搖手機也會搖獎：加速度（含重力）一下子變很多就算搖了一下，短時間內搖兩下才開始，避免走路晃到
-let shakeOn = false, prevA = null, shakeHits = [], shakeCool = 0
+// 搖手機也會搖獎：手機的加速度（扣掉重力）超過門檻算「甩一下」；同一下會連續好幾筆超過，所以兩下之間至少隔 150ms，
+// 1.2 秒內甩 3 下才開始（放下手機、走路、碰一下都不算）；搖獎中、剛搖完 1.5 秒內都不理
+let shakeOn = false, shakeHits = [], shakeCool = 0
 function onMotion(e) {
-  const a = e.accelerationIncludingGravity
-  if (!a || a.x == null) return
-  if (prevA) {
-    const d = Math.abs(a.x - prevA.x) + Math.abs(a.y - prevA.y) + Math.abs(a.z - prevA.z)
-    const now = performance.now()
-    if (d > 22) {
-      shakeHits = shakeHits.filter((t) => now - t < 800); shakeHits.push(now)
-      if (shakeHits.length >= 2 && now > shakeCool && !spinning.value && atlas.value && !sheet.value) {
-        shakeHits = []; shakeCool = now + 1500
-        navigator.vibrate?.(40)
-        draw()
-      }
-    }
+  const now = performance.now()
+  if (spinning.value || drawing || now < shakeCool || mode.value !== 'game') { shakeHits = []; return } // 搖手機也只在遊戲頁
+  let m
+  const a = e.acceleration
+  if (a && a.x != null) m = Math.hypot(a.x, a.y, a.z) // 已經扣掉重力
+  else {
+    const g = e.accelerationIncludingGravity
+    if (!g || g.x == null) return
+    m = Math.abs(Math.hypot(g.x, g.y, g.z) - 9.81)
   }
-  prevA = { x: a.x, y: a.y, z: a.z }
+  if (m < 13) return
+  shakeHits = shakeHits.filter((t) => now - t < 1200)
+  if (shakeHits.length && now - shakeHits[shakeHits.length - 1] < 150) return
+  shakeHits.push(now)
+  if (shakeHits.length >= 3 && atlas.value && !sheet.value) {
+    shakeHits = []
+    navigator.vibrate?.(40)
+    draw()
+  }
 }
 function enableShake() {
   try { enableShake0() } catch {} // 不管怎樣都不能擋到按鈕
@@ -448,9 +469,14 @@ if (typeof window !== 'undefined' && typeof window.DeviceMotionEvent?.requestPer
 onBeforeUnmount(() => window.removeEventListener('devicemotion', onMotion))
 
 // 遊戲模式：搖獎機轉完、掉出來的那顆就是（抽到誰由物理模擬決定）；地圖模式照人口抽一國；其他模式從全部球裡抽一顆
+let drawing = false // 正在抽（包含切回遊戲畫面、等搖獎機的那段）：連按、搖手機都不會同時抽兩次
 async function draw() {
   enableShake() // 第一次按：iPhone 要在按鈕裡問「動作與方向」權限
-  if (spinning.value) return
+  if (spinning.value || drawing) return
+  drawing = true
+  try { await draw0() } finally { drawing = false; shakeCool = performance.now() + 1500 }
+}
+async function draw0() {
   // 按 SPIN 一律回到遊戲（搖獎機）畫面再搖；等搖獎機掛好
   if (mode.value !== 'game') {
     setMode('game')
@@ -593,41 +619,22 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .d-dots i:nth-child(3) { animation-delay: 0.3s; }
 @keyframes d-dot { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 
-/* 模式選單：從漢堡往上展開 */
-.modes { position: relative; flex: none; }
-.menu { position: absolute; left: -8px; bottom: calc(100% + 18px); z-index: 13; min-width: 190px; margin: 0; padding: 6px; list-style: none; border-radius: 20px;
-  background: rgba(18, 13, 43, 0.86); transform-origin: 26px 100%; }
+/* 模式選單：從左上的頁面名稱往下展開 */
+.modes { position: absolute; z-index: 16; left: 12px; }
+.menu { position: absolute; left: 0; top: calc(100% + 10px); z-index: 13; min-width: 190px; margin: 0; padding: 6px; list-style: none; border-radius: 20px;
+  background: rgba(18, 13, 43, 0.92); transform-origin: 26px 0; }
 .menu button { display: flex; align-items: center; gap: 12px; width: 100%; height: 44px; padding: 0 14px; border: 0; border-radius: 14px; background: none;
   color: rgba(255, 255, 255, 0.72); font: inherit; font-size: 15px; text-align: left; cursor: pointer; white-space: nowrap; }
 .menu button:hover { background: rgba(255, 255, 255, 0.06); }
 .m-dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; opacity: 0.6; }
 .menu button.on { background: rgba(245, 196, 81, 0.16); color: #fff; font-weight: 700; }
 .menu button.on .m-dot { border: 0; background: var(--gold); opacity: 1; box-shadow: 0 0 8px var(--gold); }
-.menu-scrim { position: absolute; inset: 0; z-index: 11; background: rgba(0, 0, 0, 0.25); }
+.menu-scrim { position: absolute; inset: 0; z-index: 15; background: rgba(0, 0, 0, 0.25); }
 .menu-enter-active, .menu-leave-active { transition: opacity 0.16s, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
-.menu-enter-from, .menu-leave-to { opacity: 0; transform: scale(0.85) translateY(10px); }
+.menu-enter-from, .menu-leave-to { opacity: 0; transform: scale(0.85) translateY(-10px); }
 
-/* ── 舞台下緣（操作列上面）浮著的東西 ── */
-.stage-foot { position: absolute; left: 12px; right: 12px; z-index: 4; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.stage-foot > * { pointer-events: auto; }
 .pill { height: 34px; padding: 0 12px; border: 1px solid var(--glass-line); border-radius: 12px; background: rgba(255, 255, 255, 0.08); color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
 .pill:disabled { opacity: 0.4; cursor: default; }
-/* 結果卡（遊戲以外的模式）：左邊一條獎項色 */
-.chip { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px 10px 10px; border-radius: 20px; overflow: hidden;
-  color: #fff; font: inherit; text-align: left; cursor: pointer; }
-.chip::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 30%, transparent), transparent 70%); pointer-events: none; }
-.c-flag { flex: none; width: 44px; height: 44px; border-radius: 50%; box-shadow: 0 0 0 2px #fff3c4, 0 0 0 3.5px #c99a2e, 0 4px 10px rgba(0, 0, 0, 0.4); }
-.c-main, .c-prize { position: relative; min-width: 0; line-height: 1.25; }
-.c-main { flex: 1; }
-.c-main b { display: block; font-size: 17px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.c-main small, .c-prize small { display: block; margin-top: 1px; font-size: 12px; color: rgba(255, 255, 255, 0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.c-prize { flex: none; text-align: right; }
-.c-prize b { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--tier); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); font-size: 13px; font-weight: 800; }
-.c-go { position: relative; flex: none; color: rgba(255, 255, 255, 0.45); }
-.chip-enter-active { transition: opacity 0.3s, transform 0.45s cubic-bezier(0.2, 1.4, 0.4, 1); }
-.chip-leave-active { transition: opacity 0.15s; position: absolute; left: 0; right: 0; bottom: 0; }
-.chip-enter-from { opacity: 0; transform: translateY(20px) scale(0.92); }
-.chip-leave-to { opacity: 0; }
 
 /* ── 資訊面板 ── */
 .scrim { position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -641,6 +648,11 @@ const topDrawn = computed(() => Object.entries(counts).map(([iso, n]) => ({ iso,
 .tabs button.on { background: linear-gradient(180deg, #ffe08a, var(--gold)); color: #2a1a05; font-weight: 800; box-shadow: 0 2px 8px rgba(245, 196, 81, 0.3); }
 .close { flex: none; display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 50%; background: var(--tile); color: rgba(255, 255, 255, 0.75); cursor: pointer; }
 .sheet .content { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.view-scrim { z-index: 13; }
+.view-sheet { z-index: 13; overflow: hidden; } /* 蓋住操作列（z 12，搖一搖只在遊戲頁）；左上選單、中英切換還在上面 */
+.vs-title { flex: 1; margin: 0; padding-left: 4px; font-size: 18px; font-weight: 800; letter-spacing: 0.1em; color: #fff; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
+.vs-reset { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px 0 12px; font-size: 14px; letter-spacing: 0.08em; cursor: pointer; }
+.vs-body { position: relative; flex: 1; min-height: 0; overflow: hidden; }
 .sheet-enter-active, .sheet-leave-active { transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1); }
 .sheet-enter-from, .sheet-leave-to { transform: translateY(100%); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
@@ -847,10 +859,17 @@ section > .tiles .tile { background: var(--tile); }
 .pill:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #5a420b; }
 .r-lbl { margin-right: 4px; font-style: normal; font-size: 12px; font-weight: 600; color: var(--dim); }
 /* 模式名稱：跟招牌子標同一套紫色霓虹燈管框 */
-.mode-title { position: absolute; z-index: 14; left: 12px; padding: 4px 18px; border-radius: 999px; white-space: nowrap; pointer-events: none;
-  background: rgba(8, 4, 18, 0.78); border: 2px solid #f1dcff; color: #ffffff; font-size: 17px; font-weight: 800; letter-spacing: 0.12em;
+.mode-title { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 18px 0 12px; border-radius: 999px; white-space: nowrap; cursor: pointer;
+  font: inherit; background: rgba(8, 4, 18, 0.78); border: 2px solid #f1dcff; color: #ffffff; font-size: 17px; font-weight: 800; letter-spacing: 0.12em;
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7); text-shadow: 0 0 8px rgba(214, 160, 255, 0.9);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: transform 0.1s; }
+.mode-title svg { flex: none; filter: drop-shadow(0 0 4px #b14dff); }
+.mode-title:active:not(:disabled) { transform: scale(0.96); }
+.mode-title.on { background: rgba(60, 20, 100, 0.9); }
+.m-sep { height: 1px; margin: 6px 8px; background: rgba(241, 220, 255, 0.18); }
+.m-ico { flex: none; margin-left: -3px; opacity: 0.85; }
+.m-badge { margin-left: auto; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; background: #e0142a; border: 1.5px solid #f5c451; color: #fff; font-size: 12px; font-weight: 800; line-height: 17px; text-align: center; }
+.mode-title:disabled { cursor: default; opacity: 0.7; }
 /* 滑過（hover）：跟主畫面同一套——沒選中的按鈕亮起粉紅霓虹、選中的紅色圓頂更亮 */
 @media (hover: hover) {
   .lang-switch button:not(.on):hover, .tabs button:not(.on):hover, .seg button:not(.on):hover, .menu button:not(.on):hover {

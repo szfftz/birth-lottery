@@ -58,6 +58,7 @@ const props = defineProps({
   bg: { type: String, default: '#ffffff' },
   party: { type: Number, default: 0 }, // 換一個數字（每次公布結果）就灑一次彩帶
   spinning: { type: Boolean, default: false }, // 搖獎中（跑馬燈轉快）
+  paused: { type: Boolean, default: false }, // 被地圖／彩球盒面板蓋住：先不算、不畫（手機才不會卡）
 })
 // 搖獎機（場景單位：球的直徑＝1）：滾筒的軸是前後方向（z），內半徑 DRUM.r、深 DRUM.d，軸心高 DRUM.y
 const DRUM = { r: 11, d: 7, y: 14.5 }
@@ -608,6 +609,7 @@ function frame() {
   raf = requestAnimationFrame(frame)
   const now = performance.now(), dt = Math.min(1 / 30, (now - last) / 1000)
   last = now
+  if (props.paused && phase === 'idle') return
   update(dt)
   animateBulbs(now / 1000, phase !== 'idle')
   draw()
