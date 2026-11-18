@@ -15,9 +15,10 @@
     </template>
     <div class="vs-body">
       <WorldMap v-if="mode === 'map'" ref="view" :show-tally="showTally" :last="last" :counts="counts" :total="total" :inset-bottom="insetBottom" />
+      <!-- 彩球盒只是展示全部的球：不標出抽到的那顆 -->
       <LotteryBox v-else ref="view" :key="mode" :balls="balls" :cells="mode === 'boxp' ? boxRank.cells : worldCells" :cols="cellMeta.cols" :rows="cellMeta.rows"
         :walls="mode === 'boxp' ? boxRank.walls : []" :frames="mode === 'boxp' ? boxRank.frames : []" :colors="colors" :atlas="atlas" :grid="[flagMeta.cols, flagMeta.rows]"
-        face="flag" :sel="lastBall" :tip-of="ballTip" bg="#0d0926" :inset-top="0" :inset-bottom="insetBottom" />
+        face="flag" :tip-of="ballTip" bg="#0d0926" :inset-top="0" :inset-bottom="insetBottom" />
     </div>
   </BottomSheet>
 </template>
@@ -27,7 +28,7 @@ import { computed, defineAsyncComponent, ref } from 'vue'
 import BottomSheet from './BottomSheet.vue'
 import { L } from '../i18n.js'
 import { MODES, mode, balls, boxRank, worldCells, cellMeta, colors, flagMeta, ballTip } from '../lottery.js'
-import { last, lastBall, counts, total, showTally, setMode } from '../store.js'
+import { last, counts, total, showTally, setMode } from '../store.js'
 
 // 地圖（MapLibre 很大）、彩球盒：第一次打開那一頁才下載，網頁一開始比較輕
 const WorldMap = defineAsyncComponent(() => import('./WorldMap.vue'))
