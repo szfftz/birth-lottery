@@ -45,7 +45,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { BALL_R as R, LOW, makeBallMesh, setBallFace, fitFov, lockSpin } from '../lib/ball3d.js'
 import { DRUM, BASE, SUB, SPIN, FINS, HOLE, CHUTE, TRAY, wrapA, createDrumSim } from '../lib/drumPhysics.js'
 import settled from '../data/settled.json'
-import { DEBUG, dbg, dbgInfo } from '../lib/debug.js'
+import { DEBUG, dbg, dbgInfo, perf } from '../lib/debug.js'
 
 const props = defineProps({
   // 舞台上下被狀態列、浮動操作列擋住的高度（px）：內容放在中間看得到的地方
@@ -459,6 +459,7 @@ watch(() => props.party, (v) => {
     width: `${10 + Math.random() * 10}px`, height: `${6 + Math.random() * 8}px`,
   }))
 })
+let rafLast = 0, rafN = 0, rafSum = 0
 let physMs = 0 // 物理每一格算幾毫秒（移動平均）
 let calmT = 0, calmN = 0, idleT = 0 // 球停了沒：離上次檢查幾秒、連續幾次沒動、靜止後過了幾秒
 let last = performance.now()
@@ -474,6 +475,8 @@ function adaptQuality(ms) {
   if (avg > (LOW && phase === 'idle' ? 40 : 24) && pxRatio > 0.75) {
     pxRatio = Math.max(0.75, pxRatio - 0.25)
     renderer.setPixelRatio(pxRatio)
+  perf.low = LOW; perf.ratio = pxRatio
+  try { const g = renderer.getContext(), e = g.getExtension('WEBGL_debug_renderer_info'); perf.gpu = String(e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER)).replace(/ANGLE \(|, Unspecified Version\)|\)$/g, '').slice(0, 48) } catch { /* 沒有就算了 */ }
     warm = 30
     dbgInfo('解析度', `${pxRatio} 倍（平均每格 ${avg.toFixed(0)}ms，降一級）`)
   }
@@ -481,6 +484,15 @@ function adaptQuality(ms) {
 function frame() {
   raf = requestAnimationFrame(frame)
   const now = performance.now(), dt = Math.min(1 / 30, (now - last) / 1000)
+  // 每秒幾格（瀏覽器叫我們的次數，靜止、搖獎分開記）：顯示在「說明」最下面
+  if (rafLast && now - rafLast < 250) { rafN++; rafSum += now - rafLast }
+  rafLast = now
+  if (rafSum >= 1000) {
+    const f = Math.round((rafN * 1000) / rafSum)
+    if (phase === 'idle') perf.idle = f; else perf.spin = perf.spin ? Math.min(perf.spin, f) : f // 搖獎記最慢的那一秒
+    perf.ratio = pxRatio; perf.phys = +physMs.toFixed(1)
+    rafN = 0; rafSum = 0
+  }
   if (props.paused && phase === 'idle') { last = now; return }
   // 手機靜止時（只有慢慢搖）一秒畫 30 格就夠：省一半力氣，手機不會發燙變慢
   if (LOW && phase === 'idle' && !down && now - last < 30) return
@@ -511,7 +523,7 @@ const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-re
 onMounted(() => {
   // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（872 顆球再畫一次影子很吃效能）
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
-  pxRatio = Math.min(window.devicePixelRatio, LOW ? 1.5 : 2)
+  pxRatio = Math.min(window.devicePixelRatio, LOW ? 1.25 : 2)
   renderer.setPixelRatio(pxRatio)
   renderer.setClearColor(0x000000, 0) // 透明：後面是 CSS 畫的舞台
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -632,7 +644,12 @@ onBeforeUnmount(() => {
 @media (pointer: coarse) {
   .spots, .beam, .bokeh i { mix-blend-mode: normal; }
   .spots i::before, .spots i::after, .bokeh i { filter: none; }
-  .beam { filter: none; opacity: 0.35; }
+  .beam { filter: none; opacity: 0.35; animation: none; -webkit-mask: none; mask: none; }
+  /* 探照燈、散景光點：疊在 3D 畫面上面／下面的大塊半透明層（還帶遮罩、一直在轉），手機每一格都要把它們跟 3D 重新疊一次，最吃顯示晶片 → 手機不放 */
+  .spots, .bokeh { display: none; }
+  .suits i { animation: none; text-shadow: none; }
+  .marquee i { filter: none; }
+  .show-title { animation: none; }
 }
 @keyframes sway { from { transform: rotate(-24deg); } to { transform: rotate(14deg); } }
 /* 散景光點：模糊的小圓、慢慢浮動閃爍 */

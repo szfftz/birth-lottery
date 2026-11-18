@@ -81,7 +81,7 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 /* 手機：整塊招牌的亮度動畫（filter）、橫條燈的 screen 混色都很吃效能 → 招牌不跟著呼吸、字只用透明度閃、橫條燈一般疊上去 */
 @media (pointer: coarse) {
   .st-sign { animation: none; }
-  .st-sign::before { mix-blend-mode: normal; opacity: 0.8; animation: n-bars 3.2s linear infinite; }
+  .st-sign::before { mix-blend-mode: normal; opacity: 0.8; animation: none; background-position: 0 50%, 0 0; } /* 橫條燈不掃：背景位置動畫每一格都要重畫整塊招牌 */
   .n-pink, .n-cyan { animation-name: n-flash-lite; }
 }
 @keyframes n-flash-lite { 0%, 30%, 38%, 100% { opacity: 1; } 31%, 34% { opacity: 0.22; } }

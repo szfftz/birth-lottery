@@ -74,11 +74,14 @@
     </ul>
 
     <p class="ver">{{ L('Version', '版本', 'バージョン', '버전') }} v{{ VERSION }}・{{ BUILT }}</p>
+    <!-- 效能數字（卡的時候截這一行）：每秒幾格 靜止／搖獎、3D 解析度倍數、物理每格毫秒、L＝手機省電版、顯示晶片 -->
+    <p class="ver perf">{{ perf.idle || '–' }}/{{ perf.spin || '–' }} fps・×{{ perf.ratio }}・{{ perf.phys }}ms{{ perf.low ? '・L' : '' }}<br>{{ perf.gpu }}</p>
   </section>
 </template>
 
 <script setup>
 import { L, lang } from '../../i18n.js'
+import { perf } from '../../lib/debug.js'
 import { meta, C, BALLS, BALL_TOTAL, POP_UNIT, ONE_BALL, TIERS, pIso, fmtP, oneIn, fmtBig } from '../../lottery.js'
 
 const SOURCES = [

@@ -1,5 +1,11 @@
 // 除錯面板（暫時）：網址後面加 ?debug 才出現，畫面左下角一塊小字，寫這台手機的狀況、最近發生的事。
 // 手機上有問題時截圖這一塊，就知道是哪一步出錯（按鈕有沒有收到、3D 有沒有起來、每秒畫幾格）
+import { reactive } from 'vue'
+
+// 效能數字（每一台都記，不用 ?debug）：顯示在「說明」最下面版本號旁邊，手機卡的時候截那一行就知道卡在哪
+// idle／spin＝靜止、搖獎時每秒幾格；ratio＝3D 解析度倍數；phys＝物理每格幾毫秒；low＝手機省電版；gpu＝顯示晶片
+export const perf = reactive({ idle: 0, spin: 0, ratio: 0, phys: 0, low: false, gpu: '' })
+
 export const DEBUG = typeof location !== 'undefined' && /[?&]debug\b/.test(location.search)
 const info = {} // 固定的資訊（裝置、3D）
 const log = [] // 最近發生的事

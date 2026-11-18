@@ -373,6 +373,7 @@ section > .tiles .tile { background: var(--tile); }
   .glass { background: rgba(16, 11, 40, 0.88); }
   .lang-switch, .mode-title { background: rgba(10, 5, 24, 0.92); }
   .draw { height: 64px; }
+  .rb-bulbs { filter: none; }
   .draw.busy .d-dome { animation: none; filter: brightness(1.15); } /* 搖獎中的閃光（filter 動畫）改成固定亮一點 */
 }
 
@@ -384,3 +385,4 @@ section > .tiles .tile { background: var(--tile); }
 .sheet:not(.view-sheet) { max-width: calc(520px * var(--u, 1)); margin-inline: auto; }
 
 .ver { margin: 18px 0 4px; text-align: center; font-size: 12px; letter-spacing: 0.04em; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ver.perf { margin-top: 0; white-space: normal; opacity: 0.75; }
