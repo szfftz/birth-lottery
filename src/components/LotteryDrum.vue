@@ -448,11 +448,30 @@ watch(() => props.party, (v) => {
   }))
 })
 let last = performance.now()
+// 畫面跟不上就降解析度：連續 45 格平均每格超過 24ms（搖獎時不到 42 格／秒；靜止時本來就 30 格，門檻放寬到 40ms）就降一級，最低 0.75 倍；不會再升回去（免得忽高忽低）
+let pxRatio = 1, slowSum = 0, slowN = 0, warm = 60
+function adaptQuality(ms) {
+  if (warm > 0) { warm--; return } // 剛打開在編譯著色器，不算
+  if (ms > 250) return // 切到別的分頁回來
+  slowSum += ms
+  if (++slowN < 45) return
+  const avg = slowSum / slowN
+  slowSum = 0; slowN = 0
+  if (avg > (LOW && phase === 'idle' ? 40 : 24) && pxRatio > 0.75) {
+    pxRatio = Math.max(0.75, pxRatio - 0.25)
+    renderer.setPixelRatio(pxRatio)
+    warm = 30
+    dbgInfo('解析度', `${pxRatio} 倍（平均每格 ${avg.toFixed(0)}ms，降一級）`)
+  }
+}
 function frame() {
   raf = requestAnimationFrame(frame)
   const now = performance.now(), dt = Math.min(1 / 30, (now - last) / 1000)
+  if (props.paused && phase === 'idle') { last = now; return }
+  // 手機靜止時（只有慢慢搖）一秒畫 30 格就夠：省一半力氣，手機不會發燙變慢
+  if (LOW && phase === 'idle' && !down && now - last < 30) return
+  adaptQuality(now - last)
   last = now
-  if (props.paused && phase === 'idle') return
   update(dt)
   animateBulbs(now / 1000, phase !== 'idle')
   draw()
@@ -478,7 +497,8 @@ const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-re
 onMounted(() => {
   // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（872 顆球再畫一次影子很吃效能）
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW ? 1.5 : 2))
+  pxRatio = Math.min(window.devicePixelRatio, LOW ? 1.5 : 2)
+  renderer.setPixelRatio(pxRatio)
   renderer.setClearColor(0x000000, 0) // 透明：後面是 CSS 畫的舞台
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.15
