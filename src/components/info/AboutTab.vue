@@ -72,6 +72,8 @@
     <ul class="src">
       <li v-for="s in SOURCES" :key="s.url"><b>{{ L(...s.label) }}</b>{{ L(...s.org) }}<a :href="s.url" target="_blank" rel="noopener">{{ s.url }}</a></li>
     </ul>
+
+    <p class="ver">{{ L('Version', '版本', 'バージョン', '버전') }} v{{ VERSION }}・{{ BUILT }}</p>
   </section>
 </template>
 
@@ -87,6 +89,8 @@ const SOURCES = [
   { label: ['Flags (1:1 square SVG, 7.6.0)', '國旗（1:1 正方形 SVG，7.6.0）', '国旗（1:1 正方形 SVG、7.6.0）', '국기 (1:1 정사각형 SVG, 7.6.0)'], org: ['flag-icons (MIT)', 'flag-icons（MIT）', 'flag-icons（MIT）', 'flag-icons (MIT)'], url: 'https://github.com/lipis/flag-icons' },
   { label: ['Borders (1:50m Admin 0 – Countries)', '國界（1:50m Admin 0 – Countries）', '国境（1:50m Admin 0 – Countries）', '국경 (1:50m Admin 0 – Countries)'], org: ['Natural Earth (public domain)', 'Natural Earth（公有領域）', 'Natural Earth（パブリックドメイン）', 'Natural Earth (퍼블릭 도메인)'], url: 'https://www.naturalearthdata.com/' },
 ]
+// 版本號、建置時間（vite.config.js 在建置時填進來）
+const VERSION = __APP_VERSION__, BUILT = __APP_BUILT__
 // 實際網頁
 const SITE = 'https://szfftz.github.io/birth-lottery/'
 </script>

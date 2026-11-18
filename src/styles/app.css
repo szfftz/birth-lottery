@@ -383,3 +383,4 @@ section > .tiles .tile { background: var(--tile); }
 /* 資訊面板：畫面很寬（電腦、平板）時不要拉到整個寬，最寬 520px（照 --u 縮放）、置中；票卡、數字方塊才不會被拉得很大 */
 .sheet:not(.view-sheet) { max-width: calc(520px * var(--u, 1)); margin-inline: auto; }
 
+.ver { margin: 18px 0 4px; text-align: center; font-size: 12px; letter-spacing: 0.04em; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
