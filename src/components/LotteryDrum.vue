@@ -362,7 +362,11 @@ function update(dt) {
   gate.visible = !sim.gateOpen
   if (sim.moving || phase !== 'idle') {
     let v = 0
+    const tp = performance.now()
     for (let k = 0; k < SUB; k++) v = Math.max(v, step(dt / SUB))
+    // 物理算太久（平均每格超過 6ms，慢的手機）：每一小步的碰撞只解 2 輪，球軟一點但順很多
+    physMs += (performance.now() - tp - physMs) * 0.1
+    if (physMs > 6 && sim.iters > 2) { sim.iters = 2; dbgInfo('物理', `每格 ${physMs.toFixed(1)}ms → 碰撞改解 2 輪`) }
     // 球堆好不動了就停止計算（以前是看速度 < 0.1，但堆好的球速度一直在抖、永遠到不了，物理每一格都在算，手機一直發燙）。
     // 改成每半秒看一次位置：連續兩次都沒有球移超過 0.04（球直徑的 4%）就停；最多等 8 秒
     if (phase !== 'idle') { calmT = 0; calmN = 0; idleT = 0 }
@@ -455,6 +459,7 @@ watch(() => props.party, (v) => {
     width: `${10 + Math.random() * 10}px`, height: `${6 + Math.random() * 8}px`,
   }))
 })
+let physMs = 0 // 物理每一格算幾毫秒（移動平均）
 let calmT = 0, calmN = 0, idleT = 0 // 球停了沒：離上次檢查幾秒、連續幾次沒動、靜止後過了幾秒
 let last = performance.now()
 // 畫面跟不上就降解析度：連續 45 格平均每格超過 24ms（搖獎時不到 42 格／秒；靜止時本來就 30 格，門檻放寬到 40ms）就降一級，最低 0.75 倍；不會再升回去（免得忽高忽低）

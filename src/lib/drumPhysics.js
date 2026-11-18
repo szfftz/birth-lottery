@@ -48,27 +48,35 @@ export function createDrumSim(n) {
     cellFill.set(cellStart)
     for (let b = 0; b < n; b++) cellItem[cellFill[cellOfBall[b]]++] = b
   }
-  // 球跟球互撞：看自己那一格和旁邊 26 格裡的球。同一列左右三格在 cellItem 裡是連在一起的，所以一次掃一段（9 段，不用 27 段）
-  // 格子每一步只排一次（rebuild），同一步裡後面幾輪沿用：一輪裡球移動遠小於一格，旁邊 26 格一定涵蓋得到
+  // 球跟球互撞：每一對球只看一次——自己那一格（編號比自己大的）、同一列右邊那格，加上「後面」4 列（同一層的下一列、下一層的三列）各左右三格。
+  // 同一列左右三格在 cellItem 裡是連在一起的，所以一次掃一段：總共 5 段（約 14 格），不用把旁邊 26 格都看過再丟掉一半
+  // 格子每一步只排一次（rebuild），同一步裡後面幾輪沿用：一輪裡球移動遠小於一格，旁邊的格子一定涵蓋得到
+  const ROWS = [[1, 0], [-1, 1], [0, 1], [1, 1]] // [dj, dk]：後面那 4 列
+  function hit(b, q, qEnd, wb) {
+    for (; q < qEnd; q++) {
+      const o = cellItem[q]
+      if (where[o] !== wb) continue // 滾筒裡、外的球隔著筒壁，不會互撞（掉出來的球不會被筒裡的球卡住）
+      const ex = px[o] - px[b], ey = py[o] - py[b], ez = pz[o] - pz[b]
+      const d2 = ex * ex + ey * ey + ez * ez
+      if (d2 >= 1 || d2 === 0) continue
+      const d = Math.sqrt(d2), push = (1 - d) / 2 / d
+      px[b] -= ex * push; py[b] -= ey * push; pz[b] -= ez * push
+      px[o] += ex * push; py[o] += ey * push; pz[o] += ez * push
+    }
+  }
   function collideBalls(rebuild) {
     if (rebuild) buildGrid()
-    for (let b = 0; b < n; b++) {
-      const c = cellOfBall[b], ci = c % NX, cj = Math.floor(c / NX) % NY, ck = Math.floor(c / (NX * NY))
+    // 照格子的順序一顆一顆看（cellItem 的順序）：同一格裡排在自己後面的球＝還沒配過的
+    for (let p = 0; p < n; p++) {
+      const b = cellItem[p], c = cellOfBall[b], wb = where[b]
+      const ci = c % NX, cj = ((c / NX) | 0) % NY, ck = (c / (NX * NY)) | 0
+      hit(b, p + 1, cellStart[ci < NX - 1 ? c + 2 : c + 1], wb) // 自己這格剩下的＋右邊那格
       const i0 = ci > 0 ? ci - 1 : 0, i1 = ci < NX - 1 ? ci + 1 : NX - 1
-      for (let dk = -1; dk <= 1; dk++) for (let dj = -1; dj <= 1; dj++) {
-        const j = cj + dj, k = ck + dk
-        if (j < 0 || k < 0 || j >= NY || k >= NZ) continue
+      for (let r = 0; r < 4; r++) {
+        const j = cj + ROWS[r][0], k = ck + ROWS[r][1]
+        if (j < 0 || j >= NY || k >= NZ) continue
         const row = (k * NY + j) * NX
-        for (let q = cellStart[row + i0], qEnd = cellStart[row + i1 + 1]; q < qEnd; q++) {
-          const o = cellItem[q]
-          if (o <= b || where[o] !== where[b]) continue // 滾筒裡、外的球隔著筒壁，不會互撞（掉出來的球不會被筒裡的球卡住）
-          const ex = px[o] - px[b], ey = py[o] - py[b], ez = pz[o] - pz[b]
-          const d2 = ex * ex + ey * ey + ez * ez
-          if (d2 >= 1 || d2 === 0) continue
-          const d = Math.sqrt(d2), push = (1 - d) / 2 / d
-          px[b] -= ex * push; py[b] -= ey * push; pz[b] -= ez * push
-          px[o] += ex * push; py[o] += ey * push; pz[o] += ez * push
-        }
+        hit(b, cellStart[row + i0], cellStart[row + i1 + 1], wb)
       }
     }
   }
