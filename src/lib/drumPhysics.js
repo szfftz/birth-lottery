@@ -26,7 +26,7 @@ export const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a))
 /** n 顆球的模擬。回傳的 sim：px…oz＝現在、上一步的位置；where[b]＝0 在滾筒裡、1 掉出來了；
  *  omega＝滾筒角速度、angle＝滾筒轉了多少、gateOpen＝出球口打開、escaped＝這次掉出去的球、moving＝還有球在動 */
 export function createDrumSim(n) {
-  const sim = { omega: 0, angle: 0, gateOpen: false, moving: true, escaped: -1 }
+  const sim = { omega: 0, angle: 0, gateOpen: false, moving: true, escaped: -1, iters: 4 } // iters＝每一小步解幾輪碰撞（慢的手機降到 2）
   const px = new Float32Array(n), py = new Float32Array(n), pz = new Float32Array(n)
   const ox = new Float32Array(n), oy = new Float32Array(n), oz = new Float32Array(n)
   // 每顆球在哪：0＝滾筒裡、1＝掉出來（滑道、盤子）
@@ -152,7 +152,7 @@ export function createDrumSim(n) {
       // 滑道上多推一把（像滑道有點陡又很滑），球滾出來快一點
       if (where[b] && pz[b] >= CHUTE.z0 - 1 && pz[b] <= CHUTE.z1) pz[b] += CHUTE_PUSH * h * h
     }
-    for (let it = 0; it < 4; it++) {
+    for (let it = 0; it < sim.iters; it++) {
       collideBalls(it === 0)
       drumConstraints(h, it === 0)
       for (let b = 0; b < n; b++) if (where[b]) outsideConstraints(b)
@@ -185,5 +185,19 @@ export function createDrumSim(n) {
     where[b] = 1
     px[b] = ox[b] = 0; py[b] = oy[b] = BASE.h + 0.14 + R - DRUM.y; pz[b] = oz[b] = TRAY.z
   }
-  return Object.assign(sim, { px, py, pz, ox, oy, oz, where, rand, step, initBalls, putBack, placeInTray })
+  // 球還在動嗎：回傳「從上次呼叫到現在，位置變最多的那顆球移了多遠」。
+  // 不能看速度：堆好的球每一小步還是被重力拉一點再推回來，速度一直在抖、不會變 0；但位置其實沒變
+  const sx = new Float32Array(n), sy = new Float32Array(n), sz = new Float32Array(n)
+  function drift() {
+    let m = 0
+    for (let b = 0; b < n; b++) {
+      const d = Math.abs(px[b] - sx[b]) + Math.abs(py[b] - sy[b]) + Math.abs(pz[b] - sz[b])
+      if (d > m) m = d
+      sx[b] = px[b]; sy[b] = py[b]; sz[b] = pz[b]
+    }
+    return m
+  }
+  // 停下來：速度歸零（下次再算時不會彈一下）
+  function rest() { ox.set(px); oy.set(py); oz.set(pz); sim.moving = false }
+  return Object.assign(sim, { px, py, pz, ox, oy, oz, where, rand, step, initBalls, putBack, placeInTray, drift, rest })
 }

@@ -110,6 +110,7 @@ const pbr = (o) => (LOW ? new THREE.MeshStandardMaterial(Object.fromEntries(Obje
 // ── 球的模擬：lib/drumPhysics.js ──
 const n = props.balls.n
 const sim = createDrumSim(n)
+if (LOW) sim.iters = 3 // 手機：每一小步的碰撞少解一輪（省 25% 計算，球稍微軟一點、看不太出來）
 const { px, py, pz, ox, oy, oz, where, rand, step, initBalls, putBack, placeInTray } = sim
 
 // ── 3D 場景：開獎節目的舞台 ──
@@ -362,7 +363,14 @@ function update(dt) {
   if (sim.moving || phase !== 'idle') {
     let v = 0
     for (let k = 0; k < SUB; k++) v = Math.max(v, step(dt / SUB))
-    sim.moving = v > 0.1
+    // 球堆好不動了就停止計算（以前是看速度 < 0.1，但堆好的球速度一直在抖、永遠到不了，物理每一格都在算，手機一直發燙）。
+    // 改成每半秒看一次位置：連續兩次都沒有球移超過 0.04（球直徑的 4%）就停；最多等 8 秒
+    if (phase !== 'idle') { calmT = 0; calmN = 0; idleT = 0 }
+    else {
+      idleT += dt
+      if ((calmT += dt) >= 0.5) { calmT = 0; calmN = sim.drift() < 0.04 ? calmN + 1 : 0 }
+      if (calmN >= 2 || idleT > 8) { sim.rest(); calmN = 0; idleT = 0; dbg('搖獎機：球停了，物理休息') }
+    }
   }
 }
 
@@ -447,6 +455,7 @@ watch(() => props.party, (v) => {
     width: `${10 + Math.random() * 10}px`, height: `${6 + Math.random() * 8}px`,
   }))
 })
+let calmT = 0, calmN = 0, idleT = 0 // 球停了沒：離上次檢查幾秒、連續幾次沒動、靜止後過了幾秒
 let last = performance.now()
 // 畫面跟不上就降解析度：連續 45 格平均每格超過 24ms（搖獎時不到 42 格／秒；靜止時本來就 30 格，門檻放寬到 40ms）就降一級，最低 0.75 倍；不會再升回去（免得忽高忽低）
 let pxRatio = 1, slowSum = 0, slowN = 0, warm = 60
@@ -539,6 +548,7 @@ onMounted(() => {
   mesh.frustumCulled = false // 一定在畫面裡；不用每一格重算範圍
   turntable.add(mesh)
   initBalls(settled) // 預先算好的位置，打開網頁不用等
+  sim.rest() // 已經堆好了：一開始就不用算物理
   if (props.sel != null) placeInTray(props.sel)
   inTray = props.sel ?? -1
   initSpin()
