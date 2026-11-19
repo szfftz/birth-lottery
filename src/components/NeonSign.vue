@@ -79,8 +79,8 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7);
   font-size: 27px; /* 三段字（幾顆球、幾國、1 球幾人）一行寫完 */ font-weight: 800; letter-spacing: -0.005em; white-space: nowrap; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .st-sub i { font-style: normal; font-size: 18px; color: #ff6fc1; text-shadow: 0 0 8px #ff2d95; }
-/* 正下方的小字署名（子標下面、置中）：細細的青色霓虹，不搶戲；字距 -5 */
-.st-by { position: absolute; left: 0; right: 0; bottom: 25px; text-align: center; font-family: 'Overpass', sans-serif; font-size: 16px; font-weight: 800; line-height: 1; letter-spacing: -0.005em;
+/* 正下方的署名（子標下面、置中）：細細的青色霓虹，不搶戲；字距 -5 */
+.st-by { position: absolute; left: 0; right: 0; bottom: 23px; text-align: center; font-family: 'Overpass', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -0.005em;
   color: #d8fdff; opacity: 0.8; text-shadow: 0 0 4px #19e6ff, 0 0 10px rgba(25, 230, 255, 0.7); pointer-events: none; }
 /* 手機：整塊招牌的亮度動畫（filter）、橫條燈的 screen 混色都很吃效能 → 招牌不跟著呼吸、字只用透明度閃、橫條燈一般疊上去 */
 @media (pointer: coarse) {

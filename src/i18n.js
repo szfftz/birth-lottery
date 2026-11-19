@@ -4,13 +4,17 @@ import { ref, watch } from 'vue'
 
 // [代碼, 用哪一國的國旗球當按鈕, html lang, 按鈕的名字（給螢幕閱讀器）]：中文照台灣說法、英文照英國用法和拼法
 export const LANGS = [['zh', 'TWN', 'zh-Hant-TW', '中文'], ['en', 'GBR', 'en-GB', 'English'], ['ja', 'JPN', 'ja', '日本語'], ['ko', 'KOR', 'ko', '한국어']]
+// 網頁標題（瀏覽器分頁、加到主畫面的名字）：跟招牌上寫的一樣，照語言換
+const TITLES = { zh: '出生搖搖樂', en: 'Birth Lottery', ja: '国ガチャ', ko: '출생 로또' }
 const KEY = 'birth-lottery:lang'
 let saved = null
 try { saved = localStorage.getItem(KEY) } catch { /* 讀不到就用預設 */ }
 export const lang = ref(LANGS.some(([k]) => k === saved) ? saved : 'zh')
 watch(lang, (v) => {
   try { localStorage.setItem(KEY, v) } catch { /* 存不了就算了 */ }
-  if (typeof document !== 'undefined') document.documentElement.lang = LANGS.find(([k]) => k === v)[2] // 測試（沒有網頁）時跳過
+  if (typeof document === 'undefined') return // 測試（沒有網頁）時跳過
+  document.documentElement.lang = LANGS.find(([k]) => k === v)[2]
+  document.title = TITLES[v]
 }, { immediate: true })
 export const L = (en, zh, ja, ko) => ({ zh, ja, ko })[lang.value] ?? en
 // 中日韓（字比較方、不用複數、獎牌不寫 PRIZE）
