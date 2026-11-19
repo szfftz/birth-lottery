@@ -75,9 +75,9 @@ export const mapNameOf = (iso, en, zh) => L(en, zh ?? en, namesJaKo[iso]?.[0], n
 export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、', '、', ', '))
 export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? L('Redraw', '重抽', '引き直し', '다시 뽑기')
 // 地圖的顏色：照人類發展指數由低到高連續變色，不分級；沒有指數的國家用灰色。
-// 亮色系、單一色系：招牌的霓虹桃紅，由淡到濃（低＝很淡的粉 #ffe3f1 → 高＝霓虹桃紅 #ff2d95，最高再深一點）。
-// 不用黃、橘、金：國界是金色的線，顏色不能跟它撞
-const HDI_COLORS = ['#ffe3f1', '#ffbfdc', '#ff96c8', '#ff6ab2', '#ff409f', '#f01f8c', '#d40f78']
+// 亮色系，青到紫：低＝招牌的霓虹青 #3defff → 藍 → 高＝招牌子標的霓虹紫 #b14dff（最高再深一點），每一段都是亮的。
+// 不用紅、桃紅（跟酒紅的牆太像）；不用黃、橘、金（國界是金色的線，不能跟它撞）
+const HDI_COLORS = ['#3defff', '#4fd0ff', '#62b0ff', '#7b92ff', '#9a72ff', '#b14dff', '#9530e6']
 const HDIS = ISOS.map((iso) => C[iso].hdi).filter((h) => h != null), HDI_LO = Math.min(...HDIS), HDI_HI = Math.max(...HDIS)
 // 圖例用：指數最低、最高是多少，還有同一條漸層（CSS）
 export const HDI_RANGE = [HDI_LO, HDI_HI], HDI_RAMP = `linear-gradient(90deg, ${HDI_COLORS.join(', ')})`

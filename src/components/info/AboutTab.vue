@@ -35,7 +35,7 @@
       <li v-if="SHOW_PRIZE"><b>Prizes</b>Countries are ranked by HDI and cut into {{ TIERS.length }} tiers. Each tier is more likely than the one above, as close as possible to 1:2:4:8:16:32:64:128. Countries with the same HDI aren't split, so the ratios are close but not exact.</li>
       <li><b>Balls</b>{{ BALL_TOTAL }} balls in all, at least one per country ({{ ONE_BALL }} countries have just one). Otherwise one ball ≈ {{ fmtBig(POP_UNIT) }} people; India has the most ({{ BALLS.IND }}). Tiny countries still get one ball, so their odds are a bit higher than their population share.</li>
       <li v-if="SHOW_PRIZE"><b>Map</b>Countries are coloured by prize. Turn on “Draws” to circle every country you've drawn; a circle's area is that country's share of all your draws, which gets closer to its population share the more you draw. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m.</li>
-      <li v-else><b>Map</b>Countries are coloured by HDI, from pale pink (low) to deep pink (high). Turn on “Draws” to circle every country you've drawn; a circle's area is that country's share of all your draws, which gets closer to its population share the more you draw. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m.</li>
+      <li v-else><b>Map</b>Countries are coloured by HDI, from cyan (low) to purple (high). Turn on “Draws” to circle every country you've drawn; a circle's area is that country's share of all your draws, which gets closer to its population share the more you draw. Borders from <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:50m.</li>
       <li v-if="SHOW_PRIZE"><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world; Prize Box lines the balls up by prize — Grand Prize first — with dividers and a different pastel for each prize.</li>
       <li v-else><b>Box modes</b>The balls packed into a 3D clear acrylic case with the lid open. World Box groups countries by where they are in the world.</li>
       <li><b>Lottery drum (Game)</b>All {{ BALL_TOTAL }} balls go into a 3D clear drum, and the draw is decided entirely by the physics simulation. The drum spins (each spin's length is multiplied by a random 0.85–1.15), three paddles carry the balls up and tumble them; then the outlet turns to the bottom and the gate opens, and the first ball to fall through is the winner, rolling down the chute into the tray. If it's a redraw ball, the drum spins again.</li>
@@ -47,7 +47,7 @@
       <li v-if="SHOW_PRIZE"><b>賞</b>国を HDI の高い順に並べて {{ TIERS.length }} 段に分け、下の賞ほど当たりやすく、なるべく 1:2:4:8:16:32:64:128 に近づけています。同じ HDI の国は分けないので、ぴったりにはなりません。</li>
       <li><b>ボール</b>全部で {{ BALL_TOTAL }} 個、どの国も最低 1 個（{{ ONE_BALL }} か国は 1 個だけ）。それ以外はボール 1 個 ≈ {{ fmtBig(POP_UNIT) }} 人で、いちばん多いのはインド（{{ BALLS.IND }} 個）。人口がとても少ない国も 1 個あるので、人口の割合より少し当たりやすくなります。</li>
       <li v-if="SHOW_PRIZE"><b>地図</b>国を賞の色で塗り分けています。「当たった国」をオンにすると当たった国に円を描き、円の面積＝その国の当選回数の割合。たくさん引くほど人口の割合に近づきます。国境は <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> の 1:5,000 万。</li>
-      <li v-else><b>地図</b>国の色は HDI の高さ（低い＝淡いピンク → 高い＝濃いピンク）。「当たった国」をオンにすると当たった国に円を描き、円の面積＝その国の当選回数の割合。たくさん引くほど人口の割合に近づきます。国境は <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> の 1:5,000 万。</li>
+      <li v-else><b>地図</b>国の色は HDI の高さ（低い＝水色 → 高い＝紫）。「当たった国」をオンにすると当たった国に円を描き、円の面積＝その国の当選回数の割合。たくさん引くほど人口の割合に近づきます。国境は <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> の 1:5,000 万。</li>
       <li v-if="SHOW_PRIZE"><b>ボール箱</b>ボールを 3D の透明アクリルケースに入れ、ふたを開けています。「世界ボール箱」は各国の世界での位置どおりに並べ、「賞別ボール箱」は特賞から残念賞まで賞の順に並べて、賞ごとに仕切りと色を変えています。</li>
       <li v-else><b>ボール箱</b>ボールを 3D の透明アクリルケースに入れ、ふたを開けています。「世界ボール箱」は各国の世界での位置どおりに並べています。</li>
       <li><b>抽選機（ゲーム）</b>{{ BALL_TOTAL }} 個のボールを 3D の透明ドラムに入れ、どれが出るかはすべて物理シミュレーションで決まります。ドラムが回り（毎回の回転時間に 0.85〜1.15 の乱数を掛けます）、中の 3 枚の羽根がボールを持ち上げてかき混ぜます。止まると出口が真下に来てゲートが開き、最初に重力で穴を通ったボールが当たり。シュートを転がって前のトレーに入ります。引き直しボールならもう一度回します。</li>
@@ -59,7 +59,7 @@
       <li v-if="SHOW_PRIZE"><b>상</b>나라를 HDI 높은 순으로 줄 세워 {{ TIERS.length }}단계로 나눴어요. 아래 상일수록 뽑힐 확률이 커서 1:2:4:8:16:32:64:128에 최대한 가깝게 맞췄어요. 같은 HDI는 나누지 않아서 딱 맞지는 않아요.</li>
       <li><b>공</b>모두 {{ BALL_TOTAL }}개, 모든 나라가 최소 1개({{ ONE_BALL }}개국은 1개뿐). 나머지는 공 1개 ≈ {{ fmtBig(POP_UNIT) }}명이고, 가장 많은 나라는 인도({{ BALLS.IND }}개). 인구가 아주 적은 나라도 1개가 있어서 인구 비율보다 조금 더 잘 뽑혀요.</li>
       <li v-if="SHOW_PRIZE"><b>지도</b>나라를 상 색깔로 칠했어요. 「뽑힌 나라」를 켜면 뽑힌 나라에 원을 그리고, 원의 면적 = 그 나라가 뽑힌 횟수의 비율. 많이 뽑을수록 인구 비율에 가까워져요. 국경은 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000만.</li>
-      <li v-else><b>지도</b>나라 색은 HDI 높낮이예요(낮으면 연분홍 → 높으면 진분홍). 「뽑힌 나라」를 켜면 뽑힌 나라에 원을 그리고, 원의 면적 = 그 나라가 뽑힌 횟수의 비율. 많이 뽑을수록 인구 비율에 가까워져요. 국경은 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000만.</li>
+      <li v-else><b>지도</b>나라 색은 HDI 높낮이예요(낮으면 청록 → 높으면 보라). 「뽑힌 나라」를 켜면 뽑힌 나라에 원을 그리고, 원의 면적 = 그 나라가 뽑힌 횟수의 비율. 많이 뽑을수록 인구 비율에 가까워져요. 국경은 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000만.</li>
       <li v-if="SHOW_PRIZE"><b>공 상자</b>공을 3D 투명 아크릴 상자에 담고 뚜껑을 열어 두었어요. 「세계 공 상자」는 나라들의 세계 속 위치대로, 「상별 공 상자」는 특등부터 꽝까지 상 순서로 늘어놓고 상마다 칸막이와 색을 달리했어요.</li>
       <li v-else><b>공 상자</b>공을 3D 투명 아크릴 상자에 담고 뚜껑을 열어 두었어요. 「세계 공 상자」는 나라들의 세계 속 위치대로 늘어놓았어요.</li>
       <li><b>추첨기 (게임)</b>공 {{ BALL_TOTAL }}개를 3D 투명 드럼에 넣고, 어느 공이 나올지는 전부 물리 시뮬레이션으로 정해져요. 드럼이 돌고(돌리는 시간에 매번 0.85~1.15의 난수를 곱해요), 안의 날개 3개가 공을 들어 올려 섞어요. 멈추면 출구가 바로 아래로 오고 문이 열려, 중력으로 가장 먼저 구멍을 통과한 공이 당첨! 미끄럼틀을 굴러 앞의 쟁반에 들어가요. 다시 뽑기 공이면 한 번 더 돌려요.</li>
@@ -71,7 +71,7 @@
       <li v-if="SHOW_PRIZE"><b>獎項</b>把國家照人類發展指數由高到低排，切成 {{ TIERS.length }} 段，每一級的中獎機率都比上一級大，盡量接近 1:2:4:8:16:32:64:128；同一個人類發展指數不拆開，所以只能接近，不會剛好。</li>
       <li><b>彩球</b>總共 {{ BALL_TOTAL }} 顆，每國至少 1 顆（{{ ONE_BALL }} 國只有 1 顆）；其他國家 1 顆＝平均 {{ fmtBig(POP_UNIT) }} 人，印度最多（{{ BALLS.IND }} 顆）。人口很少的國家也有 1 顆，抽中的機會比人口比例高。</li>
       <li v-if="SHOW_PRIZE"><b>地圖模式</b>國家照獎項填色；打開「抽過的」會在抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界。</li>
-      <li v-else><b>地圖模式</b>國家的顏色是人類發展指數的高低（同一個桃紅色系，指數越高顏色越濃）；打開「抽過的」會在抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界。</li>
+      <li v-else><b>地圖模式</b>國家的顏色是人類發展指數的高低（低是青色，指數越高越接近紫色）；打開「抽過的」會在抽過的國家畫投胎紀錄圓，圓面積＝這一國抽中的次數佔全部的幾成，抽得越多越接近各國人口比例。地圖用 <a :href="SOURCES[5].url" target="_blank" rel="noopener">Natural Earth</a> 1:5,000 萬國界。</li>
       <li v-if="SHOW_PRIZE"><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起；「獎項彩球盒」照獎項從特獎排到哈哈獎，每一獎用隔板隔開、鋪不同的淡色。</li>
       <li v-else><b>彩球盒</b>把球裝進 3D 的透明壓克力收納盒、蓋子打開；「世界彩球盒」照各國在世界上的相對位置放，同一洲的國家在一起。</li>
       <li><b>搖獎機（遊戲模式）</b>{{ BALL_TOTAL }} 顆球放進 3D 的透明滾筒，抽到哪一顆全部照物理模擬決定。滾筒轉起來（每次轉的時間乘 0.85～1.15 的亂數），筒裡三片擋板把球帶上去再翻下來；停下來後出球口轉到正下方、打開閘門，哪一顆球靠重力先穿過洞口就是抽到的，沿著滑道滾進前面的盤子。掉出來的是重抽球就再搖一次。</li>
