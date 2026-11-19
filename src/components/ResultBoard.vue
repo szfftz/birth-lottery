@@ -4,7 +4,7 @@
   <article class="result-board" :class="{ 't-board': ticket }" :style="{ '--tier': colorOf(iso) }">
     <div class="rb-bulbs"></div>
     <div class="rb-shine"></div>
-    <PrizeMedal v-if="ticket" class="t-medal" :iso="iso" />
+    <PrizeMedal v-if="ticket && SHOW_PRIZE" class="t-medal" :iso="iso" />
     <div class="rb-body" :class="{ 't-body': ticket }">
       <!-- 中獎的國旗球：兩面國旗並排成一條帶子，一直往左捲，看起來像球在水平轉 -->
       <div class="rb-ball"><div class="rb-flag"><div class="rb-roll"><i :style="flagStyle(iso)"></i><i :style="flagStyle(iso)"></i></div></div></div>
@@ -12,7 +12,7 @@
         <div v-if="title" class="t-title" :style="{ '--fit': fitScale(title, TITLE_CAP, 0.5) }">{{ title }}</div>
         <div class="rb-name" :class="{ wrap: needsWrap(nameOf(iso), nameCap) }" :style="{ '--fit': fitScale(nameOf(iso), nameCap) }">{{ nameOf(iso) }}</div>
       </div>
-      <PrizeMedal v-if="!ticket" :iso="iso" />
+      <PrizeMedal v-if="!ticket && SHOW_PRIZE" :iso="iso" />
     </div>
     <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="colorOf(iso)" />
     <slot />
@@ -22,7 +22,7 @@
 <script setup>
 import PrizeMedal from './PrizeMedal.vue'
 import WorldLocator from './WorldLocator.vue'
-import { colorOf, flagStyle, nameOf } from '../lottery.js'
+import { colorOf, flagStyle, nameOf, SHOW_PRIZE } from '../lottery.js'
 import { fitScale, needsWrap } from '../lib/fit.js'
 import { computed } from 'vue'
 

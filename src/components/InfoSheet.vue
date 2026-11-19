@@ -25,9 +25,10 @@ import HistoryTab from './info/HistoryTab.vue'
 import PrizeTab from './info/PrizeTab.vue'
 import AboutTab from './info/AboutTab.vue'
 import { L } from '../i18n.js'
+import { SHOW_PRIZE } from '../lottery.js'
 import { sheet, tab } from '../store.js'
 
-const TABS = [['result', 'Result', '結果', '結果', '결과'], ['history', 'History', '歷史', '履歴', '기록'], ['prize', 'Prizes', '獎項', '賞', '상'], ['about', 'About', '說明', '説明', '설명']].map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
+const TABS = [['result', 'Result', '結果', '結果', '결과'], ['history', 'History', '歷史', '履歴', '기록'], SHOW_PRIZE ? ['prize', 'Prizes', '獎項', '賞', '상'] : ['prize', 'Stats', '統計', '統計', '통계'], ['about', 'About', '說明', '説明', '설명']].map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 const close = () => (sheet.value = false)
 const setTab = (k) => (tab.value = k)
 </script>

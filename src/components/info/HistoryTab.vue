@@ -19,11 +19,11 @@
       </div>
       <button v-if="history.length" type="button" class="pill clear" :disabled="spinning" @click="clearHistory">{{ L('Clear', '清空', 'クリア', '지우기') }}</button>
     </div>
-    <ol v-if="history.length" class="rows h-rows">
+    <ol v-if="history.length" class="rows h-rows" :class="{ 'no-medal': !SHOW_PRIZE }">
       <li v-for="h in rows" :key="h.n" :class="{ on: h.n === lastN }" @click="pickDraw(h)">
         <span class="r-n">{{ h.n }}</span>
         <!-- 獎章：金邊小圓牌，底色是獎項色，寫獎項短名 -->
-        <i class="r-medal" :style="{ '--tier': colorOf(h.iso), ...fit(tierShort(tierIdx(h.iso)), 2.2, 0.55) }">{{ tierShort(tierIdx(h.iso)) }}</i>
+        <i v-if="SHOW_PRIZE" class="r-medal" :style="{ '--tier': colorOf(h.iso), ...fit(tierShort(tierIdx(h.iso)), 2.2, 0.55) }">{{ tierShort(tierIdx(h.iso)) }}</i>
         <FlagBall class="fl" :iso="h.iso" />
         <span class="r-name solo" :style="fit(nameOf(h.iso), R_CAP, 0.6)">{{ nameOf(h.iso) }}</span>
       </li>
@@ -38,14 +38,16 @@ import FlagBall from '../FlagBall.vue'
 import { fit } from '../../lib/fit.js'
 const R_CAP = 8 // 國名放得下幾個全形字（國旗＋國名置中，左右各留獎章那麼寬）
 import { L } from '../../i18n.js'
-import { C, nameOf, colorOf, tierIdx, tierShort } from '../../lottery.js'
+import { C, nameOf, colorOf, tierIdx, tierShort, SHOW_PRIZE } from '../../lottery.js'
 import { history, historyDesc, total, lastN, spinning, pickDraw, clearHistory } from '../../store.js'
 // 排序：時間近到遠（預設）、遠到近；獎項大到小、小到大（同一獎照 HDI 排，再一樣就新的在前）
 const SORTS = {
   new: ['Newest', '時間近到遠', '新しい順', '최신순'],
   old: ['Oldest', '時間遠到近', '古い順', '오래된순'],
-  top: ['Top prize', '獎項大到小', '賞の高い順', '높은 상 순'],
-  low: ['Lowest prize', '獎項小到大', '賞の低い順', '낮은 상 순'],
+  ...(SHOW_PRIZE ? {
+    top: ['Top prize', '獎項大到小', '賞の高い順', '높은 상 순'],
+    low: ['Lowest prize', '獎項小到大', '賞の低い順', '낮은 상 순'],
+  } : {}), // 不顯示獎項時只剩時間兩種
 }
 const sort = ref('new'), open = ref(false)
 const byPrize = (a, b) => tierIdx(a.iso) - tierIdx(b.iso) || C[b.iso].hdi - C[a.iso].hdi

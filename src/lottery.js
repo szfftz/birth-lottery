@@ -87,8 +87,13 @@ export const rankText = (iso) => (C[iso].hdi_rank
 // 「HDI」這個詞：中文寫全名「人類發展指數」，英、日、韓照各國習慣寫 HDI
 export const hdiWord = () => L('HDI', '人類發展指數', 'HDI', 'HDI')
 
+// 獎項（頭獎、二獎…）要不要給使用者看：false＝畫面上完全不提獎項（獎牌、獎項名稱、此獎機率、獎項彩球盒、獎項排序、說明裡的獎項段落都藏起來），
+// 程式和分級的算法都留著，改回 true 就全部回來。顏色（地圖、球的底色）和抽到沒有 HDI 的國家要重抽，不受這個開關影響
+export const SHOW_PRIZE = false
+
 // 頁面：地圖、世界彩球盒、獎項彩球盒（都是從下面拉上來的面板）、遊戲（預設，搖獎機）
 export const MODES = [['map', 'Map', '地圖', '地図', '지도'], ['box', 'World Box', '世界彩球盒', '世界ボール箱', '세계 공 상자'], ['boxp', 'Prize Box', '獎項彩球盒', '賞別ボール箱', '상별 공 상자'], ['game', 'Game', '遊戲', 'ゲーム', '게임']]
+  .filter(([key]) => SHOW_PRIZE || key !== 'boxp')
   .map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
 export const mode = ref('game')
 
@@ -158,7 +163,8 @@ export function ballTip(b) {
   const k = balls.isos.indexOf(iso)
   return [
     `<b>${nameOf(iso)}</b>`,
-    `<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>${hdiWord()} ${t.range}` : L(' (no HDI — drawn again)', '（沒有人類發展指數，抽到再抽一次）', '（HDI なし・引き直し）', ' (HDI 없음 — 다시 뽑기)')}`,
+    ...(SHOW_PRIZE ? [`<b style="color:${colorOf(iso)}">${prizeOf(iso)}</b>${t ? `<br>${hdiWord()} ${t.range}` : L(' (no HDI — drawn again)', '（沒有人類發展指數，抽到再抽一次）', '（HDI なし・引き直し）', ' (HDI 없음 — 다시 뽑기)')}`]
+      : t ? [] : [L('No HDI — drawn again', '沒有人類發展指數，抽到再抽一次', 'HDI なし・引き直し', 'HDI 없음 — 다시 뽑기')]),
     ...(t ? [L(`Odds of this country <b>${fmtP(pIso(iso))}</b> (about 1 in ${oneIn(pIso(iso))})`, `抽到此國機率 <b>${fmtP(pIso(iso))}</b>（約 1/${oneIn(pIso(iso))}）`, `この国が当たる確率 <b>${fmtP(pIso(iso))}</b>（約 ${oneIn(pIso(iso))} 分の 1）`, `이 나라가 뽑힐 확률 <b>${fmtP(pIso(iso))}</b> (약 ${oneIn(pIso(iso))}분의 1)`)] : []),
     `${hdiWord()} ${c.hdi?.toFixed(3) ?? '—'}${c.hdi_rank ? L(` (${rankText(iso)})`, `（${rankText(iso)}）`, `（${rankText(iso)}）`, ` (${rankText(iso)})`) : ''}`,
     L(`Ball ${b - balls.start[k] + 1} of this country's ${BALLS[iso]}`, `彩球 ${BALLS[iso]} 顆・這是這一國的第 ${b - balls.start[k] + 1} 顆`, `ボール ${BALLS[iso]} 個中 ${b - balls.start[k] + 1} 個目`, `공 ${BALLS[iso]}개 중 ${b - balls.start[k] + 1}번째`),

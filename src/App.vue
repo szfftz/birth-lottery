@@ -11,9 +11,13 @@
         face="flag" :sel="lastBall" :tip-of="ballTip" :party="spinning ? 0 : total" :spinning="spinning" :inset-top="topInset" :inset-bottom="insets.bottom">
         <!-- 抽完在搖獎機下面顯示中獎看板；點了打開結果分頁 -->
         <Transition name="board">
-          <div v-if="last && !spinning && lastBall != null" :key="total" class="rb-wrap" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
+          <div v-if="last && !spinning && lastBall != null && !boardOff" :key="total" class="rb-wrap" :style="{ '--tier': colorOf(last) }" @click="openSheet('result')">
             <i v-for="k in 8" :key="k" class="rb-star" :class="`s${k}`">✦</i>
             <ResultBoard :iso="last" />
+            <!-- 角落的叉叉（有獎牌時放左上角，獎牌在右上）：把看板收起來（下一次抽、或在歷史點一筆又會出現） -->
+            <button type="button" class="close rb-close" :class="{ left: SHOW_PRIZE }" :aria-label="L('Close', '關閉', '閉じる', '닫기')" @click.stop="boardOff = true">
+              <svg viewBox="0 0 24 24" width="46" height="46" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
+            </button>
           </div>
         </Transition>
       </LotteryDrum>
@@ -29,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import LoadingScreen from './components/LoadingScreen.vue'
 import LotteryDrum from './components/LotteryDrum.vue'
 import ResultBoard from './components/ResultBoard.vue'
@@ -40,7 +44,8 @@ import ViewSheet from './components/ViewSheet.vue'
 import InfoSheet from './components/InfoSheet.vue'
 import { useShake } from './composables/useShake.js'
 import { dbg } from './lib/debug.js'
-import { mode, balls, isoOfBall, colors, flagMeta, flagsUrl, ballTip, tierIdx, colorOf } from './lottery.js'
+import { L } from './i18n.js'
+import { mode, balls, isoOfBall, colors, flagMeta, flagsUrl, ballTip, tierIdx, colorOf, SHOW_PRIZE } from './lottery.js'
 import { last, lastBall, total, spinning, sheet, tab, openSheet, setMode, record } from './store.js'
 
 // ── 版面：舞台蓋滿整個畫面；上面狀態列、下面「搖一搖」擋住的高度（px） ──
@@ -72,6 +77,10 @@ onMounted(() => {
   measure()
 })
 onBeforeUnmount(() => insetRo?.disconnect())
+
+// 中獎看板可以按叉叉收起來；換了一筆結果（再抽一次、在歷史點另一筆）就再出現
+const boardOff = ref(false)
+watch([last, lastBall, total, spinning], () => (boardOff.value = false))
 
 // ── 國旗拼圖（three.js 貼圖用）：一律用 <img> 載入。不用 createImageBitmap：有些 iPhone Safari 把 ImageBitmap 傳進 WebGL 會變全黑 ──
 const atlas = ref(null)

@@ -6,8 +6,8 @@
       <ResultBoard ticket :iso="last" :title="L(`DRAW #${(lastN ?? total).toLocaleString('en-US')} · YOU WERE BORN IN`, `第 ${(lastN ?? total).toLocaleString('en-US')} 次投胎・你出生在`, `${(lastN ?? total).toLocaleString('en-US')} 回目の国ガチャ・あなたの生まれは`, `${(lastN ?? total).toLocaleString('en-US')}번째 뽑기 · 당신이 태어난 곳은`)">
         <div class="tiles">
           <div class="tile"><span v-fit>{{ hdiWord() }}</span><b v-fit>{{ C[last].hdi.toFixed(3) }}</b><small v-fit>{{ rankText(last) }}</small></div>
-          <div class="tile"><span v-fit>{{ L('HDI of this prize', '此獎人類發展指數', 'この賞の HDI', '이 상의 HDI') }}</span><b v-fit>{{ TIERS[tierIdx(last)].range }}</b><small v-fit>{{ TIERS[tierIdx(last)].name }}</small></div>
-          <div class="tile"><span v-fit>{{ L('Odds of winning this prize', '抽到此獎機率', 'この賞が当たる確率', '이 상에 당첨될 확률') }}</span><b v-fit>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small v-fit>{{ L(`About 1 in ${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 1/${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 ${oneIn(pTier(TIERS[tierIdx(last)]))} 分の 1`, `약 ${oneIn(pTier(TIERS[tierIdx(last)]))}분의 1`) }}</small></div>
+          <div v-if="SHOW_PRIZE" class="tile"><span v-fit>{{ L('HDI of this prize', '此獎人類發展指數', 'この賞の HDI', '이 상의 HDI') }}</span><b v-fit>{{ TIERS[tierIdx(last)].range }}</b><small v-fit>{{ TIERS[tierIdx(last)].name }}</small></div>
+          <div v-if="SHOW_PRIZE" class="tile"><span v-fit>{{ L('Odds of winning this prize', '抽到此獎機率', 'この賞が当たる確率', '이 상에 당첨될 확률') }}</span><b v-fit>{{ fmtP(pTier(TIERS[tierIdx(last)])) }}</b><small v-fit>{{ L(`About 1 in ${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 1/${oneIn(pTier(TIERS[tierIdx(last)]))}`, `約 ${oneIn(pTier(TIERS[tierIdx(last)]))} 分の 1`, `약 ${oneIn(pTier(TIERS[tierIdx(last)]))}분의 1`) }}</small></div>
           <div class="tile"><span v-fit>{{ L('Odds of drawing this country', '抽到此國機率', 'この国が当たる確率', '이 나라가 뽑힐 확률') }}</span><b v-fit>{{ fmtP(pIso(last)) }}</b><small v-fit>{{ L(`About 1 in ${oneIn(pIso(last))}`, `約 1/${oneIn(pIso(last))}`, `約 ${oneIn(pIso(last))} 分の 1`, `약 ${oneIn(pIso(last))}분의 1`) }}</small></div>
           <div v-if="lastBall != null" class="tile"><span v-fit>{{ L('Ball', '球號', 'ボール番号', '공 번호') }}</span><b v-fit>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small v-fit>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`, `この国 ${BALLS[last]} 個／全 ${BALL_TOTAL} 個`, `이 나라 ${BALLS[last]}개 / 총 ${BALL_TOTAL}개`) }}</small></div>
           <div class="tile" :class="{ wide: lastBall == null }"><span v-fit>{{ L('Population', '人口', '人口', '인구') }}</span><b v-fit>{{ fmtBig(C[last].pop) }}</b><small v-fit>{{ C[last].pop_date }}</small></div>
@@ -32,7 +32,7 @@
 <script setup>
 import ResultBoard from '../ResultBoard.vue'
 import { L } from '../../i18n.js'
-import { C, BALLS, BALL_TOTAL, TIERS, hdiWord, rankText, mode, tierIdx, noHdiNames, pTier, pIso, fmtP, oneIn, fmtBig } from '../../lottery.js'
+import { C, BALLS, BALL_TOTAL, TIERS, hdiWord, rankText, mode, tierIdx, noHdiNames, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../../lottery.js'
 import { last, lastBall, lastN, lastRerolls, spinning, total } from '../../store.js'
 
 // 最下面的操作提示（[英文, 中文, 日文, 韓文]）

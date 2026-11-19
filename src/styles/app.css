@@ -248,6 +248,9 @@ section > .tiles .tile { background: var(--tile); }
 .rb-map { position: relative; margin-top: 12px; }
 /* ── 舞台上的結果看板（Day 25 原樣，1080×1350 的單位） ── */
 .rb-wrap { position: relative; cursor: pointer; animation: rb-pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1); }
+/* 看板角落的關閉鈕（跟資訊面板的叉叉同一款，照 1080 的單位放大）：平常在右上角；有獎牌時（.left）改放左上角 */
+.rb-close.left { left: -38px; right: auto; }
+.rb-close { position: absolute; right: -38px; top: -44px; z-index: 2; width: 104px; height: 104px; border-width: 5px; }
 @keyframes rb-pop { 0% { transform: scale(0.2) rotate(-6deg); } 60% { transform: scale(1.08) rotate(1deg); } 100% { transform: scale(1) rotate(0); } }
 .rb-star { position: absolute; font-style: normal; color: #fff6cf; text-shadow: 0 0 10px #ffd23f, 0 0 20px var(--tier); pointer-events: none; animation: rb-twinkle 1.2s ease-in-out infinite; }
 .rb-star.s1 { left: -40px; top: -30px; font-size: 40px; }
@@ -398,6 +401,7 @@ section > .tiles .tile { background: var(--tile); }
 .h-sort-scrim { position: fixed; inset: 0; z-index: 20; }
 /* 歷史的每一筆：第幾次、獎章照原樣靠左；國旗＋國名放在列的正中間（右邊留跟左邊那兩樣一樣寬的空白，才是真的置中） */
 .h-rows li { padding-right: 86px; }
+.h-rows.no-medal li { padding-right: 42px; } /* 不顯示獎章時：左邊只剩編號 */
 .h-rows .fl { margin-left: auto; }
 .h-rows .r-name { flex: 0 1 auto; margin-right: auto; }
 /* 字的垂直置中：Overpass 的行框量法讓字形比行框中心高約 0.11em，而圖示、圓牌、按鈕都是照行框置中 → 字看起來偏上。
