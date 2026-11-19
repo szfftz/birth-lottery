@@ -74,7 +74,24 @@ export const nameOf = (iso) => L(EN_SHORT[iso] ?? C[iso].name_en, ZH_SHORT[iso] 
 export const mapNameOf = (iso, en, zh) => L(en, zh ?? en, namesJaKo[iso]?.[0], namesJaKo[iso]?.[1])
 export const noHdiNames = () => ISOS.filter((iso) => tierIdx(iso) < 0).map(nameOf).join(L(', ', '、', '、', ', '))
 export const prizeOf = (iso) => TIERS[tierIdx(iso)]?.name ?? L('Redraw', '重抽', '引き直し', '다시 뽑기')
-export const colorOf = (iso) => TIERS[tierIdx(iso)]?.color ?? NODATA
+// 地圖的顏色：照人類發展指數由低到高連續變色，不分級；沒有指數的國家用灰色。
+// 亮色系、單一色系：招牌的霓虹桃紅，由淡到濃（低＝很淡的粉 #ffe3f1 → 高＝霓虹桃紅 #ff2d95，最高再深一點）。
+// 不用黃、橘、金：國界是金色的線，顏色不能跟它撞
+const HDI_COLORS = ['#ffe3f1', '#ffbfdc', '#ff96c8', '#ff6ab2', '#ff409f', '#f01f8c', '#d40f78']
+const HDIS = ISOS.map((iso) => C[iso].hdi).filter((h) => h != null), HDI_LO = Math.min(...HDIS), HDI_HI = Math.max(...HDIS)
+// 圖例用：指數最低、最高是多少，還有同一條漸層（CSS）
+export const HDI_RANGE = [HDI_LO, HDI_HI], HDI_RAMP = `linear-gradient(90deg, ${HDI_COLORS.join(', ')})`
+const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
+export function hdiColor(iso) {
+  const h = C[iso]?.hdi
+  if (h == null) return NODATA
+  const x = ((h - HDI_LO) / (HDI_HI - HDI_LO)) * (HDI_COLORS.length - 1), i = Math.min(HDI_COLORS.length - 2, Math.floor(x)), t = x - i
+  const a = hex(HDI_COLORS[i]), b = hex(HDI_COLORS[i + 1])
+  return `#${a.map((v, k) => Math.round(v + (b[k] - v) * t).toString(16).padStart(2, '0')).join('')}`
+}
+// 不顯示獎項時每一國都同一個顏色（中獎看板的光、小地圖都不分級）
+const PLAIN = '#35a7b8'
+export const colorOf = (iso) => (SHOW_PRIZE ? TIERS[tierIdx(iso)]?.color ?? NODATA : PLAIN)
 export const RANKED = ISOS.filter((iso) => C[iso].hdi != null).sort((a, b) => C[b].hdi - C[a].hdi)
 // 照人口比例算的 HDI 期望值（沒有 HDI 的不算；跟 Day 25 一樣）
 export const HDI_EXPECT = RANKED.reduce((s, iso) => s + C[iso].p * C[iso].hdi, 0) / (1 - noHdi.p)

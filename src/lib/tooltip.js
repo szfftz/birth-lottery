@@ -15,10 +15,11 @@ const NO_HOVER = typeof window !== 'undefined' && window.matchMedia?.('(hover: n
  * @param {maplibregl.Map} map
  * @param {string[] | (() => string[])} layers  依優先順序排列，重疊時只顯示第一個圖層的 tooltip；可以是函式（每次滑鼠移動時取目前的清單）
  * @param {(feature, event) => string} html  回傳 tooltip 內容（HTML）；event.lngLat 是滑鼠位置
- * @param {{ highlight?: boolean }} [opts]  highlight：滑到的物件要不要描亮（預設要；自己有 hover 樣式的頁可以關掉）
+ * @param {{ highlight?: boolean, hlBy?: string }} [opts]  highlight：滑到的物件要不要描亮（預設要；自己有 hover 樣式的頁可以關掉）
+ *   hlBy：用這個屬性在原本的資料來源上描亮（例如國家代碼）。大的面會被圖磚切成好幾塊，照抄形狀來描會把圖磚的切邊也描出來（一條條直線）；有給 hlBy 就不會
  * @returns {(feature, lngLat) => void} 在指定位置顯示 tooltip（給物件列表用）
  */
-export function addTooltip(map, layers, html, { highlight = true } = {}) {
+export function addTooltip(map, layers, html, { highlight = true, hlBy = '' } = {}) {
   const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, maxWidth: '280px', offset: 12, className: 'map-tooltip' })
   let lastHtml = ''
   let pinned = false // 點選（手機、物件列表）顯示的 tooltip 固定住，滑鼠移動不換掉
@@ -51,8 +52,33 @@ export function addTooltip(map, layers, html, { highlight = true } = {}) {
     return true
   }
   // 圖磚會把大的面、長的線切成好幾塊：把畫面上同一圖層、屬性完全一樣的幾塊都找出來一起描
+  // hlBy：每個資料來源各放一組描亮圖層，用屬性篩出滑到的那一個（整個物件一起亮，沒有圖磚切邊）
+  const groups = new Map()
+  function setHlBy(f) {
+    const NONE = ['==', ['get', hlBy], '\u0000']
+    for (const ids of groups.values()) for (const id of ids) map.setFilter(id, NONE)
+    const src = f?.layer?.source
+    if (!src) return
+    if (!groups.has(src)) {
+      const pre = `${hlId}-${groups.size}`
+      if (f.geometry.type.includes('Point')) {
+        map.addLayer({ id: `${pre}-pt`, type: 'circle', source: src, filter: NONE, paint: { 'circle-radius': 7, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': HL, 'circle-stroke-width': 2.5 } })
+        groups.set(src, [`${pre}-pt`])
+      } else {
+        map.addLayer({ id: `${pre}-fill`, type: 'fill', source: src, filter: NONE, paint: { 'fill-color': HL, 'fill-opacity': 0.18 } })
+        map.addLayer({ id: `${pre}-line`, type: 'line', source: src, filter: NONE, layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': HL, 'line-width': 2.5 } })
+        groups.set(src, [`${pre}-fill`, `${pre}-line`])
+      }
+    }
+    for (const id of groups.get(src)) { map.setFilter(id, ['==', ['get', hlBy], f.properties[hlBy] ?? '\u0000']); map.moveLayer(id) }
+  }
   function setHl(f) {
     if (!highlight) return
+    if (hlBy) {
+      const k = f ? `${f.layer?.source}|${f.properties[hlBy]}` : ''
+      if (k !== hlKey) { hlKey = k; setHlBy(f) }
+      return
+    }
     const key = f ? `${f.layer?.id ?? 'list'}|${f.id ?? ''}|${JSON.stringify(f.properties)}` : ''
     if (key === hlKey) return
     hlKey = key
