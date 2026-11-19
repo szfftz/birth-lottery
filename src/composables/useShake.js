@@ -2,6 +2,7 @@
 // 1.2 秒內甩 3 下才算（放下手機、走路、碰一下都不算）。
 // Android 不用權限，一打開就能搖；iPhone 要在使用者按按鈕時呼叫 enable() 問「動作與方向」權限（而且要 https）
 import { onBeforeUnmount, ref } from 'vue'
+import { feedTilt } from '../lib/tilt.js'
 
 const MIN = 13, GAP = 150, WINDOW = 1200, HITS = 3
 
@@ -12,6 +13,7 @@ export function useShake({ canShake, onShake }) {
   // ready：真的收到手機的動作資料了（電腦有這個 API 但不會有資料；iPhone 要按過、允許之後才有）
   const ready = ref(false)
   function onMotion(e) {
+    feedTilt(e) // 手機的角度：搖獎機跟著擺一點點
     if (!ready.value) { const a = e.accelerationIncludingGravity ?? e.acceleration; if (a && a.x != null) ready.value = true }
     if (!canShake()) { hits = []; return }
     let m

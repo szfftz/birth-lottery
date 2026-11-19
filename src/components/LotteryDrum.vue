@@ -1,5 +1,5 @@
 <template>
-  <!-- 遊戲模式：872 顆彩球放進透明的樂透搖獎機（3D 圓滾筒）。按「抽一次」滾筒轉起來，筒裡的擋板把球帶上去再翻下來；
+  <!-- 遊戲模式：891 顆彩球放進透明的樂透搖獎機（3D 圓滾筒）。按「抽一次」滾筒轉起來，筒裡的擋板把球帶上去再翻下來；
        停下來後滾筒慢慢轉到出球口朝下、打開閘門，哪一顆球靠重力掉出去就是抽到的，沿著滑道滾進前面的盤子（全部照物理模擬） -->
   <!-- 整個舞台蓋滿外層 App.vue 的 .stage-wrap（手機整個畫面）：舞台背景（CSS）→ 3D 搖獎機（透明畫布）→ 節目標題、結果看板（slot）、彩帶；
        文字類用寬 1080（4:5 時 1080×1350）設計再縮放，畫面比 4:5 長時設計稿跟著變長：標題貼上面、按鈕貼下面，多出來的空間給搖獎機 -->
@@ -38,6 +38,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { tilt } from '../lib/tilt.js'
 import * as THREE from 'three'
 import NeonSign from './NeonSign.vue'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -510,18 +511,25 @@ function frame() {
 // 轉輪也小小來回搖（±3°、約 3.6 秒來回），裡面的球跟著一起搖（只改畫的位置，物理不動）
 const SWAY = { amp: 0.09, period: 7 }, WHEEL = { amp: 0.05, period: 3.6 }
 let swayA = 0, wheelA = 0, wheelCos = 1, wheelSin = 0
+const TILT = { y: 0.12, x: 0.05 }
+let tiltA = 0, tiltB = 0
 function sway(t, dt) {
   const idle = phase === 'idle' && !reduceMotion, k = Math.min(1, dt * 2.5)
   swayA += ((idle ? Math.sin((t * 2 * Math.PI) / SWAY.period) * SWAY.amp : 0) - swayA) * k
   wheelA += ((idle ? Math.sin((t * 2 * Math.PI) / WHEEL.period) * WHEEL.amp : 0) - wheelA) * k
   if (Math.abs(wheelA) < 1e-4 && !idle) wheelA = 0
   wheelCos = Math.cos(wheelA); wheelSin = Math.sin(wheelA)
-  turntable.rotation.y = swayA
+  // 手機歪一下，整台跟著擺一點點（左右最多 ±7°、前後 ±3°；搖獎時也會），慢慢跟上、不會抖
+  const kt = Math.min(1, dt * 6)
+  tiltA += ((reduceMotion ? 0 : tilt.x * TILT.y) - tiltA) * kt
+  tiltB += ((reduceMotion ? 0 : tilt.y * TILT.x) - tiltB) * kt
+  turntable.rotation.y = swayA + tiltA
+  turntable.rotation.x = tiltB
 }
 const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
 
 onMounted(() => {
-  // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（872 顆球再畫一次影子很吃效能）
+  // 手機：解析度最多 1.5 倍、影子簡單一點、球不打影子（891 顆球再畫一次影子很吃效能）
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' })
   pxRatio = Math.min(window.devicePixelRatio, LOW ? 1.25 : 2)
   renderer.setPixelRatio(pxRatio)

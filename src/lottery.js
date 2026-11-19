@@ -1,5 +1,5 @@
 // 出生搖搖樂的資料與計算（從 K30DayMapChallenge Day 25 搬過來，只留遊戲模式要用的）
-// 機率＝球數比例（遊戲是真的從 872 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
+// 機率＝球數比例（遊戲是真的從 891 顆球裡掉一顆出來）；獎項依 HDI 切 8 級（build_tiers.py 挑切點，機率盡量接近 1:2:4:…:128）
 import { L, lang } from './i18n.js'
 import { ref } from 'vue'
 import data from './data/lottery.json'
@@ -14,8 +14,8 @@ export const { meta, countries: C } = data
 export const ISOS = Object.keys(C) // 人口由多到少
 export { flagMeta, flagsUrl }
 
-// 彩球：1 顆＝1,000 萬人（四捨五入），不到 1 顆的國家也給 1 顆，總共 872 顆（scripts/build_balls.mjs）
-export const POP_UNIT = ballMeta.unit
+// 彩球：總共 891 顆，每國至少 1 顆，其他照人口分（1 顆＝平均人數）
+export const POP_UNIT = 1e7 // 畫面上寫的「1 顆球大約幾個人」：只是大概的數字（實際平均約 982 萬），不拿來算球數
 export const BALLS = ballMeta.counts
 export const BALL_TOTAL = ballMeta.total
 export const ONE_BALL = Object.values(BALLS).filter((n) => n === 1).length

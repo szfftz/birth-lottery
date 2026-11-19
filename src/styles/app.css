@@ -384,5 +384,7 @@ section > .tiles .tile { background: var(--tile); }
 /* 資訊面板：畫面很寬（電腦、平板）時不要拉到整個寬，最寬 520px（照 --u 縮放）、置中；票卡、數字方塊才不會被拉得很大 */
 .sheet:not(.view-sheet) { max-width: calc(520px * var(--u, 1)); margin-inline: auto; }
 
-.ver { margin: 18px 0 4px; text-align: center; font-size: 12px; letter-spacing: 0.04em; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ver.perf { margin-top: 0; white-space: normal; opacity: 0.75; }
+.m-about { padding: 4px 14px 8px; font-size: 12px; line-height: 1.5; letter-spacing: 0.04em; color: var(--dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.m-about p { margin: 0; }
+.m-about b { color: #fff; font-weight: 800; letter-spacing: 0.08em; }
+.m-about .m-perf { max-width: 200px; margin-top: 4px; font-size: 10px; line-height: 1.35; white-space: normal; opacity: 0.7; }

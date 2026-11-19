@@ -5,15 +5,16 @@
   <div class="neon-sign">
     <div class="st-sign">
       <i class="st-tube"></i>
+      <span class="st-by">SZFFTZ</span>
       <div class="st-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
       <div v-if="lang === 'zh'" class="st-main zh"><span class="n-pink">出生</span><span class="n-cyan">搖搖<b>樂</b></span></div>
       <div v-else-if="lang === 'ja'" class="st-main zh"><span class="n-pink">国</span><span class="n-cyan">ガチ<b>ャ</b></span></div>
       <div v-else-if="lang === 'ko'" class="st-main zh ko"><span class="n-pink">출생</span> <span class="n-cyan">로<b>또</b></span></div>
       <div v-else class="st-main"><span class="n-pink">BIRTH</span> <span class="n-cyan">LOTT<b>E</b>RY</span></div>
-      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span><i>◆</i><span>1 球 = {{ fmtBig(POP_UNIT) }}人</span></div>
-      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span><i>◆</i><span>1 個 = {{ fmtBig(POP_UNIT) }}人</span></div>
-      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span><i>◆</i><span>1개 = {{ fmtBig(POP_UNIT) }} 명</span></div>
-      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 BALL = {{ POP_UNIT / 1e6 }}M</span></div>
+      <div v-if="lang === 'zh'" class="st-sub"><span>{{ balls.toLocaleString('en-US') }} 顆球</span><i>◆</i><span>{{ countries }} 國</span><i>◆</i><span>1 球 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ja'" class="st-sub"><span>ボール {{ balls.toLocaleString('en-US') }} 個</span><i>◆</i><span>{{ countries }} か国</span><i>◆</i><span>1 個 ≈ {{ fmtBig(POP_UNIT) }}人</span></div>
+      <div v-else-if="lang === 'ko'" class="st-sub"><span>공 {{ balls.toLocaleString('en-US') }}개</span><i>◆</i><span>{{ countries }}개국</span><i>◆</i><span>1개 ≈ {{ fmtBig(POP_UNIT) }} 명</span></div>
+      <div v-else class="st-sub"><span>{{ balls.toLocaleString('en-US') }} BALLS</span><i>◆</i><span>{{ countries }} COUNTRIES</span><i>◆</i><span>1 BALL ≈ {{ POP_UNIT / 1e6 }}M</span></div>
     </div>
   </div>
 </template>
@@ -26,7 +27,7 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 
 <style scoped>
 .neon-sign { width: 880px; text-align: center; font-family: 'Overpass', 'Huninn', 'NanumSquareRoundB', 'Noto Sans TC', sans-serif; }
-.st-sign { position: relative; padding: 34px 40px 36px; border-radius: 40px; border: 7px solid #ffd6ec;
+.st-sign { position: relative; padding: 34px 40px 50px; border-radius: 40px; border: 7px solid #ffd6ec;
   background: radial-gradient(120% 120% at 50% 40%, rgba(255, 45, 149, 0.16), transparent 60%), linear-gradient(180deg, #120a24, #07040f);
   box-shadow: 0 0 4px #ff2d95, 0 0 16px #ff2d95, 0 0 42px #ff2d95, 0 0 90px rgba(255, 45, 149, 0.55),
     inset 0 0 6px #ff2d95, inset 0 0 26px rgba(255, 45, 149, 0.7), 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -49,10 +50,10 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
   animation: n-blink 1.5s steps(1) infinite; }
 .st-stars i:nth-child(2n) { animation-delay: 0.75s; }
 .st-stars i:nth-child(3) { font-size: 52px; }
-.st-main { position: relative; margin-top: 0; font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 108px; line-height: 1.05; letter-spacing: 0.02em; white-space: nowrap; }
+.st-main { position: relative; margin-top: 0; font-family: 'Tilt Neon', 'Overpass', sans-serif; font-size: 108px; line-height: 1.05; letter-spacing: -0.005em; white-space: nowrap; }
 .st-main span { display: inline-block; }
-.st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: 0.08em; text-indent: 0.08em; }
-.st-main.ko { font-family: 'NanumSquareRoundEB', 'Huninn', sans-serif; font-weight: 400; letter-spacing: 0.04em; }
+.st-main.zh { font-family: 'Huninn', 'Noto Sans TC', sans-serif; font-weight: 500; font-size: 112px; letter-spacing: -0.005em; }
+.st-main.ko { font-family: 'NanumSquareRoundEB', 'Huninn', sans-serif; font-weight: 400; letter-spacing: -0.005em; }
 .n-pink { color: #ffe3f1; text-shadow: 0 0 2px #fff, 0 0 8px #ff4fae, 0 0 18px #ff2d95, 0 0 40px #ff2d95, 0 0 80px #ff2d95; }
 .n-cyan { color: #e2feff; text-shadow: 0 0 2px #fff, 0 0 8px #3defff, 0 0 18px #19e6ff, 0 0 40px #19e6ff, 0 0 80px #19e6ff; }
 .n-cyan b { font-weight: inherit; animation: n-flicker 5s linear infinite; } /* 一個字母像接觸不良，偶爾閃掉 */
@@ -76,8 +77,11 @@ defineProps({ balls: { type: Number, default: 0 }, countries: { type: Number, de
 .st-sub { display: inline-flex; align-items: center; gap: 16px; margin-top: 22px; padding: 8px 28px; border-radius: 999px;
   background: rgba(8, 4, 18, 0.7); border: 3px solid #f1dcff; color: #ffffff;
   box-shadow: 0 0 6px #b14dff, 0 0 18px #9b30ff, inset 0 0 8px rgba(177, 77, 255, 0.7);
-  font-size: 27px; /* 三段字（幾顆球、幾國、1 球幾人）一行寫完 */ font-weight: 800; letter-spacing: 0.06em; white-space: nowrap; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
+  font-size: 27px; /* 三段字（幾顆球、幾國、1 球幾人）一行寫完 */ font-weight: 800; letter-spacing: -0.005em; white-space: nowrap; text-shadow: 0 0 8px rgba(214, 160, 255, 0.9); }
 .st-sub i { font-style: normal; font-size: 18px; color: #ff6fc1; text-shadow: 0 0 8px #ff2d95; }
+/* 正下方的小字署名（子標下面、置中）：細細的青色霓虹，不搶戲；字距 -5 */
+.st-by { position: absolute; left: 0; right: 0; bottom: 25px; text-align: center; font-family: 'Overpass', sans-serif; font-size: 16px; font-weight: 800; line-height: 1; letter-spacing: -0.005em;
+  color: #d8fdff; opacity: 0.8; text-shadow: 0 0 4px #19e6ff, 0 0 10px rgba(25, 230, 255, 0.7); pointer-events: none; }
 /* 手機：整塊招牌的亮度動畫（filter）、橫條燈的 screen 混色都很吃效能 → 招牌不跟著呼吸、字只用透明度閃、橫條燈一般疊上去 */
 @media (pointer: coarse) {
   .st-sign { animation: none; }

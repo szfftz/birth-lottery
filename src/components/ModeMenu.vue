@@ -1,5 +1,5 @@
 <template>
-  <!-- 左上：頁面名稱＋模式選單（漢堡合在一起），按下去往下展開；最下面一項打開「結果與說明」 -->
+  <!-- 左上：頁面名稱＋模式選單（漢堡合在一起），按下去往下展開；下面一項打開「結果與說明」，最下面是作者和版本 -->
   <div v-if="menu" class="menu-scrim" @click="close"></div>
   <nav class="modes" :style="{ top: `${top}px` }" :aria-label="L('Modes', '模式', 'モード', '모드')">
     <button type="button" class="mode-title" :class="{ on: menu }" :aria-expanded="menu" :aria-label="L('Switch mode', '切換模式', 'モード切替', '모드 전환')" :disabled="spinning" @click="toggle">
@@ -20,6 +20,13 @@
             <span v-if="total" class="m-badge">{{ total > 99 ? '99+' : total }}</span>
           </button>
         </li>
+        <li class="m-sep" role="separator"></li>
+        <!-- 作者、版本（打包時間）；最後一行是效能數字（卡的時候截這一行）：每秒幾格 靜止／搖獎、3D 解析度倍數、物理每格毫秒、L＝手機省電版、顯示晶片 -->
+        <li class="m-about">
+          <p>{{ L('By', '作者', '作者', '제작') }} <b>SZFFTZ</b></p>
+          <p>{{ L('Version', '版本', 'バージョン', '버전') }} v{{ VERSION }}・{{ BUILT }}</p>
+          <p class="m-perf">{{ perf.idle || '–' }}/{{ perf.spin || '–' }} fps・×{{ perf.ratio }}・{{ perf.phys }}ms{{ perf.low ? '・L' : '' }}<br>{{ perf.gpu }}</p>
+        </li>
       </ul>
     </Transition>
   </nav>
@@ -28,9 +35,11 @@
 <script setup>
 import { computed } from 'vue'
 import { L } from '../i18n.js'
+import { perf } from '../lib/debug.js'
 import { MODES, mode } from '../lottery.js'
 import { menu, spinning, total, setMode, openSheet } from '../store.js'
 defineProps({ top: { type: Number, default: 8 } }) // 離畫面最上面幾 px（避開狀態列）
+const VERSION = __APP_VERSION__, BUILT = __APP_BUILT__
 const close = () => (menu.value = false)
 const toggle = () => (menu.value = !menu.value)
 const modeLabel = computed(() => MODES.find((m) => m.key === mode.value)?.label ?? '')
