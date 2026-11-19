@@ -511,7 +511,7 @@ function frame() {
 // 轉輪也小小來回搖（±3°、約 3.6 秒來回），裡面的球跟著一起搖（只改畫的位置，物理不動）
 const SWAY = { amp: 0.09, period: 7 }, WHEEL = { amp: 0.05, period: 3.6 }
 let swayA = 0, wheelA = 0, wheelCos = 1, wheelSin = 0
-const TILT = { y: 0.12, x: 0.05 }
+const TILT = { y: 0.38, x: 0.13 } // 手機歪到底，視角左右繞 ±22°、上下 ±7°
 let tiltA = 0, tiltB = 0
 function sway(t, dt) {
   const idle = phase === 'idle' && !reduceMotion, k = Math.min(1, dt * 2.5)
@@ -519,7 +519,7 @@ function sway(t, dt) {
   wheelA += ((idle ? Math.sin((t * 2 * Math.PI) / WHEEL.period) * WHEEL.amp : 0) - wheelA) * k
   if (Math.abs(wheelA) < 1e-4 && !idle) wheelA = 0
   wheelCos = Math.cos(wheelA); wheelSin = Math.sin(wheelA)
-  // 手機歪一下，整台跟著擺一點點（左右最多 ±7°、前後 ±3°；搖獎時也會），慢慢跟上、不會抖
+  // 手機的角度就是視角：手機往哪邊歪，就繞到那一邊看搖獎機（搖獎時也會），慢慢跟上、不會抖
   const kt = Math.min(1, dt * 6)
   tiltA += ((reduceMotion ? 0 : tilt.x * TILT.y) - tiltA) * kt
   tiltB += ((reduceMotion ? 0 : tilt.y * TILT.x) - tiltB) * kt
