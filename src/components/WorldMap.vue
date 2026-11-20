@@ -116,7 +116,7 @@ function paintTag() {
 }
 // 點國家的說明：跟結果分頁的中獎票卡同一個排版、同一套樣式（.result-board.t-board：燈泡框、會轉的國旗球、斜體描邊國名、四格數字），縮成說明卡的大小。
 // 四格的順序也一樣：人類發展指數、抽到此國機率、彩球、人口；抽中過的國家在國名上面多一行「抽中 N 次」
-const tile = (label, value, note = '') => `<div class="tile"><span>${label}</span><b>${value}</b><small>${note || '&nbsp;'}</small></div>`
+const tile = (label, value, note = '', dot = '') => `<div class="tile${dot ? ' dot' : ''}">${dot ? `<i class="hdi-dot" style="background:${dot}"></i>` : ''}<span>${label}</span><b>${value}</b><small>${note || '&nbsp;'}</small></div>`
 const TIP_NAME_CAP = 6 // 說明卡的國名放得下幾個全形字（24px）
 function countryTip(f) {
   const iso = f.properties.adm0_a3, c = C[iso]
@@ -128,7 +128,7 @@ function countryTip(f) {
   return `<article class="result-board t-board tc-board" style="--tier:${colorOf(iso)}"><div class="rb-bulbs"></div><div class="rb-shine"></div>`
     + `<div class="rb-body t-body"><div class="rb-ball"><div class="rb-flag"><div class="rb-roll">${face}${face}</div></div></div>`
     + `<div class="rb-main">${title}<div class="rb-name" style="--fit:${fitScale(name, TIP_NAME_CAP)}">${name}</div></div></div><div class="tiles">${[
-      tile(hdiWord(), c.hdi == null ? '—' : c.hdi.toFixed(3), c.hdi == null ? L('No data', '沒有資料', 'データなし', '자료 없음') : c.hdi_rank ? rankText(iso) : ''),
+      tile(hdiWord(), c.hdi == null ? '—' : c.hdi.toFixed(3), c.hdi == null ? L('No data', '沒有資料', 'データなし', '자료 없음') : c.hdi_rank ? rankText(iso) : '', hdiColor(iso)),
       tile(L('Odds of this country', '抽到此國機率', 'この国が当たる確率', '이 나라가 뽑힐 확률'), t ? fmtP(pIso(iso)) : '—', t ? about(pIso(iso)) : L('Drawn again', '抽到再抽一次', '引き直し', '다시 뽑기')),
       ...(SHOW_PRIZE && t ? [tile(L('Prize', '獎項', '賞', '상'), prizeOf(iso), `${hdiWord()} ${t.range}`), tile(L('Odds of winning this prize', '抽到此獎機率', 'この賞が当たる確率', '이 상에 당첨될 확률'), fmtP(pTier(t)), about(pTier(t)))] : []),
       tile(L('Balls', '彩球', 'ボール', '공'), `${BALLS[iso] ?? 0}<em>${L('', '顆', '個', '개')}</em>`, L(`of ${BALL_TOTAL} balls`, `共 ${BALL_TOTAL} 顆`, `全 ${BALL_TOTAL} 個`, `총 ${BALL_TOTAL}개`)),
@@ -195,7 +195,7 @@ onMounted(() => {
       paint: { 'circle-radius': ['get', 'r'], 'circle-color': TALLY.fill, 'circle-opacity': OP.tally, 'circle-stroke-color': TALLY.line, 'circle-stroke-width': W.tally } })
     map.addLayer({ id: 'tally-dot', type: 'circle', source: 'tally',
       paint: { 'circle-radius': 3.5, 'circle-color': ['get', 'c'], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1.5 } })
-    addTooltip(map, ['micro', 'prize'], countryTip, { hlBy: 'adm0_a3' })
+    addTooltip(map, ['micro', 'prize'], countryTip, { hlBy: 'adm0_a3', hlColor: '#ffffff', hlFill: 0 }) // 滑到（手機：點到）的國家描白線
     paint()
   })
 })
@@ -231,6 +231,8 @@ onBeforeUnmount(() => { tag?.remove(); map?.remove() })
 .tc-board .tiles { position: relative; gap: 6px; }
 .tc-board .tile { padding: 7px 9px 6px; border-radius: 11px; }
 .tc-board .tile > span { font-size: 10px; }
+.tc-board .hdi-dot { top: 7px; right: 8px; width: 10px; height: 10px; }
+.tc-board .tile.dot > span { padding-right: 14px; }
 .tc-board .tile > b { font-size: 17px; }
 .tc-board .tile > b em { font-size: 11px; }
 .tc-board .tile > small { font-size: 10px; }

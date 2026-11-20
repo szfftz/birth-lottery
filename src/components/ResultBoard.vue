@@ -1,5 +1,5 @@
 <template>
-  <!-- 中獎看板（舞台上、結果分頁共用）：燈泡框、會轉的國旗球、斜體描邊國名、獎牌、小世界地圖
+  <!-- 中獎看板（舞台上、結果分頁共用）：燈泡框、會轉的國旗球、斜體描邊國名、獎牌、小世界地圖（不顯示獎項時，這一國塗它在大地圖上的顏色）
        ticket＝結果分頁的票卡版（獎牌斜貼在右上、國名上面多一行標題，下面插槽放數字方塊） -->
   <article class="result-board" :class="{ 't-board': ticket }" :style="{ '--tier': colorOf(iso) }">
     <div class="rb-bulbs"></div>
@@ -14,7 +14,7 @@
       </div>
       <PrizeMedal v-if="!ticket && SHOW_PRIZE" :iso="iso" />
     </div>
-    <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="colorOf(iso)" />
+    <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="SHOW_PRIZE ? colorOf(iso) : hdiColor(iso)" />
     <slot />
   </article>
 </template>
@@ -22,7 +22,7 @@
 <script setup>
 import PrizeMedal from './PrizeMedal.vue'
 import WorldLocator from './WorldLocator.vue'
-import { colorOf, flagStyle, nameOf, SHOW_PRIZE } from '../lottery.js'
+import { colorOf, hdiColor, flagStyle, nameOf, SHOW_PRIZE } from '../lottery.js'
 import { fitScale, needsWrap } from '../lib/fit.js'
 import { computed } from 'vue'
 

@@ -81,13 +81,14 @@ const HDIS = ISOS.map((iso) => C[iso].hdi).filter((h) => h != null), HDI_LO = Ma
 // 圖例用：指數最低、最高是多少，還有同一條漸層（CSS）
 export const HDI_RANGE = [HDI_LO, HDI_HI], HDI_RAMP = `linear-gradient(90deg, ${HDI_COLORS.join(', ')})`
 const hex = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16))
-export function hdiColor(iso) {
-  const h = C[iso]?.hdi
+// 一個 HDI 數字的顏色（平均值也用得到）；沒有數字＝沒資料的灰
+export function hdiColorOf(h) {
   if (h == null) return NODATA
-  const x = ((h - HDI_LO) / (HDI_HI - HDI_LO)) * (HDI_COLORS.length - 1), i = Math.min(HDI_COLORS.length - 2, Math.floor(x)), t = x - i
+  const x = Math.min(1, Math.max(0, (h - HDI_LO) / (HDI_HI - HDI_LO))) * (HDI_COLORS.length - 1), i = Math.min(HDI_COLORS.length - 2, Math.floor(x)), t = x - i
   const a = hex(HDI_COLORS[i]), b = hex(HDI_COLORS[i + 1])
   return `#${a.map((v, k) => Math.round(v + (b[k] - v) * t).toString(16).padStart(2, '0')).join('')}`
 }
+export const hdiColor = (iso) => hdiColorOf(C[iso]?.hdi)
 // 不顯示獎項時每一國都同一個顏色（中獎看板的光、小地圖都不分級）
 const PLAIN = '#35a7b8'
 export const colorOf = (iso) => (SHOW_PRIZE ? TIERS[tierIdx(iso)]?.color ?? NODATA : PLAIN)

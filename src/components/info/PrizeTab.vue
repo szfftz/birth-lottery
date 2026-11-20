@@ -1,13 +1,13 @@
 <template>
-  <!-- 獎項分頁（不顯示獎項時叫「統計」，中間每一獎那一段藏起來）：上面是你抽的成績，中間每一獎的「應該中幾成 vs 你中幾成」，下面全部國家 -->
+  <!-- 獎項分頁（不顯示獎項時叫「統計」，中間每一獎那一段藏起來）：上面是你抽的成績（平均、最好、最差的右上角有地圖顏色的圓點），中間每一獎的「應該中幾成 vs 你中幾成」，下面全部國家 -->
   <section>
     <h3>{{ L('Your results', '你的成績', 'あなたの成績', '나의 성적') }}</h3>
     <div class="tiles">
       <div class="tile"><span v-fit>{{ L('Draws', '已抽', '抽選回数', '뽑은 횟수') }}</span><b v-fit>{{ total.toLocaleString('en-US') }}<em v-if="isCJK()">{{ L('', '次', '回', '번') }}</em></b><small v-fit>{{ L(`${Object.keys(counts).length} ${Object.keys(counts).length === 1 ? 'country' : 'countries'}${rerolls ? ` · ${rerolls} redrawn` : ''}`, `抽到 ${Object.keys(counts).length} 國${rerolls ? `・重抽 ${rerolls}` : ''}`, `${Object.keys(counts).length} か国${rerolls ? `・引き直し ${rerolls}` : ''}`, `${Object.keys(counts).length}개국${rerolls ? ` · 다시 뽑기 ${rerolls}` : ''}`) }}</small></div>
-      <div class="tile"><span v-fit>{{ L('Average HDI', '平均人類發展指數', '平均 HDI', '평균 HDI') }}</span><b v-fit>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small v-fit>{{ L('Expected worldwide', '全世界期望值', '世界全体の期待値', '세계 평균 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
+      <div class="tile" :class="{ dot: total }"><i v-if="total" class="hdi-dot" :style="{ background: hdiColorOf(drawnMean) }"></i><span v-fit>{{ L('Average HDI', '平均人類發展指數', '平均 HDI', '평균 HDI') }}</span><b v-fit>{{ total ? drawnMean.toFixed(3) : '—' }}</b><small v-fit>{{ L('Expected worldwide', '全世界期望值', '世界全体の期待値', '세계 평균 기댓값') }} {{ HDI_EXPECT.toFixed(3) }}</small></div>
       <template v-if="total">
-        <div class="tile pick" @click="pick(best)"><span v-fit>{{ L('Best', '最好', '最高', '최고') }}</span><b v-fit class="sm" :style="fit(nameOf(best), 7)"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small v-if="SHOW_PRIZE" v-fit :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small><small v-else v-fit>{{ hdiWord() }} {{ C[best].hdi.toFixed(3) }}</small></div>
-        <div class="tile pick" @click="pick(worst)"><span v-fit>{{ L('Worst', '最差', '最低', '최저') }}</span><b v-fit class="sm" :style="fit(nameOf(worst), 7)"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small v-if="SHOW_PRIZE" v-fit :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small><small v-else v-fit>{{ hdiWord() }} {{ C[worst].hdi.toFixed(3) }}</small></div>
+        <div class="tile pick dot" @click="pick(best)"><i class="hdi-dot" :style="{ background: hdiColor(best) }"></i><span v-fit>{{ L('Best', '最好', '最高', '최고') }}</span><b v-fit class="sm" :style="fit(nameOf(best), 7)"><FlagBall class="fl" :iso="best" />{{ nameOf(best) }}</b><small v-if="SHOW_PRIZE" v-fit :style="{ color: `color-mix(in srgb, ${colorOf(best)} 45%, #ffffff)` }">{{ prizeOf(best) }}</small><small v-else v-fit>{{ hdiWord() }} {{ C[best].hdi.toFixed(3) }}</small></div>
+        <div class="tile pick dot" @click="pick(worst)"><i class="hdi-dot" :style="{ background: hdiColor(worst) }"></i><span v-fit>{{ L('Worst', '最差', '最低', '최저') }}</span><b v-fit class="sm" :style="fit(nameOf(worst), 7)"><FlagBall class="fl" :iso="worst" />{{ nameOf(worst) }}</b><small v-if="SHOW_PRIZE" v-fit :style="{ color: `color-mix(in srgb, ${colorOf(worst)} 45%, #ffffff)` }">{{ prizeOf(worst) }}</small><small v-else v-fit>{{ hdiWord() }} {{ C[worst].hdi.toFixed(3) }}</small></div>
       </template>
     </div>
 
@@ -63,7 +63,7 @@ import FlagBall from '../FlagBall.vue'
 import { fit } from '../../lib/fit.js'
 const R_CAP = 10.5 // 清單的國名放得下幾個全形字（14px）
 import { L, isCJK } from '../../i18n.js'
-import { meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, TIERS, TIER_R, noHdi, HDI_EXPECT, hdiWord, mode, tierIdx, nameOf, prizeOf, colorOf, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../../lottery.js'
+import { meta, C, ISOS, BALLS, BALL_TOTAL, POP_UNIT, TIERS, TIER_R, noHdi, HDI_EXPECT, hdiWord, mode, tierIdx, nameOf, prizeOf, colorOf, hdiColor, hdiColorOf, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../../lottery.js'
 import { counts, total, last, rerolls, drawnMean, best, worst, drawnByTier, topDrawn, pick } from '../../store.js'
 
 const SORTS = [['pop', 'By odds', '照機率', '確率順', '확률순'], ['hdi', 'By HDI', '照指數', 'HDI 順', 'HDI순']].map(([key, ...t]) => ({ key, get label() { return L(...t) } }))
