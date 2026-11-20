@@ -180,3 +180,29 @@ const borders = [...uses].filter(([, n]) => n > 1).map(([k]) => (k[0] === 'L' ? 
 writeFileSync(new URL('../src/data/borders-simple.geojson', import.meta.url), JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates: borders } }] }))
 console.log(`國界 ${borders.length} 段`)
 console.log(`誤差 ${TOL}°、比 ${DOT}px 圓點小的島不畫：${before} 點 → ${after} 點（${((after / before) * 100).toFixed(1)}%），少畫 ${dropped} 個島`)
+
+// ── 小世界地圖（中獎看板、結果票卡的 WorldLocator）：跟大地圖用同一份形狀，轉成 SVG 路徑 ──
+// 等距圓柱：x＝經度＋180、y＝84－緯度（一位小數）；d＝路徑、b＝外框、c＝標籤點。沒有形狀的小島國只有標籤點（畫光環的位置）
+{
+  const r1 = (v) => Math.round(v * 10) / 10
+  const svg = {}
+  for (const f of JSON.parse(readFileSync(out, 'utf8')).features) {
+    const p = f.properties, g = f.geometry
+    const polys = !g?.coordinates?.length ? [] : g.type === 'Polygon' ? [g.coordinates] : g.coordinates
+    let d = '', x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+    for (const poly of polys) for (const ring of poly) {
+      let last = ''
+      ring.forEach(([lon, lat], i) => {
+        const x = r1(lon + 180), y = r1(84 - lat), s = `${x} ${y}`
+        if (s === last) return
+        last = s; d += `${i ? 'L' : 'M'}${s}`
+        x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y)
+      })
+      d += 'Z'
+    }
+    const c = [r1(p.label_x + 180), r1(84 - p.label_y)]
+    svg[p.adm0_a3] = { d, b: d ? [x0, y0, x1, y1] : [c[0], c[1], c[0], c[1]], c }
+  }
+  writeFileSync(new URL('../src/data/world-svg.json', import.meta.url), JSON.stringify(svg))
+  console.log(`小世界地圖 ${Object.keys(svg).length} 個`)
+}
