@@ -151,6 +151,15 @@ export const fmtP = (p) => (p >= 0.001 || p === 0 ? `${(p * 100).toFixed(1)}%` :
 // 大數字：中日韓用「萬（万、만）／億（억）」，英文用 million / billion（一萬以下照原樣）
 const trim = (x, d) => String(+x.toFixed(d))
 const BIG = { zh: ['萬', '億'], ja: ['万', '億'], ko: ['만', '억'] }
+// 日期照語言寫：資料是「1 Jul 2026」或只有年份「2026」
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export function fmtDate(s) {
+  const m = /^(?:(\d{1,2}) ([A-Z][a-z]{2}) )?(\d{4})$/.exec(s ?? '')
+  if (!m) return s ?? ''
+  const [, d, mon, y] = m, mo = MON.indexOf(mon) + 1
+  if (!d || !mo) return L(y, `${y} 年`, `${y}年`, `${y}년`)
+  return L(s, `${y} 年 ${mo} 月 ${d} 日`, `${y}年${mo}月${d}日`, `${y}년 ${mo}월 ${d}일`)
+}
 export const fmtBig = (n) => {
   if (n == null) return '—'
   const u = BIG[lang.value]

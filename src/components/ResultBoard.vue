@@ -14,7 +14,7 @@
       </div>
       <PrizeMedal v-if="!ticket && SHOW_PRIZE" :iso="iso" />
     </div>
-    <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="SHOW_PRIZE ? colorOf(iso) : hdiColor(iso)" />
+    <WorldLocator compact :class="ticket ? 't-map' : 'rb-map'" :iso="iso" :color="SHOW_PRIZE ? colorOf(iso) : hdiColor(iso)" :fill-of="SHOW_PRIZE ? null : mapFill" />
     <slot />
   </article>
 </template>
@@ -25,6 +25,8 @@ import WorldLocator from './WorldLocator.vue'
 import { colorOf, hdiColor, flagStyle, nameOf, SHOW_PRIZE } from '../lottery.js'
 import { fitScale, needsWrap } from '../lib/fit.js'
 import { computed } from 'vue'
+// 小世界地圖跟大地圖一致：每一國塗人類發展指數的顏色；西撒哈拉併在摩洛哥（大地圖也是）
+const mapFill = (k) => hdiColor(k === 'SAH' ? 'MAR' : k)
 
 // 國名、標題放得下幾個全形字（照設計稿的寬度算）：超過就縮小字，不換行、不被右上角的獎牌蓋到
 const TITLE_CAP = 10 // 票卡的標題（11px，國名上面那一行）

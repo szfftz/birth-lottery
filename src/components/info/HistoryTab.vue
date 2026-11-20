@@ -1,5 +1,5 @@
 <template>
-  <!-- 歷史分頁：抽過的結果（左邊國旗＋國名，右邊 HDI、排名、地圖顏色的圓點），可以選排序（時間近到遠／遠到近、獎項大到小／小到大）；點一筆＝回到那一次，跳到結果分頁看詳細資料 -->
+  <!-- 歷史分頁：抽過的結果（左邊國旗＋國名，右邊地圖顏色的圓點、HDI、排名），可以選排序（時間近到遠／遠到近、獎項大到小／小到大）；點一筆＝回到那一次，跳到結果分頁看詳細資料 -->
   <section>
     <div class="h-row">
       <h3>{{ L('Draw history', '抽過的結果', '抽選の履歴', '뽑기 기록') }}<small>{{ L(`${total.toLocaleString('en-US')} ${total === 1 ? 'draw' : 'draws'}`, `共 ${total.toLocaleString('en-US')} 次`, `全 ${total.toLocaleString('en-US')} 回`, `총 ${total.toLocaleString('en-US')}번`) }}</small></h3>
@@ -26,8 +26,8 @@
         <i v-if="SHOW_PRIZE" class="r-medal" :style="{ '--tier': colorOf(h.iso), ...fit(tierShort(tierIdx(h.iso)), 2.2, 0.55) }">{{ tierShort(tierIdx(h.iso)) }}</i>
         <FlagBall class="fl" :iso="h.iso" />
         <span class="r-name solo" :style="fit(nameOf(h.iso), R_CAP, 0.6)">{{ nameOf(h.iso) }}</span>
-        <!-- 右邊：HDI、聯合國排名、這一國在地圖上的顏色（圓點） -->
-        <span v-if="!SHOW_PRIZE" class="r-hdi"><b>{{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</b><small>{{ C[h.iso].hdi_rank ? `${C[h.iso].hdi_rank}/${RANK_TOTAL}` : "" }}</small><i class="r-dot" :style="{ background: hdiColor(h.iso) }"></i></span>
+        <!-- 右邊：這一國在地圖上的顏色（圓點，在 HDI 前面）、HDI、聯合國排名 -->
+        <span v-if="!SHOW_PRIZE" class="r-hdi"><i class="r-dot" :style="{ background: hdiColor(h.iso) }"></i><b>{{ C[h.iso].hdi?.toFixed(3) ?? '—' }}</b><small>{{ C[h.iso].hdi_rank ? `${C[h.iso].hdi_rank}/${RANK_TOTAL}` : "" }}</small></span>
       </li>
     </ol>
     <div v-else class="card empty"><p class="e-main">{{ L('No draws yet', '還沒抽過', 'まだ抽選していません', '아직 뽑지 않았어요') }}</p><p class="e-sub">{{ L('Press SPIN and every result will be listed here.', '按「搖一搖」抽一次，結果會一筆一筆記在這裡。', '「回す」を押すと、結果がここに記録されます。', '「돌리기」를 누르면 결과가 여기에 기록돼요.') }}</p></div>

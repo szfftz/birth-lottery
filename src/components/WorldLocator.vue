@@ -2,10 +2,14 @@
      full 模式右下角再放一張放大的小地圖（這一國跟鄰國的形狀）。
      地圖資料（src/data/world-svg.json，從 countries-50m.geojson 簡化）第一次用到才載入 -->
 <template>
-  <div v-if="shape" class="wl" :class="{ compact }" :style="{ '--tier': color }">
+  <div v-if="shape" class="wl" :class="{ compact, 'like-map': fillOf }" :style="{ '--tier': color }">
     <svg class="wl-world" :viewBox="`0 0 360 ${H}`" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <rect class="wl-sea" x="0" y="0" width="360" :height="H" />
-      <path class="wl-land" :d="land" />
+      <!-- fillOf：跟大地圖一樣（同一面牆當背景、每一國塗自己的顏色、沒有國界線、後面一層陰影） -->
+      <g v-if="fillOf" class="wl-lands"><path v-for="(f, k) in world" :key="k" :d="f.d" :fill="fillOf(k)" :stroke="fillOf(k)" /></g>
+      <template v-else>
+        <rect class="wl-sea" x="0" y="0" width="360" :height="H" />
+        <path class="wl-land" :d="land" />
+      </template>
       <path class="wl-hit" :d="shape.d" />
       <circle class="wl-ring" :cx="shape.c[0]" :cy="shape.c[1]" :r="ringR" />
       <circle class="wl-ring late" :cx="shape.c[0]" :cy="shape.c[1]" :r="ringR" />
@@ -29,6 +33,7 @@ const props = defineProps({
   iso: { type: String, default: null },
   color: { type: String, default: '#f5c451' },
   compact: { type: Boolean, default: false },
+  fillOf: { type: Function, default: null }, // 每一國塗什麼顏色（國碼 → 顏色）；有給就畫成跟大地圖一樣
 })
 const H = 142 // 84°N ～ 58°S
 
@@ -77,5 +82,10 @@ const zoomBox = computed(() => {
 .wl-hit.z { stroke-width: 0.25; filter: none; }
 .compact { border-radius: 10px; border: 3px solid #f5c451; }
 .compact .wl-land { fill: #4a5a8c; }
+.wl.like-map { background: radial-gradient(120% 90% at 50% 45%, #7a1424 0%, #4a0b18 38%, #22060e 70%, #0c0306 100%); } /* 跟舞台的牆同一個深酒紅 */
+.wl-lands { filter: drop-shadow(0 1.2px 1px rgba(0, 0, 0, 0.6)); }
+.wl-lands path { stroke-width: 0.3; stroke-linejoin: round; }
+.like-map .wl-hit { stroke: #ffffff; stroke-width: 0.9; filter: none; } /* 選到的國家：白線（跟大地圖一樣） */
+.like-map .wl-ring { stroke: #ffffff; }
 @media (prefers-reduced-motion: reduce) { .wl-ring { animation: none; opacity: 0.8; } }
 </style>
