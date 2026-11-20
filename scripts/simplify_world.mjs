@@ -1,7 +1,8 @@
 // 把地圖的國界簡化：點不用那麼密，只留轉折的特徵點，線看起來比較乾淨。
 // 用法：node scripts/simplify_world.mjs [容許誤差（度，預設 0.25）] [圓點直徑（px，預設 8）：比圓點小的島不畫]
 // 讀 src/data/countries-50m.geojson（原始檔不動）
-// → 寫 src/data/countries-simple.geojson（國家的面）、src/data/borders-simple.geojson（兩國之間的國界線，不含海岸線）
+// → 寫 src/data/countries-simple.geojson（國家的面）、src/data/bevel-simple.geojson（每一國的亮邊、暗邊，地圖用來做立體感）、
+//   src/data/borders-simple.geojson（兩國之間的國界線，不含海岸線；地圖現在沒在用）
 // 做法：先把所有國家的邊界切成「弧」（兩國共用的那一段是同一條弧），每條弧只簡化一次（Douglas–Peucker：留離直線最遠的點），
 // 所以相鄰兩國的邊界簡化後還是同一條線，不會裂開或重疊。
 // 小島（整圈不跟別國相連）在手機地圖一開始的大小下，如果比微型國家的圓點還小（整個島塞得進圓點裡），就不畫；被別國包住的國家（賴索托、聖馬利諾）不是島，照畫。
@@ -155,6 +156,25 @@ for (const f of world.features) {
   f.geometry = { type: 'MultiPolygon', coordinates: ps } // 全部都是小島的國家：沒有陸地可畫（地圖畫圓點）
 }
 writeFileSync(out, JSON.stringify(world))
+// 立體感用的邊（浮雕）：每一國的外框切成「朝左上的邊」（亮邊）和「朝右下的邊」（暗邊），地圖各畫一條往國家裡面縮的線。
+// 每一段都排成「國家在線的右手邊」，地圖用 line-offset 正值就是往國家裡面
+const bevel = { light: [], dark: [] }
+const area2 = (r) => { let a = 0; for (let i = 0; i < r.length - 1; i++) a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1]; return a }
+for (const f of world.features) for (const p of f.geometry.coordinates) p.forEach((r0, hole) => {
+  // 外圈要順時針（國家在右手邊），洞要逆時針
+  const r = (area2(r0) > 0) === (hole === 0) ? r0.slice().reverse() : r0
+  let run = null, kind = ''
+  const flush = () => { if (run && run.length > 1) bevel[kind].push(run); run = null }
+  for (let i = 0; i < r.length - 1; i++) {
+    const k = Math.cos((r[i][1] * Math.PI) / 180), dx = (r[i + 1][0] - r[i][0]) * k, dy = r[i + 1][1] - r[i][1], len = Math.hypot(dx, dy) || 1
+    const nw = (dy + dx) / len / Math.SQRT2 // 朝外的方向（線的左手邊）跟「左上」有多一致：1＝正對左上、-1＝正對右下
+    const kd = nw > 0.2 ? 'light' : nw < -0.2 ? 'dark' : ''
+    if (kd !== kind) { flush(); kind = kd }
+    if (kd) (run ??= [r[i]]).push(r[i + 1])
+  }
+  flush()
+})
+writeFileSync(new URL('../src/data/bevel-simple.geojson', import.meta.url), JSON.stringify({ type: 'FeatureCollection', features: Object.entries(bevel).map(([k, c]) => ({ type: 'Feature', properties: { k }, geometry: { type: 'MultiLineString', coordinates: c } })) }))
 // 國界線（只有兩國之間的那幾段，靠海的不算）：地圖只畫這些線，海岸線不描邊
 const borders = [...uses].filter(([, n]) => n > 1).map(([k]) => (k[0] === 'L' ? [...cache.get(k), cache.get(k)[0]] : cache.get(k)))
 writeFileSync(new URL('../src/data/borders-simple.geojson', import.meta.url), JSON.stringify({ type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'MultiLineString', coordinates: borders } }] }))

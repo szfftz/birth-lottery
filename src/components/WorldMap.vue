@@ -22,7 +22,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import '../lib/maplibre-worker.js'
 import { addTooltip } from '../lib/tooltip.js'
 import { fitScale } from '../lib/fit.js'
-import bordersUrl from '../data/borders-simple.geojson?url'
+import bevelUrl from '../data/bevel-simple.geojson?url'
 import worldUrl from '../data/countries-simple.geojson?url' // 簡化過的國界（scripts/simplify_world.mjs 從 countries-50m.geojson 做出來）
 import { flagStyle, hdiColor, HDI_RANGE, HDI_RAMP, BALL_TOTAL, C, BALLS, hdiWord, rankText, tierIdx, nameOf, mapNameOf, prizeOf, colorOf, NODATA, TIERS, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../lottery.js'
 
@@ -36,7 +36,7 @@ const props = defineProps({
 
 // 顏色、不透明度、線寬（px）
 const BORDER = '#ffe2a0' // 國界、緯線：淡金色（跟舞台的金色菱格同一個金）
-const WALL_LINE = 'rgb(255, 200, 100)' // 牆上菱格線的金色（style.css 的 .stage-wall）
+const BEVEL = 1 // 國家的立體感：亮邊、暗邊的粗細倍數（0＝沒有）
 const SEL = '#ffffff' // 這次抽到的國家外框
 const TALLY = { fill: '#2a0a14', line: '#ffe08a', glow: '#ffb340' } // 抽過的圓：深酒紅半透明面＋金邊＋暖金光暈
 const OP = { fill: 1, line: 0.75, tally: 0.45 }
@@ -158,7 +158,7 @@ onMounted(() => {
     const world = await (await fetch(worldUrl)).json()
     at = Object.fromEntries(world.features.map((f) => [f.properties.adm0_a3, mainCenter(geoRings(f.geometry), [f.properties.label_x, f.properties.label_y])]))
     map.addSource('countries', { type: 'geojson', data: world })
-    map.addSource('borders', { type: 'geojson', data: bordersUrl })
+    map.addSource('bevel', { type: 'geojson', data: bevelUrl })
     map.addSource('micro', { type: 'geojson', data: microDots(world) })
     map.addSource('tally', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
     map.addSource('graticule', { type: 'geojson', data: GRATICULE })
@@ -173,8 +173,13 @@ onMounted(() => {
     map.addLayer({ id: 'land-shadow', type: 'line', source: 'countries', layout: { 'line-join': 'round', 'line-cap': 'round' },
       paint: { 'line-color': '#000000', 'line-width': zw(7, 18), 'line-blur': zw(7, 18), 'line-opacity': 0.55, 'line-translate': [0, 4] } })
     map.addLayer({ id: 'prize', type: 'fill', source: 'countries', paint: { 'fill-color': fillColor, 'fill-opacity': OP.fill, 'fill-antialias': true } })
-    // 國界：只畫兩國之間的線，靠海的不描邊。跟後面牆上的菱格線同一種線：同一個金色、2px、半透明（牆上是 7%，但陸地是亮色，7% 會看不見，所以用 50%）
-    map.addLayer({ id: 'prize-line', type: 'line', source: 'borders', layout: { 'line-join': 'round' }, paint: { 'line-color': WALL_LINE, 'line-width': 2, 'line-opacity': 0.5 } })
+    // 每一國一點立體感（浮雕）：每一國朝左上的邊畫一條亮線、朝右下的邊畫一條暗線，都往國家裡面縮一點（資料見 scripts/simplify_world.mjs），
+    // 看起來像一塊微微鼓起來的牌子，光從左上來。線都在國家自己裡面，不會蓋到鄰國
+    const bevel = (id, k, color, opacity) => map.addLayer({ id, type: 'line', source: 'bevel', filter: ['==', ['get', 'k'], k], layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': color, 'line-offset': zw(BEVEL * 1.3, BEVEL * 2.8), 'line-width': zw(BEVEL * 2.6, BEVEL * 5.6), 'line-blur': zw(BEVEL * 1.6, BEVEL * 3.4), 'line-opacity': opacity } })
+    bevel('bevel-dark', 'dark', '#2a0018', 0.55)
+    bevel('bevel-light', 'light', '#ffffff', 0.7)
+    // 國界不另外畫線：靠每一國的浮雕邊（亮邊、暗邊）就分得開
     map.addLayer({ id: 'prize-sel', type: 'line', source: 'countries', filter: ['==', 'adm0_a3', ''], paint: { 'line-color': SEL, 'line-width': W.sel } })
     // 微型國家的圓點（在國家上面、抽過的圓下面）
     map.addLayer({ id: 'micro-glow', type: 'circle', source: 'micro', filter: ['>', ['get', 'z'], ['zoom']],
