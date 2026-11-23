@@ -249,6 +249,9 @@ section > .tiles .tile { background: var(--tile); }
 .t-board .tile { background: rgba(43, 10, 94, 0.45); }
 .t-board .tile > span, .t-board .tile > small { color: rgba(255, 255, 255, 0.78); }
 .t-board .note { color: rgba(255, 255, 255, 0.78); }
+/* 票卡最下面的兩個連結（維基百科、Google 地圖）：左右各一半 */
+.t-links { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.t-links a { display: grid; place-items: center; height: 38px; padding-left: 8px; padding-right: 8px; text-decoration: none; white-space: nowrap; }
 .rb-map { position: relative; margin-top: 12px; }
 /* ── 舞台上的結果看板（Day 25 原樣，1080×1350 的單位） ── */
 .rb-wrap { position: relative; cursor: pointer; animation: rb-pop 0.6s cubic-bezier(0.2, 1.5, 0.4, 1); }

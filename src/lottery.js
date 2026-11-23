@@ -4,6 +4,7 @@ import { L, lang } from './i18n.js'
 import { ref } from 'vue'
 import data from './data/lottery.json'
 import cellMeta from './data/cells.json'
+import wiki from './data/wiki.json'
 import ballMeta from './data/balls.json'
 import tierMeta from './data/tiers.json'
 import namesJaKo from './data/names_jako.json' // 日文、韓文國名（Natural Earth，少數改成常用簡稱）
@@ -151,6 +152,13 @@ export const fmtP = (p) => (p >= 0.001 || p === 0 ? `${(p * 100).toFixed(1)}%` :
 // 大數字：中日韓用「萬（万、만）／億（억）」，英文用 million / billion（一萬以下照原樣）
 const trim = (x, d) => String(+x.toFixed(d))
 const BIG = { zh: ['萬', '億'], ja: ['万', '億'], ko: ['만', '억'] }
+// 每一國的兩個外部連結：維基百科（照語言開那個語言的條目；中文開臺灣正體）、Google 地圖（介面也照語言）
+// wiki.json：國碼 → [英, 中, 日, 韓] 的條目名稱（從 Wikidata 查的）
+const WIKI_HOST = { en: 'en.wikipedia.org/wiki', zh: 'zh.wikipedia.org/zh-tw', ja: 'ja.wikipedia.org/wiki', ko: 'ko.wikipedia.org/wiki' }
+const MAP_HL = { en: 'en-GB', zh: 'zh-TW', ja: 'ja', ko: 'ko' }
+export const wikiUrl = (iso) => `https://${WIKI_HOST[lang.value]}/${encodeURIComponent((wiki[iso]?.[['en', 'zh', 'ja', 'ko'].indexOf(lang.value)] ?? C[iso].name_en).replace(/ /g, '_'))}`
+// 用英文條目名稱找（括號拿掉：「Georgia (country)」→「Georgia country」，才不會找到美國的喬治亞州）
+export const gmapUrl = (iso) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((wiki[iso]?.[0] ?? C[iso].name_en).replace(/[()]/g, ''))}&hl=${MAP_HL[lang.value]}`
 // 日期照語言寫：資料是「1 Jul 2026」或只有年份「2026」
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 export function fmtDate(s) {

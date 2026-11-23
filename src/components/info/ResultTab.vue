@@ -12,6 +12,11 @@
           <div v-if="lastBall != null" class="tile"><span v-fit>{{ L('Ball', '球號', 'ボール番号', '공 번호') }}</span><b v-fit>#{{ (lastBall + 1).toLocaleString('en-US') }}</b><small v-fit>{{ L(`${BALLS[last]} of ${BALL_TOTAL} balls`, `這國 ${BALLS[last]} 顆／共 ${BALL_TOTAL} 顆`, `この国 ${BALLS[last]} 個／全 ${BALL_TOTAL} 個`, `이 나라 ${BALLS[last]}개 / 총 ${BALL_TOTAL}개`) }}</small></div>
           <div class="tile" :class="{ wide: lastBall == null }"><span v-fit>{{ L('Population', '人口', '人口', '인구') }}</span><b v-fit>{{ fmtBig(C[last].pop) }}</b><small v-fit>{{ fmtDate(C[last].pop_date) }}</small></div>
         </div>
+        <!-- 這一國的兩個連結：維基百科、Google 地圖（另開分頁） -->
+        <div class="t-links">
+          <a class="pill" :href="wikiUrl(last)" target="_blank" rel="noopener">{{ L('Wikipedia', '維基百科', 'ウィキペディア', '위키백과') }}</a>
+          <a class="pill" :href="gmapUrl(last)" target="_blank" rel="noopener">{{ L('Google Maps', 'Google 地圖', 'Google マップ', 'Google 지도') }}</a>
+        </div>
         <p v-if="lastRerolls" class="note">{{ L(`${lastRerolls} redraw ${lastRerolls > 1 ? 'balls' : 'ball'} (${noHdiNames()}) dropped first, so it was drawn again automatically.`, `先掉出 ${lastRerolls} 次重抽球（${noHdiNames()}），自動再搖`, `先に引き直しボール（${noHdiNames()}）が ${lastRerolls} 回出たので、自動でもう一度回しました。`, `다시 뽑기 공(${noHdiNames()})이 먼저 ${lastRerolls}번 나와서 자동으로 다시 돌렸어요.`) }}</p>
       </ResultBoard>
     </template>
@@ -32,7 +37,7 @@
 <script setup>
 import ResultBoard from '../ResultBoard.vue'
 import { L } from '../../i18n.js'
-import { C, hdiColor, fmtDate, BALLS, BALL_TOTAL, TIERS, hdiWord, rankText, mode, tierIdx, noHdiNames, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../../lottery.js'
+import { C, hdiColor, fmtDate, wikiUrl, gmapUrl, BALLS, BALL_TOTAL, TIERS, hdiWord, rankText, mode, tierIdx, noHdiNames, pTier, pIso, fmtP, oneIn, fmtBig, SHOW_PRIZE } from '../../lottery.js'
 import { last, lastBall, lastN, lastRerolls, spinning, total } from '../../store.js'
 
 // 最下面的操作提示（[英文, 中文, 日文, 韓文]）
