@@ -73,29 +73,29 @@ function tray(w, d, rim, mat, edge, baseMat = mat) {
   return g
 }
 
-// 收納盒：透明壓克力底盒、打開的蓋子（後面的邊當鉸鏈，往後翻開 CASE.lidOpen 度）、前面的金屬提把和兩個扣環
+// 收納盒：透明壓克力底盒（整個透明，看得到後面）、打開的蓋子（後面的邊當鉸鏈，往後翻開 CASE.lidOpen 度）、前面的金屬提把和兩個扣環
 function makeBox() {
   const g = new THREE.Group()
-  // 底盒不透明（底、四邊），才有影子；蓋子另外用透明壓克力
-  const mat = new THREE.MeshStandardMaterial({ color: '#f3f4f5', roughness: 0.5, metalness: 0, side: THREE.DoubleSide })
+  // 底盒、蓋子、隔板都是透明壓克力；透明的板子收不到影子，所以底上另外鋪一層只顯示影子的
+  const mat = new THREE.MeshPhysicalMaterial({ color: ACRYLIC, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide })
   const edge = new THREE.LineBasicMaterial({ color: EDGE, transparent: true, opacity: 0.8 })
   const metal = new THREE.MeshStandardMaterial({ color: METAL, roughness: 0.25, metalness: 0.9 })
   const { pad, t, rim } = CASE
   const w = W() + 2 * pad, d = D() + 2 * pad
   g.add(tray(w, d, rim, mat, edge))
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.35 }))
+  shadow.position.y = 0.004; shadow.receiveShadow = true; g.add(shadow)
   // 隔板：沿著格線、跟框一樣高的壓克力片（貼到盒子邊的那段延伸到框）
   const gx = (c) => (c <= 0 ? -w / 2 : c >= props.cols ? w / 2 : c * PITCH - W() / 2)
   const gz = (r) => (r <= 0 ? -d / 2 : r >= props.rows ? d / 2 : r * PITCH - D() / 2)
   for (const [[c0, r0], [c1, r1]] of props.walls) {
     const x0 = gx(c0), x1 = gx(c1), z0 = gz(r0), z1 = gz(r1)
     const geo = new THREE.BoxGeometry(Math.abs(x1 - x0) + t, rim, Math.abs(z1 - z0) + t)
-    const m = new THREE.Mesh(geo, mat); m.position.set((x0 + x1) / 2, rim / 2, (z0 + z1) / 2); m.castShadow = m.receiveShadow = true; g.add(m)
+    const m = new THREE.Mesh(geo, mat); m.position.set((x0 + x1) / 2, rim / 2, (z0 + z1) / 2); m.renderOrder = 2; g.add(m)
     const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edge); e.position.copy(m.position); g.add(e)
   }
   // 蓋子：跟底盒一樣大、淺一點，開口朝下蓋上去；鉸鏈在後面的上緣
-  // 蓋子：透明壓克力（底盒不透明）
-  const lidMat = new THREE.MeshPhysicalMaterial({ color: ACRYLIC, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.1, depthWrite: false, side: THREE.DoubleSide })
-  const lid = tray(w, d, rim * 0.6, lidMat, edge)
+  const lid = tray(w, d, rim * 0.6, mat, edge)
   lid.rotation.x = Math.PI // 開口朝下
   const hinge = new THREE.Group()
   hinge.position.set(0, rim, -d / 2 - t)
